@@ -33,7 +33,7 @@ impl ArticleRepository {
     }
 
     pub async fn _insert(connection: &connection::PgConnection) -> model::Article {
-        wrapper::wrap_db(
+        wrapper::_wrap_db(
             &connection,
             ArticleRepository::insert_raw,
             (),

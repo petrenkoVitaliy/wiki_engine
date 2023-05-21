@@ -32,7 +32,7 @@ impl ArticleVersionRepository {
         connection: &connection::PgConnection,
         creation_dto: CreateArticleVersionDto,
     ) -> model::ArticleVersion {
-        wrapper::wrap_db(
+        wrapper::_wrap_db(
             &connection,
             ArticleVersionRepository::insert_raw,
             creation_dto,
