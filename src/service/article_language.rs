@@ -1,6 +1,8 @@
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 
+use super::error::formatted_error::FmtError;
+
 use super::repository::connection;
 use super::repository::module::article_language::{model, ArticleLanguageRepository};
 
@@ -18,13 +20,7 @@ impl ArticleLanguageService {
         connection: &connection::PgConnection,
         article_ids: Vec<i32>,
     ) -> Vec<model::ArticleLanguage> {
-        connection::wrap_db(
-            &connection,
-            ArticleLanguageRepository::get_many_by_article,
-            article_ids,
-            "failed to fetch article_language",
-        )
-        .await
+        ArticleLanguageRepository::get_many(connection, article_ids).await
     }
 
     pub async fn get_aggregations(
@@ -144,7 +140,7 @@ impl ArticleLanguageService {
 
             language: languages_map
                 .get(&article_language.language_id)
-                .expect("language wasn't found")
+                .expect(FmtError::NotFound("language").fmt().as_str())
                 .clone(),
         }
     }

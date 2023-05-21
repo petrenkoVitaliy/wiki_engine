@@ -8,7 +8,6 @@
     high:
 
     medium:
-        - add errors generator
 
     low:
         - test eq & eq_any perf

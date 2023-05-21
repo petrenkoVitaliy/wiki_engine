@@ -1,26 +1,33 @@
 use diesel::prelude::*;
 
+use super::connection;
 use super::db_schema;
+use super::error::formatted_error::FmtError;
 
 pub mod model;
 
 pub struct LanguageRepository {}
 
 impl LanguageRepository {
-    pub fn get_one(
-        connection: &mut diesel::PgConnection,
+    pub async fn get_one(
+        connection: &connection::PgConnection,
         code: String,
-    ) -> Result<Option<model::Language>, diesel::result::Error> {
-        db_schema::language::table
-            .filter(db_schema::language::code.eq(code))
-            .first(connection)
-            .optional()
+    ) -> Option<model::Language> {
+        connection
+            .run(|connection| {
+                db_schema::language::table
+                    .filter(db_schema::language::code.eq(code))
+                    .first(connection)
+                    .optional()
+            })
+            .await
+            .expect(FmtError::FailedToFetch("language").fmt().as_str())
     }
 
-    pub fn get_many(
-        connection: &mut diesel::PgConnection,
-        _dto: (),
-    ) -> Result<Vec<model::Language>, diesel::result::Error> {
-        db_schema::language::table.load(connection)
+    pub async fn get_many(connection: &connection::PgConnection) -> Vec<model::Language> {
+        connection
+            .run(|connection| db_schema::language::table.load(connection))
+            .await
+            .expect(FmtError::FailedToFetch("languages").fmt().as_str())
     }
 }

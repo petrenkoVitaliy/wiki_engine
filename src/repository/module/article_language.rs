@@ -1,7 +1,10 @@
 use diesel::prelude::*;
 
+use super::connection::PgConnection;
 use super::db_schema;
+use super::error::formatted_error::FmtError;
 use super::schema::article_language::CreateArticleLanguageDto;
+use super::wrapper;
 
 pub mod model;
 
@@ -9,16 +12,34 @@ pub struct ArticleLanguageRepository {}
 
 impl ArticleLanguageRepository {
     // TODO test eq & eq_any perf
-    pub fn get_many_by_article(
-        connection: &mut diesel::PgConnection,
+    pub async fn get_many(
+        connection: &PgConnection,
         article_ids: Vec<i32>,
-    ) -> Result<Vec<model::ArticleLanguage>, diesel::result::Error> {
-        db_schema::article_language::table
-            .filter(db_schema::article_language::article_id.eq_any(article_ids))
-            .load(connection)
+    ) -> Vec<model::ArticleLanguage> {
+        connection
+            .run(|connection| {
+                db_schema::article_language::table
+                    .filter(db_schema::article_language::article_id.eq_any(article_ids))
+                    .load(connection)
+            })
+            .await
+            .expect(FmtError::FailedToFetch("article_languages").fmt().as_str())
     }
 
-    pub fn insert(
+    pub async fn _insert(
+        connection: &PgConnection,
+        creation_dto: CreateArticleLanguageDto,
+    ) -> model::ArticleLanguage {
+        wrapper::wrap_db(
+            &connection,
+            ArticleLanguageRepository::insert_raw,
+            creation_dto,
+            FmtError::FailedToInsert("article_language"),
+        )
+        .await
+    }
+
+    pub fn insert_raw(
         connection: &mut diesel::PgConnection,
         creation_dto: CreateArticleLanguageDto,
     ) -> Result<model::ArticleLanguage, diesel::result::Error> {

@@ -6,25 +6,12 @@ use super::schema::article_version::ArticleVersionAggregation;
 pub struct ArticleVersionService {}
 
 impl ArticleVersionService {
-    async fn get_many(
-        connection: &connection::PgConnection,
-        article_languages_ids: Vec<i32>,
-    ) -> Vec<model::ArticleVersion> {
-        connection::wrap_db(
-            connection,
-            ArticleVersionRepository::get_many_by_languages,
-            article_languages_ids,
-            "failed to fetch article versions",
-        )
-        .await
-    }
-
     pub async fn get_aggregations(
         connection: &connection::PgConnection,
         article_languages_ids: Vec<i32>,
     ) -> Vec<ArticleVersionAggregation> {
         let article_versions =
-            ArticleVersionService::get_many(connection, article_languages_ids).await;
+            ArticleVersionRepository::get_many(connection, article_languages_ids).await;
 
         ArticleVersionService::map_to_aggregations(article_versions)
     }

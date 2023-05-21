@@ -6,20 +6,10 @@ use super::schema::language::LanguageAggregation;
 pub struct LanguageService {}
 
 impl LanguageService {
-    async fn get_many(connection: &connection::PgConnection) -> Vec<model::Language> {
-        connection::wrap_db(
-            connection,
-            LanguageRepository::get_many,
-            (),
-            "failed to fetch languages",
-        )
-        .await
-    }
-
     pub async fn get_aggregations(
         connection: &connection::PgConnection,
     ) -> Vec<LanguageAggregation> {
-        let languages = LanguageService::get_many(connection).await;
+        let languages = LanguageRepository::get_many(connection).await;
 
         LanguageService::map_to_aggregations(languages)
     }

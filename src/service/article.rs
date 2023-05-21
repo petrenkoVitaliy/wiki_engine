@@ -6,53 +6,32 @@ use super::article_language::ArticleLanguageService;
 use super::article_version::ArticleVersionService;
 use super::language::LanguageService;
 
+use super::schema::article::ArticleAggregation;
 use super::schema::article::CreateArticleDto;
 use super::schema::article_language::{ArticleLanguageAggregation, CreateArticleLanguageDto};
 use super::schema::article_version::CreateArticleVersionDto;
-use crate::schema::article::ArticleAggregation;
 
-use super::repository::module::language::model::Language;
 use super::repository::module::{
     article::{model, ArticleRepository},
     article_language::{model::ArticleLanguage, ArticleLanguageRepository},
     article_version::{model::ArticleVersion, ArticleVersionRepository},
-    language::LanguageRepository,
+    language::{model::Language, LanguageRepository},
 };
+
+use super::error::formatted_error::FmtError;
 
 use super::repository::connection;
 
 pub struct ArticleService {}
 
-// TODO add errors generator
-
 impl ArticleService {
-    // TODO r u drunk?
-    async fn get_one(connection: &connection::PgConnection, article_id: i32) -> model::Article {
-        connection::wrap_db(
-            &connection,
-            ArticleRepository::get_one,
-            article_id,
-            "failed to fetch article",
-        )
-        .await
-        .expect("article wasn't found")
-    }
-
-    async fn get_many(connection: &connection::PgConnection) -> Vec<model::Article> {
-        connection::wrap_db(
-            &connection,
-            ArticleRepository::get_many,
-            (),
-            "failed to fetch articles",
-        )
-        .await
-    }
-
     pub async fn get_aggregation(
         connection: &connection::PgConnection,
         article_id: i32,
     ) -> ArticleAggregation {
-        let article = ArticleService::get_one(connection, article_id).await;
+        let article = ArticleRepository::get_one(connection, article_id)
+            .await
+            .expect(FmtError::NotFound("article").fmt().as_str());
 
         let article_language_aggregations =
             ArticleLanguageService::get_aggregations(&connection, vec![article.id]).await;
@@ -63,7 +42,7 @@ impl ArticleService {
     pub async fn get_aggregations(
         connection: &connection::PgConnection,
     ) -> Vec<ArticleAggregation> {
-        let articles = ArticleService::get_many(connection).await;
+        let articles = ArticleRepository::get_many(connection).await;
 
         let articles_ids: Vec<i32> = articles.iter().map(|article| article.id).collect();
 
@@ -88,14 +67,7 @@ impl ArticleService {
     ) -> Option<ArticleAggregation> {
         let language_code = article_dto.language.to_string();
 
-        let language = match connection::wrap_db(
-            &connection,
-            LanguageRepository::get_one,
-            language_code,
-            "failed to fetch language",
-        )
-        .await
-        {
+        let language = match LanguageRepository::get_one(connection, language_code).await {
             Some(language) => language,
             _ => return None,
         };
@@ -159,9 +131,10 @@ impl ArticleService {
         article_dto: Json<CreateArticleDto>,
         language_id: i32,
     ) -> (model::Article, ArticleLanguage, ArticleVersion) {
-        let article = ArticleRepository::insert(connection).expect("failed to create article");
+        let article = ArticleRepository::insert_raw(connection, ())
+            .expect(FmtError::FailedToInsert("article").fmt().as_str());
 
-        let article_language = ArticleLanguageRepository::insert(
+        let article_language = ArticleLanguageRepository::insert_raw(
             connection,
             CreateArticleLanguageDto {
                 name: article_dto.name.to_string(),
@@ -169,9 +142,9 @@ impl ArticleService {
                 language_id: language_id,
             },
         )
-        .expect("failed to create article_language");
+        .expect(FmtError::FailedToInsert("article_language").fmt().as_str());
 
-        let article_version = ArticleVersionRepository::insert(
+        let article_version = ArticleVersionRepository::insert_raw(
             connection,
             CreateArticleVersionDto {
                 version: article.id,
@@ -179,7 +152,7 @@ impl ArticleService {
                 content: article_dto.content.to_string(),
             },
         )
-        .expect("failed to create article_version");
+        .expect(FmtError::FailedToInsert("article_version").fmt().as_str());
 
         (article, article_language, article_version)
     }
