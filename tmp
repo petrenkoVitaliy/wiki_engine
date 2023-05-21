@@ -1,0 +1,15 @@
+ diesel migration run --database-url postgresql://postgres:test@localhost:5432/postgres 
+
+ diesel migration generate create_blog_posts     
+
+ diesel print-schema 
+
+ // TODOs
+    high:
+
+    medium:
+        - add errors generator
+
+    low:
+        - test eq & eq_any perf
+j

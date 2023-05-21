@@ -1,0 +1,15 @@
+[package]
+name = "wiki-engine"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rocket = { version = "=0.5.0-rc.3", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+diesel = { version = "2.0.4", features = ["postgres", "chrono"] }
+chrono = { version = "0.4.24", features = ["serde"]}
+diesel_cli = { version = "1.4.1", default-features = false, features = ["postgres"] }
+rocket_sync_db_pools = { version = "0.1.0-rc.3", features = ["diesel_postgres_pool"]}
+
