@@ -6,7 +6,7 @@ use super::error::formatted_error::FmtError;
 use super::option_config::query_options::QueryOptions;
 use super::wrapper;
 
-use super::schema::article_language::ArticleLanguageCreateDto;
+use super::schema::article_language::{ArticleLanguageCreateDto, ArticleLanguagePatchDto};
 
 pub mod model;
 
@@ -91,5 +91,36 @@ impl ArticleLanguageRepository {
                 created_at: None,
             })
             .get_result::<model::ArticleLanguage>(connection)
+    }
+
+    pub async fn patch(
+        connection: &PgConnection,
+        language_id: i32,
+        article_id: i32,
+        patch_dto: ArticleLanguagePatchDto,
+    ) -> usize {
+        connection
+            .run(move |connection| {
+                diesel::update(db_schema::article_language::table)
+                    .filter(
+                        db_schema::article_language::language_id
+                            .eq(language_id)
+                            .and(db_schema::article_language::article_id.eq(article_id)),
+                    )
+                    .set(model::ArticleLanguagePatch {
+                        name: patch_dto.name,
+                        enabled: patch_dto.enabled,
+                        archived: patch_dto.archived,
+
+                        id: None,
+                        article_id: None,
+                        language_id: None,
+                        updated_at: None,
+                        created_at: None,
+                    })
+                    .execute(connection)
+            })
+            .await
+            .expect(FmtError::FailedToUpdate("article_language").fmt().as_str())
     }
 }

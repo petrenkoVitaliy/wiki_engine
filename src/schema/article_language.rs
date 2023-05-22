@@ -39,3 +39,16 @@ pub struct ArticleLanguageAggregation {
     pub language: LanguageAggregation,
     pub versions: Vec<ArticleVersionAggregation>,
 }
+
+#[derive(Deserialize)]
+pub struct ArticleLanguagePatchBody {
+    pub enabled: Option<bool>,
+    pub name: Option<String>,
+}
+
+#[derive(Debug)]
+pub struct ArticleLanguagePatchDto {
+    pub enabled: Option<bool>,
+    pub archived: Option<bool>,
+    pub name: Option<String>,
+}

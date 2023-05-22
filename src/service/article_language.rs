@@ -1,6 +1,8 @@
 use diesel::Connection;
 use std::collections::HashMap;
 
+use crate::schema::language::LanguageAggregation;
+
 use super::error::formatted_error::FmtError;
 use super::option_config::query_options::QueryOptions;
 
@@ -13,6 +15,7 @@ use super::language::LanguageService;
 
 use super::schema::article_language::{
     ArticleLanguageAggregation, ArticleLanguageCreateDto, ArticleLanguageCreateRelationsDto,
+    ArticleLanguagePatchDto,
 };
 use super::schema::article_version::ArticleVersionCreateDto;
 
@@ -33,6 +36,21 @@ impl ArticleLanguageService {
             Some(language) => language,
         };
 
+        ArticleLanguageService::get_aggregation_with_language(
+            connection,
+            article_id,
+            language,
+            query_options,
+        )
+        .await
+    }
+
+    async fn get_aggregation_with_language(
+        connection: &connection::PgConnection,
+        article_id: i32,
+        language: LanguageAggregation,
+        query_options: QueryOptions,
+    ) -> Option<ArticleLanguageAggregation> {
         let article_language = match ArticleLanguageRepository::get_one(
             connection,
             article_id,
@@ -120,6 +138,34 @@ impl ArticleLanguageService {
         .remove(0);
 
         article_language_aggregation
+    }
+
+    pub async fn patch(
+        connection: &connection::PgConnection,
+        language_code: String,
+        article_id: i32,
+        patch_dto: ArticleLanguagePatchDto,
+    ) -> Option<ArticleLanguageAggregation> {
+        let language: LanguageAggregation =
+            match LanguageService::get_aggregation(connection, language_code).await {
+                None => return None,
+                Some(language) => language,
+            };
+
+        let updated_count =
+            ArticleLanguageRepository::patch(connection, language.id, article_id, patch_dto).await;
+
+        if updated_count == 0 {
+            return None;
+        }
+
+        ArticleLanguageService::get_aggregation_with_language(
+            connection,
+            article_id,
+            language,
+            QueryOptions { is_actual: false },
+        )
+        .await
     }
 
     pub async fn get_aggregations_map(

@@ -9,8 +9,9 @@
 
     medium:
         - unique db fields
-        - rename local context params & methods
         - None vs expect
+
+        - init DI
 
     low:
         - test eq & eq_any perf
