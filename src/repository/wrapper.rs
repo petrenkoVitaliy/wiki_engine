@@ -1,7 +1,7 @@
 use super::connection;
 use super::error::formatted_error::FmtError;
 
-// TODO
+// TODO unused
 pub async fn _wrap_db<T: Send + 'static, U: Send + 'static>(
     connection: &connection::PgConnection,
     cb: fn(connection: &mut diesel::PgConnection, dto: U) -> Result<T, diesel::result::Error>,
