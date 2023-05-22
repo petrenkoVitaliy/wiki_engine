@@ -3,15 +3,48 @@ use diesel::prelude::*;
 use super::connection::PgConnection;
 use super::db_schema;
 use super::error::formatted_error::FmtError;
+use super::option_config::query_options::QueryOptions;
 use super::wrapper;
 
-use super::schema::article_language::CreateArticleLanguageDto;
+use super::schema::article_language::ArticleLanguageCreateDto;
 
 pub mod model;
 
 pub struct ArticleLanguageRepository {}
 
 impl ArticleLanguageRepository {
+    pub async fn get_one(
+        connection: &PgConnection,
+        article_id: i32,
+        language_id: i32,
+        query_options: QueryOptions,
+    ) -> Option<model::ArticleLanguage> {
+        connection
+            .run(move |connection| {
+                let filter_query = db_schema::article_language::article_id
+                    .eq(article_id)
+                    .and(db_schema::article_language::language_id.eq(language_id));
+
+                if query_options.is_actual {
+                    return db_schema::article_language::table
+                        .filter(
+                            filter_query
+                                .and(db_schema::article_language::enabled.eq(true))
+                                .and(db_schema::article_language::archived.eq(false)),
+                        )
+                        .first(connection)
+                        .optional();
+                }
+
+                db_schema::article_language::table
+                    .filter(filter_query)
+                    .first(connection)
+                    .optional()
+            })
+            .await
+            .expect(FmtError::FailedToFetch("article_language").fmt().as_str())
+    }
+
     // TODO test eq & eq_any perf
     pub async fn get_many(
         connection: &PgConnection,
@@ -29,7 +62,7 @@ impl ArticleLanguageRepository {
 
     pub async fn _insert(
         connection: &PgConnection,
-        creation_dto: CreateArticleLanguageDto,
+        creation_dto: ArticleLanguageCreateDto,
     ) -> model::ArticleLanguage {
         wrapper::_wrap_db(
             &connection,
@@ -42,7 +75,7 @@ impl ArticleLanguageRepository {
 
     pub fn insert_raw(
         connection: &mut diesel::PgConnection,
-        creation_dto: CreateArticleLanguageDto,
+        creation_dto: ArticleLanguageCreateDto,
     ) -> Result<model::ArticleLanguage, diesel::result::Error> {
         diesel::insert_into(db_schema::article_language::table)
             .values(model::ArticleLanguageInsertable {

@@ -1,6 +1,4 @@
 use super::error;
-use super::mapper;
-use super::option_config;
 use super::repository;
 use super::schema;
 

@@ -1,33 +1,68 @@
-use std::collections::hash_map::Entry;
+use diesel::Connection;
 use std::collections::HashMap;
 
 use super::error::formatted_error::FmtError;
+use super::option_config::query_options::QueryOptions;
 
 use super::repository::connection;
 use super::repository::module::article_language::{model, ArticleLanguageRepository};
-
-use super::schema::article_language::ArticleLanguageAggregation;
-use super::schema::article_version::ArticleVersionAggregation;
-use super::schema::language::LanguageAggregation;
+use super::repository::module::article_version::{model::ArticleVersion, ArticleVersionRepository};
 
 use super::article_version::ArticleVersionService;
 use super::language::LanguageService;
 
+use super::schema::article_language::{
+    ArticleLanguageAggregation, ArticleLanguageCreateDto, ArticleLanguageCreateRelationsDto,
+};
+use super::schema::article_version::ArticleVersionCreateDto;
+
+use super::mapper::article_language::ArticleLanguageMapper;
+use super::mapper::article_version::ArticleVersionMapper;
+
 pub struct ArticleLanguageService {}
 
 impl ArticleLanguageService {
-    async fn get_many(
+    pub async fn get_aggregation(
         connection: &connection::PgConnection,
-        article_ids: Vec<i32>,
-    ) -> Vec<model::ArticleLanguage> {
-        ArticleLanguageRepository::get_many(connection, article_ids).await
+        article_id: i32,
+        language_code: String,
+        query_options: QueryOptions,
+    ) -> Option<ArticleLanguageAggregation> {
+        let language = match LanguageService::get_aggregation(connection, language_code).await {
+            None => return None,
+            Some(language) => language,
+        };
+
+        let article_language = match ArticleLanguageRepository::get_one(
+            connection,
+            article_id,
+            language.id,
+            query_options,
+        )
+        .await
+        {
+            None => return None,
+            Some(article) => article,
+        };
+
+        let article_versions =
+            ArticleVersionService::get_aggregations(connection, vec![article_language.id]).await;
+
+        let article_language_aggregation = ArticleLanguageMapper::map_to_aggregations(
+            vec![article_language],
+            article_versions,
+            vec![language],
+        )
+        .remove(0);
+
+        Some(article_language_aggregation)
     }
 
     pub async fn get_aggregations(
         connection: &connection::PgConnection,
         article_ids: Vec<i32>,
     ) -> Vec<ArticleLanguageAggregation> {
-        let article_languages = ArticleLanguageService::get_many(connection, article_ids).await;
+        let article_languages = ArticleLanguageRepository::get_many(connection, article_ids).await;
 
         let article_languages_ids: Vec<i32> = article_languages
             .iter()
@@ -38,14 +73,60 @@ impl ArticleLanguageService {
         let article_versions =
             ArticleVersionService::get_aggregations(connection, article_languages_ids).await;
 
-        ArticleLanguageService::map_to_aggregations(article_languages, article_versions, languages)
+        ArticleLanguageMapper::map_to_aggregations(article_languages, article_versions, languages)
+    }
+
+    pub async fn insert(
+        connection: &connection::PgConnection,
+        creation_dto: ArticleLanguageCreateRelationsDto,
+    ) -> ArticleLanguageAggregation {
+        let language_code = String::from(&creation_dto.language_code);
+
+        let language = LanguageService::get_aggregation(connection, language_code)
+            .await
+            .expect(FmtError::NotFound("language").fmt().as_str());
+
+        match ArticleLanguageRepository::get_one(
+            connection,
+            creation_dto.article_id,
+            language.id,
+            QueryOptions { is_actual: false },
+        )
+        .await
+        {
+            Some(_) => panic!(
+                "{}",
+                FmtError::AlreadyExists("article_language").fmt().as_str()
+            ),
+            _ => (),
+        };
+
+        let (article_language, article_version) =
+            ArticleLanguageService::create_relations_transaction(
+                connection,
+                creation_dto,
+                language.id,
+            )
+            .await;
+
+        let article_version_aggregations =
+            ArticleVersionMapper::map_to_aggregations(vec![article_version]);
+
+        let article_language_aggregation = ArticleLanguageMapper::map_to_aggregations(
+            vec![article_language],
+            article_version_aggregations,
+            vec![language],
+        )
+        .remove(0);
+
+        article_language_aggregation
     }
 
     pub async fn get_aggregations_map(
         connection: &connection::PgConnection,
         article_ids: Vec<i32>,
     ) -> HashMap<i32, Vec<ArticleLanguageAggregation>> {
-        let article_languages = ArticleLanguageService::get_many(connection, article_ids).await;
+        let article_languages = ArticleLanguageRepository::get_many(connection, article_ids).await;
 
         let article_languages_ids: Vec<i32> = article_languages
             .iter()
@@ -56,121 +137,59 @@ impl ArticleLanguageService {
         let article_versions =
             ArticleVersionService::get_aggregations(connection, article_languages_ids).await;
 
-        ArticleLanguageService::map_to_aggregations_map(
+        ArticleLanguageMapper::map_to_aggregations_map(
             article_languages,
             article_versions,
             languages,
         )
     }
 
-    pub fn map_to_aggregations(
-        article_languages: Vec<model::ArticleLanguage>,
-        article_versions: Vec<ArticleVersionAggregation>,
-        languages: Vec<LanguageAggregation>,
-    ) -> Vec<ArticleLanguageAggregation> {
-        let mut article_versions_map =
-            ArticleLanguageService::get_article_versions_map(article_versions);
-
-        let languages_map = ArticleLanguageService::get_languages_map(languages);
-
-        article_languages
-            .into_iter()
-            .map(|article_language| {
-                ArticleLanguageService::map_to_aggregation(
-                    article_language,
-                    &mut article_versions_map,
-                    &languages_map,
-                )
-            })
-            .collect()
-    }
-
-    //  ¯\_(ツ)_/¯
-    fn map_to_aggregations_map(
-        article_languages: Vec<model::ArticleLanguage>,
-        article_versions: Vec<ArticleVersionAggregation>,
-        languages: Vec<LanguageAggregation>,
-    ) -> HashMap<i32, Vec<ArticleLanguageAggregation>> {
-        let mut article_versions_map =
-            ArticleLanguageService::get_article_versions_map(article_versions);
-
-        let languages_map = ArticleLanguageService::get_languages_map(languages);
-
-        article_languages
-            .into_iter()
-            .fold(HashMap::new(), |mut acc, article_language| {
-                let article_id = article_language.article_id;
-
-                let article_language_aggregation = ArticleLanguageService::map_to_aggregation(
-                    article_language,
-                    &mut article_versions_map,
-                    &languages_map,
+    async fn create_relations_transaction(
+        connection: &connection::PgConnection,
+        creation_dto: ArticleLanguageCreateRelationsDto,
+        language_id: i32,
+    ) -> (model::ArticleLanguage, ArticleVersion) {
+        connection
+            .run(move |connection| {
+                return connection.transaction::<(model::ArticleLanguage, ArticleVersion), diesel::result::Error, _>(
+                    |transaction_connection| {
+                        Ok(ArticleLanguageService::create_relations(
+                            transaction_connection,
+                            creation_dto,
+                            language_id,
+                        ))
+                    },
                 );
-
-                match acc.entry(article_id) {
-                    Entry::Vacant(acc) => {
-                        acc.insert(vec![article_language_aggregation]);
-                    }
-                    Entry::Occupied(mut acc) => {
-                        acc.get_mut().push(article_language_aggregation);
-                    }
-                };
-
-                acc
             })
+            .await
+            .expect("failed to create article_language relations")
     }
 
-    fn map_to_aggregation(
-        article_language: model::ArticleLanguage,
-        article_versions_map: &mut HashMap<i32, Vec<ArticleVersionAggregation>>,
-        languages_map: &HashMap<i32, LanguageAggregation>,
-    ) -> ArticleLanguageAggregation {
-        ArticleLanguageAggregation {
-            id: article_language.id,
-            name: article_language.name,
-            enabled: article_language.enabled,
-            archived: article_language.archived,
+    fn create_relations(
+        connection: &mut diesel::PgConnection,
+        creation_dto: ArticleLanguageCreateRelationsDto,
+        language_id: i32,
+    ) -> (model::ArticleLanguage, ArticleVersion) {
+        let article_language = ArticleLanguageRepository::insert_raw(
+            connection,
+            ArticleLanguageCreateDto {
+                name: creation_dto.name,
+                article_id: creation_dto.article_id,
+                language_id: language_id,
+            },
+        )
+        .expect(FmtError::FailedToInsert("article_language").fmt().as_str());
 
-            updated_at: article_language.updated_at,
-            created_at: article_language.created_at,
+        let article_version = ArticleVersionRepository::insert_raw(
+            connection,
+            ArticleVersionCreateDto {
+                version: 1,
+                article_language_id: article_language.id,
+                content: creation_dto.content,
+            },
+        )
+        .expect(FmtError::FailedToInsert("article_version").fmt().as_str());
 
-            versions: article_versions_map
-                .remove(&article_language.id)
-                .unwrap_or(vec![]),
-
-            language: languages_map
-                .get(&article_language.language_id)
-                .expect(FmtError::NotFound("language").fmt().as_str())
-                .clone(),
-        }
-    }
-
-    fn get_article_versions_map(
-        article_versions: Vec<ArticleVersionAggregation>,
-    ) -> HashMap<i32, Vec<ArticleVersionAggregation>> {
-        article_versions
-            .into_iter()
-            .fold(HashMap::new(), |mut acc, article_version| {
-                match acc.entry(article_version.article_language_id) {
-                    Entry::Vacant(acc) => {
-                        acc.insert(vec![article_version]);
-                    }
-                    Entry::Occupied(mut acc) => {
-                        acc.get_mut().push(article_version);
-                    }
-                };
-
-                acc
-            })
-    }
-
-    fn get_languages_map(languages: Vec<LanguageAggregation>) -> HashMap<i32, LanguageAggregation> {
-        languages
-            .into_iter()
-            .fold(HashMap::new(), |mut acc, language| {
-                acc.insert(language.id, language);
-
-                acc
-            })
+        (article_language, article_version)
     }
 }

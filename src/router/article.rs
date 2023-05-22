@@ -5,7 +5,7 @@ use super::option_config::query_options::QueryOptions;
 use crate::error::formatted_error::FmtError;
 
 use super::schema::article::{
-    ArticleAggregation, ArticleCreateDto, ArticlePatchBody, ArticlePatchDto,
+    ArticleAggregation, ArticleCreateRelationsDto, ArticlePatchBody, ArticlePatchDto,
 };
 
 use super::service::article::ArticleService;
@@ -32,13 +32,16 @@ async fn get_article(
     }
 }
 
-#[post("/", data = "<article_dto>")]
+#[post("/", data = "<creation_dto>")]
 async fn create_article(
     connection: connection::PgConnection,
-    article_dto: Json<ArticleCreateDto>,
+    creation_dto: Json<ArticleCreateRelationsDto>,
 ) -> Result<Json<ArticleAggregation>, status::BadRequest<String>> {
-    let article =
-        ArticleService::insert(&connection, ArticleCreateDto::from_json(article_dto)).await;
+    let article = ArticleService::insert(
+        &connection,
+        ArticleCreateRelationsDto::from_json(creation_dto),
+    )
+    .await;
 
     match article {
         None => {
@@ -50,17 +53,17 @@ async fn create_article(
     }
 }
 
-#[patch("/<id>", data = "<article_patch_body>")]
+#[patch("/<id>", data = "<patch_body>")]
 async fn patch_article(
     connection: connection::PgConnection,
     id: i32,
-    article_patch_body: Json<ArticlePatchBody>,
+    patch_body: Json<ArticlePatchBody>,
 ) -> Result<Json<ArticleAggregation>, status::NotFound<String>> {
     let article = ArticleService::patch(
         &connection,
         ArticlePatchDto {
             id,
-            enabled: Some(article_patch_body.enabled),
+            enabled: Some(patch_body.enabled),
             archived: None,
         },
     )

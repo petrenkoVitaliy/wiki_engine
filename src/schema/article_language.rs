@@ -1,11 +1,25 @@
 use chrono::NaiveDateTime;
-use rocket::serde::Serialize;
+use rocket::serde::{Deserialize, Serialize};
 
 use super::article_version::ArticleVersionAggregation;
 use super::language::LanguageAggregation;
 
+#[derive(Deserialize)]
+pub struct ArticleLanguageCreateBody {
+    pub content: String,
+    pub name: String,
+}
+
 #[derive(Debug)]
-pub struct CreateArticleLanguageDto {
+pub struct ArticleLanguageCreateRelationsDto {
+    pub content: String,
+    pub name: String,
+    pub language_code: String,
+    pub article_id: i32,
+}
+
+#[derive(Debug)]
+pub struct ArticleLanguageCreateDto {
     pub name: String,
     pub article_id: i32,
     pub language_id: i32,

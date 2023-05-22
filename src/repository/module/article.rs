@@ -15,16 +15,14 @@ pub struct ArticleRepository {}
 impl ArticleRepository {
     pub async fn get_one(
         connection: &connection::PgConnection,
-        article_id: i32,
+        id: i32,
         query_options: QueryOptions,
     ) -> Option<model::Article> {
         connection
             .run(move |connection| {
-                let query = db_schema::article::table.filter(db_schema::article::id.eq(article_id));
+                let query = db_schema::article::table.filter(db_schema::article::id.eq(id));
 
                 if query_options.is_actual {
-                    print!("test1");
-
                     return query
                         .filter(db_schema::article::enabled.eq(true))
                         .filter(db_schema::article::archived.eq(false))
@@ -59,18 +57,15 @@ impl ArticleRepository {
             .expect(FmtError::FailedToFetch("articles").fmt().as_str())
     }
 
-    pub async fn patch(
-        connection: &connection::PgConnection,
-        article_patch_dto: ArticlePatchDto,
-    ) -> usize {
+    pub async fn patch(connection: &connection::PgConnection, patch_dto: ArticlePatchDto) -> usize {
         connection
             .run(move |connection| {
                 diesel::update(db_schema::article::table)
-                    .filter(db_schema::article::id.eq(article_patch_dto.id))
+                    .filter(db_schema::article::id.eq(patch_dto.id))
                     .set(model::ArticleInsertable {
                         id: None,
-                        enabled: article_patch_dto.enabled,
-                        archived: article_patch_dto.archived,
+                        enabled: patch_dto.enabled,
+                        archived: patch_dto.archived,
                         updated_at: None,
                         created_at: None,
                     })

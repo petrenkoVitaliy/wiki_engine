@@ -5,7 +5,7 @@ use super::db_schema;
 use super::error::formatted_error::FmtError;
 use super::wrapper;
 
-use super::schema::article_version::CreateArticleVersionDto;
+use super::schema::article_version::ArticleVersionCreateDto;
 
 pub mod model;
 
@@ -31,7 +31,7 @@ impl ArticleVersionRepository {
 
     pub async fn _insert(
         connection: &connection::PgConnection,
-        creation_dto: CreateArticleVersionDto,
+        creation_dto: ArticleVersionCreateDto,
     ) -> model::ArticleVersion {
         wrapper::_wrap_db(
             &connection,
@@ -44,7 +44,7 @@ impl ArticleVersionRepository {
 
     pub fn insert_raw(
         connection: &mut diesel::PgConnection,
-        creation_dto: CreateArticleVersionDto,
+        creation_dto: ArticleVersionCreateDto,
     ) -> Result<model::ArticleVersion, diesel::result::Error> {
         diesel::insert_into(db_schema::article_version::table)
             .values(model::ArticleVersionInsertable {

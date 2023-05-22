@@ -1,8 +1,9 @@
 use chrono::NaiveDateTime;
 use rocket::serde::Serialize;
 
+// TODO rename
 #[derive(Debug)]
-pub struct CreateArticleVersionDto {
+pub struct ArticleVersionCreateDto {
     pub version: i32,
     pub content: String,
 

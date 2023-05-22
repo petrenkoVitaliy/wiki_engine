@@ -5,15 +5,15 @@ use super::article_language::ArticleLanguageAggregation;
 
 #[derive(Deserialize)]
 #[serde()]
-pub struct ArticleCreateDto {
+pub struct ArticleCreateRelationsDto {
     pub content: String,
     pub language: String,
     pub name: String,
 }
 
-impl ArticleCreateDto {
-    pub fn from_json(json_dto: Json<ArticleCreateDto>) -> ArticleCreateDto {
-        ArticleCreateDto {
+impl ArticleCreateRelationsDto {
+    pub fn from_json(json_dto: Json<ArticleCreateRelationsDto>) -> ArticleCreateRelationsDto {
+        ArticleCreateRelationsDto {
             content: json_dto.content.to_string(),
             language: json_dto.language.to_string(),
             name: json_dto.name.to_string(),
