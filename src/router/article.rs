@@ -1,51 +1,117 @@
 use rocket::{response::status, serde::json::Json, *};
 
 use super::connection;
+use super::option_config::query_options::QueryOptions;
+use crate::error::formatted_error::FmtError;
 
-use super::schema::article::{ArticleAggregation, CreateArticleDto};
+use super::schema::article::{
+    ArticleAggregation, ArticleCreateDto, ArticlePatchBody, ArticlePatchDto,
+};
 
 use super::service::article::ArticleService;
 
 #[get("/")]
 async fn get_articles(connection: connection::PgConnection) -> Json<Vec<ArticleAggregation>> {
-    let articles = ArticleService::get_aggregations(&connection).await;
+    let articles =
+        ArticleService::get_aggregations(&connection, QueryOptions { is_actual: true }).await;
 
     Json(articles)
 }
 
 #[get("/<id>")]
-async fn get_article(connection: connection::PgConnection, id: i32) -> Json<ArticleAggregation> {
-    let article = ArticleService::get_aggregation(&connection, id).await;
+async fn get_article(
+    connection: connection::PgConnection,
+    id: i32,
+) -> Result<Json<ArticleAggregation>, status::NotFound<String>> {
+    let article =
+        ArticleService::get_aggregation(&connection, id, QueryOptions { is_actual: true }).await;
 
-    Json(article)
+    match article {
+        None => return Err(status::NotFound(FmtError::NotFound("article").fmt())),
+        Some(article) => Ok(Json(article)),
+    }
 }
 
 #[post("/", data = "<article_dto>")]
 async fn create_article(
     connection: connection::PgConnection,
-    article_dto: Json<CreateArticleDto>,
-) -> Result<Json<ArticleAggregation>, status::BadRequest<&'static str>> {
-    let article = ArticleService::insert(&connection, article_dto).await;
+    article_dto: Json<ArticleCreateDto>,
+) -> Result<Json<ArticleAggregation>, status::BadRequest<String>> {
+    let article =
+        ArticleService::insert(&connection, ArticleCreateDto::from_json(article_dto)).await;
 
     match article {
-        None => return Err(status::BadRequest(Some("incorrect body"))),
+        None => {
+            return Err(status::BadRequest(Some(
+                FmtError::NotFound("article").fmt(),
+            )))
+        }
         Some(article) => Ok(Json(article)),
     }
 }
 
-#[put("/<id>", data = "<_article_dto>")]
-fn update_article(id: u8, _article_dto: Json<CreateArticleDto>) -> String {
-    format!("update article {}++", id)
-}
+#[patch("/<id>", data = "<article_patch_body>")]
+async fn patch_article(
+    connection: connection::PgConnection,
+    id: i32,
+    article_patch_body: Json<ArticlePatchBody>,
+) -> Result<Json<ArticleAggregation>, status::NotFound<String>> {
+    let article = ArticleService::patch(
+        &connection,
+        ArticlePatchDto {
+            id,
+            enabled: Some(article_patch_body.enabled),
+            archived: None,
+        },
+    )
+    .await;
 
-#[patch("/<id>", data = "<_article_dto>")]
-fn patch_article(id: u8, _article_dto: Json<CreateArticleDto>) -> String {
-    format!("patch article {}", id)
+    match article {
+        None => return Err(status::NotFound(FmtError::NotFound("article").fmt())),
+        Some(article) => Ok(Json(article)),
+    }
 }
 
 #[delete("/<id>")]
-fn delete_article(id: u8) -> String {
-    format!("delete article {}", id)
+async fn delete_article(
+    connection: connection::PgConnection,
+    id: i32,
+) -> Result<Json<ArticleAggregation>, status::NotFound<String>> {
+    let article = ArticleService::patch(
+        &connection,
+        ArticlePatchDto {
+            id,
+            enabled: None,
+            archived: Some(true),
+        },
+    )
+    .await;
+
+    match article {
+        None => return Err(status::NotFound(FmtError::NotFound("article").fmt())),
+        Some(article) => Ok(Json(article)),
+    }
+}
+
+#[post("/<id>/restore")]
+async fn restore_article(
+    connection: connection::PgConnection,
+    id: i32,
+) -> Result<Json<ArticleAggregation>, status::NotFound<String>> {
+    let article = ArticleService::patch(
+        &connection,
+        ArticlePatchDto {
+            id,
+            enabled: None,
+            archived: Some(false),
+        },
+    )
+    .await;
+
+    match article {
+        None => return Err(status::NotFound(FmtError::NotFound("article").fmt())),
+        Some(article) => Ok(Json(article)),
+    }
 }
 
 pub fn routes() -> Vec<rocket::Route> {
@@ -53,8 +119,8 @@ pub fn routes() -> Vec<rocket::Route> {
         get_articles,
         get_article,
         create_article,
-        update_article,
         patch_article,
-        delete_article
+        delete_article,
+        restore_article
     ]
 }

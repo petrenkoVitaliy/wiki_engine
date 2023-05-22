@@ -3,7 +3,10 @@ use diesel::prelude::*;
 use super::connection;
 use super::db_schema;
 use super::error::formatted_error::FmtError;
+use super::option_config::query_options::QueryOptions;
 use super::wrapper;
+
+use super::schema::article::ArticlePatchDto;
 
 pub mod model;
 
@@ -13,23 +16,68 @@ impl ArticleRepository {
     pub async fn get_one(
         connection: &connection::PgConnection,
         article_id: i32,
+        query_options: QueryOptions,
     ) -> Option<model::Article> {
         connection
             .run(move |connection| {
-                db_schema::article::table
-                    .filter(db_schema::article::id.eq(article_id))
-                    .first(connection)
-                    .optional()
+                let query = db_schema::article::table.filter(db_schema::article::id.eq(article_id));
+
+                if query_options.is_actual {
+                    print!("test1");
+
+                    return query
+                        .filter(db_schema::article::enabled.eq(true))
+                        .filter(db_schema::article::archived.eq(false))
+                        .first(connection)
+                        .optional();
+                }
+
+                query.first(connection).optional()
             })
             .await
             .expect(FmtError::FailedToFetch("article").fmt().as_str())
     }
 
-    pub async fn get_many(connection: &connection::PgConnection) -> Vec<model::Article> {
+    pub async fn get_many(
+        connection: &connection::PgConnection,
+        query_options: QueryOptions,
+    ) -> Vec<model::Article> {
         connection
-            .run(|connection| db_schema::article::table.load(connection))
+            .run(move |connection| {
+                let query = db_schema::article::table;
+
+                if query_options.is_actual {
+                    return query
+                        .filter(db_schema::article::enabled.eq(true))
+                        .filter(db_schema::article::archived.eq(false))
+                        .load(connection);
+                }
+
+                query.load(connection)
+            })
             .await
             .expect(FmtError::FailedToFetch("articles").fmt().as_str())
+    }
+
+    pub async fn patch(
+        connection: &connection::PgConnection,
+        article_patch_dto: ArticlePatchDto,
+    ) -> usize {
+        connection
+            .run(move |connection| {
+                diesel::update(db_schema::article::table)
+                    .filter(db_schema::article::id.eq(article_patch_dto.id))
+                    .set(model::ArticleInsertable {
+                        id: None,
+                        enabled: article_patch_dto.enabled,
+                        archived: article_patch_dto.archived,
+                        updated_at: None,
+                        created_at: None,
+                    })
+                    .execute(connection)
+            })
+            .await
+            .expect(FmtError::FailedToUpdate("article").fmt().as_str())
     }
 
     pub async fn _insert(connection: &connection::PgConnection) -> model::Article {

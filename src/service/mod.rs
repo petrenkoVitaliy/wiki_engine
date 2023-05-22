@@ -1,4 +1,5 @@
 use super::error;
+use super::option_config;
 use super::repository;
 use super::schema;
 

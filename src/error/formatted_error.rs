@@ -2,6 +2,8 @@ pub enum FmtError<'input> {
     NotFound(&'input str),
     FailedToFetch(&'input str),
     FailedToInsert(&'input str),
+    FailedToUpdate(&'input str),
+    _FailedToDelete(&'input str),
 }
 
 impl<'input> FmtError<'input> {
@@ -9,6 +11,8 @@ impl<'input> FmtError<'input> {
         match self {
             FmtError::FailedToFetch(s) => format!("Failed to fetch: {}", s),
             FmtError::FailedToInsert(s) => format!("Failed to insert: {}", s),
+            FmtError::FailedToUpdate(s) => format!("Failed to update: {}", s),
+            FmtError::_FailedToDelete(s) => format!("Failed to delete: {}", s),
             FmtError::NotFound(s) => format!("Entity not found: {}", s),
         }
     }

@@ -3,8 +3,9 @@ use diesel::prelude::*;
 use super::connection::PgConnection;
 use super::db_schema;
 use super::error::formatted_error::FmtError;
-use super::schema::article_language::CreateArticleLanguageDto;
 use super::wrapper;
+
+use super::schema::article_language::CreateArticleLanguageDto;
 
 pub mod model;
 

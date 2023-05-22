@@ -1,6 +1,7 @@
 use rocket::launch;
 
 mod error;
+mod option_config;
 mod repository;
 mod router;
 mod schema;

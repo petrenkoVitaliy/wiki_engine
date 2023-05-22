@@ -1,11 +1,11 @@
 use chrono::NaiveDateTime;
-use diesel::{Insertable, Queryable, Selectable};
+use diesel::{AsChangeset, Insertable, Queryable, Selectable};
 use rocket::serde::{Deserialize, Serialize};
 use rocket_sync_db_pools::diesel;
 
 use super::db_schema::article;
 
-#[derive(Queryable, Debug, Insertable, Serialize, Deserialize)]
+#[derive(Queryable, Debug, Insertable, Serialize, Deserialize, AsChangeset)]
 #[diesel(table_name = article)]
 pub struct ArticleInsertable {
     pub id: Option<i32>,
