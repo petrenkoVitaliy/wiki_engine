@@ -16,13 +16,15 @@ impl ArticleRepository {
     pub async fn get_one(
         connection: &connection::PgConnection,
         id: i32,
-        query_options: QueryOptions,
+        query_options: &QueryOptions,
     ) -> Option<model::Article> {
+        let is_actual = query_options.is_actual;
+
         connection
             .run(move |connection| {
                 let query = db_schema::article::table.filter(db_schema::article::id.eq(id));
 
-                if query_options.is_actual {
+                if is_actual {
                     return query
                         .filter(db_schema::article::enabled.eq(true))
                         .filter(db_schema::article::archived.eq(false))
@@ -38,13 +40,15 @@ impl ArticleRepository {
 
     pub async fn get_many(
         connection: &connection::PgConnection,
-        query_options: QueryOptions,
+        query_options: &QueryOptions,
     ) -> Vec<model::Article> {
+        let is_actual = query_options.is_actual;
+
         connection
             .run(move |connection| {
                 let query = db_schema::article::table;
 
-                if query_options.is_actual {
+                if is_actual {
                     return query
                         .filter(db_schema::article::enabled.eq(true))
                         .filter(db_schema::article::archived.eq(false))
@@ -76,7 +80,7 @@ impl ArticleRepository {
     }
 
     pub async fn _insert(connection: &connection::PgConnection) -> model::Article {
-        wrapper::_wrap_db(
+        wrapper::wrap_db(
             &connection,
             ArticleRepository::insert_raw,
             (),

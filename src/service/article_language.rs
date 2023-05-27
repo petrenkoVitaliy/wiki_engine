@@ -25,6 +25,30 @@ use super::mapper::article_version::ArticleVersionMapper;
 pub struct ArticleLanguageService {}
 
 impl ArticleLanguageService {
+    pub async fn get_one_by_language(
+        connection: &connection::PgConnection,
+        article_id: i32,
+        language_code: String,
+        query_options: QueryOptions,
+    ) -> Option<model::ArticleLanguage> {
+        let language = match LanguageService::get_aggregation(connection, language_code).await {
+            None => return None,
+            Some(language) => language,
+        };
+
+        match ArticleLanguageRepository::get_one(
+            connection,
+            article_id,
+            language.id,
+            &query_options,
+        )
+        .await
+        {
+            None => return None,
+            Some(article_language) => Some(article_language),
+        }
+    }
+
     pub async fn get_aggregation(
         connection: &connection::PgConnection,
         article_id: i32,
@@ -45,40 +69,10 @@ impl ArticleLanguageService {
         .await
     }
 
-    async fn get_aggregation_with_language(
-        connection: &connection::PgConnection,
-        article_id: i32,
-        language: LanguageAggregation,
-        query_options: QueryOptions,
-    ) -> Option<ArticleLanguageAggregation> {
-        let article_language = match ArticleLanguageRepository::get_one(
-            connection,
-            article_id,
-            language.id,
-            query_options,
-        )
-        .await
-        {
-            None => return None,
-            Some(article) => article,
-        };
-
-        let article_versions =
-            ArticleVersionService::get_aggregations(connection, vec![article_language.id]).await;
-
-        let article_language_aggregation = ArticleLanguageMapper::map_to_aggregations(
-            vec![article_language],
-            article_versions,
-            vec![language],
-        )
-        .remove(0);
-
-        Some(article_language_aggregation)
-    }
-
     pub async fn get_aggregations(
         connection: &connection::PgConnection,
         article_ids: Vec<i32>,
+        query_options: QueryOptions,
     ) -> Vec<ArticleLanguageAggregation> {
         let article_languages = ArticleLanguageRepository::get_many(connection, article_ids).await;
 
@@ -88,8 +82,12 @@ impl ArticleLanguageService {
             .collect();
 
         let languages = LanguageService::get_aggregations(connection).await;
-        let article_versions =
-            ArticleVersionService::get_aggregations(connection, article_languages_ids).await;
+        let article_versions = ArticleVersionService::get_aggregations_by_languages(
+            connection,
+            article_languages_ids,
+            query_options,
+        )
+        .await;
 
         ArticleLanguageMapper::map_to_aggregations(article_languages, article_versions, languages)
     }
@@ -108,7 +106,7 @@ impl ArticleLanguageService {
             connection,
             creation_dto.article_id,
             language.id,
-            QueryOptions { is_actual: false },
+            &QueryOptions { is_actual: false },
         )
         .await
         {
@@ -172,6 +170,8 @@ impl ArticleLanguageService {
         connection: &connection::PgConnection,
         article_ids: Vec<i32>,
     ) -> HashMap<i32, Vec<ArticleLanguageAggregation>> {
+        let query_options = QueryOptions { is_actual: false };
+
         let article_languages = ArticleLanguageRepository::get_many(connection, article_ids).await;
 
         let article_languages_ids: Vec<i32> = article_languages
@@ -180,14 +180,53 @@ impl ArticleLanguageService {
             .collect();
 
         let languages = LanguageService::get_aggregations(connection).await;
-        let article_versions =
-            ArticleVersionService::get_aggregations(connection, article_languages_ids).await;
+        let article_versions = ArticleVersionService::get_aggregations_by_languages(
+            connection,
+            article_languages_ids,
+            query_options,
+        )
+        .await;
 
         ArticleLanguageMapper::map_to_aggregations_map(
             article_languages,
             article_versions,
             languages,
         )
+    }
+
+    async fn get_aggregation_with_language(
+        connection: &connection::PgConnection,
+        article_id: i32,
+        language: LanguageAggregation,
+        query_options: QueryOptions,
+    ) -> Option<ArticleLanguageAggregation> {
+        let article_language = match ArticleLanguageRepository::get_one(
+            connection,
+            article_id,
+            language.id,
+            &query_options,
+        )
+        .await
+        {
+            None => return None,
+            Some(article) => article,
+        };
+
+        let article_versions = ArticleVersionService::get_aggregations_by_languages(
+            connection,
+            vec![article_language.id],
+            query_options,
+        )
+        .await;
+
+        let article_language_aggregation = ArticleLanguageMapper::map_to_aggregations(
+            vec![article_language],
+            article_versions,
+            vec![language],
+        )
+        .remove(0);
+
+        Some(article_language_aggregation)
     }
 
     async fn create_relations_transaction(

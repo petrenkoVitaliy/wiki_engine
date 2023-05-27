@@ -17,15 +17,17 @@ impl ArticleLanguageRepository {
         connection: &PgConnection,
         article_id: i32,
         language_id: i32,
-        query_options: QueryOptions,
+        query_options: &QueryOptions,
     ) -> Option<model::ArticleLanguage> {
+        let is_actual = query_options.is_actual;
+
         connection
             .run(move |connection| {
                 let filter_query = db_schema::article_language::article_id
                     .eq(article_id)
                     .and(db_schema::article_language::language_id.eq(language_id));
 
-                if query_options.is_actual {
+                if is_actual {
                     return db_schema::article_language::table
                         .filter(
                             filter_query
@@ -64,7 +66,7 @@ impl ArticleLanguageRepository {
         connection: &PgConnection,
         creation_dto: ArticleLanguageCreateDto,
     ) -> model::ArticleLanguage {
-        wrapper::_wrap_db(
+        wrapper::wrap_db(
             &connection,
             ArticleLanguageRepository::insert_raw,
             creation_dto,

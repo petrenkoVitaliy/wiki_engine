@@ -8,10 +8,13 @@
     high:
 
     medium:
-        - unique db fields
-        - None vs expect
+        - unique db fields (Postgres)
+        - None vs expect (error handling)
 
         - init DI
+        - swagger
+
+        -dtos naming (split?)
 
     low:
         - test eq & eq_any perf

@@ -11,7 +11,7 @@ use super::schema::article_language::{
 
 use super::service::article_language::ArticleLanguageService;
 
-#[get("/<article_id>/article-language/<language_code>")]
+#[get("/<article_id>/language/<language_code>")]
 async fn get_article_language(
     connection: connection::PgConnection,
     article_id: i32,
@@ -35,10 +35,22 @@ async fn get_article_language(
     }
 }
 
-#[post(
-    "/<article_id>/article-language/<language_code>",
-    data = "<creation_body>"
-)]
+#[get("/<article_id>/language")]
+async fn get_article_languages(
+    connection: connection::PgConnection,
+    article_id: i32,
+) -> Result<Json<Vec<ArticleLanguageAggregation>>, status::NotFound<String>> {
+    let article_language = ArticleLanguageService::get_aggregations(
+        &connection,
+        vec![article_id],
+        QueryOptions { is_actual: true },
+    )
+    .await;
+
+    Ok(Json(article_language))
+}
+
+#[post("/<article_id>/language/<language_code>", data = "<creation_body>")]
 async fn create_article_language(
     connection: connection::PgConnection,
     creation_body: Json<ArticleLanguageCreateBody>,
@@ -59,10 +71,7 @@ async fn create_article_language(
     Ok(Json(article_language))
 }
 
-#[patch(
-    "/<article_id>/article-language/<language_code>",
-    data = "<patch_body>"
-)]
+#[patch("/<article_id>/language/<language_code>", data = "<patch_body>")]
 async fn patch_article_language(
     connection: connection::PgConnection,
     patch_body: Json<ArticleLanguagePatchBody>,
@@ -94,7 +103,7 @@ async fn patch_article_language(
     }
 }
 
-#[delete("/<article_id>/article-language/<language_code>")]
+#[delete("/<article_id>/language/<language_code>")]
 async fn delete_article_language(
     connection: connection::PgConnection,
     article_id: i32,
@@ -122,7 +131,7 @@ async fn delete_article_language(
     }
 }
 
-#[post("/<article_id>/article-language/<language_code>/restore")]
+#[post("/<article_id>/language/<language_code>/restore")]
 async fn restore_article_language(
     connection: connection::PgConnection,
     article_id: i32,
@@ -156,6 +165,7 @@ pub fn routes() -> Vec<rocket::Route> {
         create_article_language,
         patch_article_language,
         delete_article_language,
-        restore_article_language
+        restore_article_language,
+        get_article_languages
     ]
 }

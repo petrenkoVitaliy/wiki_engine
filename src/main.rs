@@ -17,4 +17,5 @@ fn rocket() -> _ {
         .attach(repository::connection::PgConnection::fairing())
         .mount("/articles", router::article::routes())
         .mount("/articles", router::article_language::routes())
+        .mount("/articles", router::article_version::routes())
 }

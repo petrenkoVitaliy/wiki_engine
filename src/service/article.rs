@@ -27,13 +27,17 @@ impl ArticleService {
         id: i32,
         query_options: QueryOptions,
     ) -> Option<ArticleAggregation> {
-        let article = match ArticleRepository::get_one(connection, id, query_options).await {
+        let article = match ArticleRepository::get_one(connection, id, &query_options).await {
             None => return None,
             Some(article) => article,
         };
 
-        let article_language_aggregations =
-            ArticleLanguageService::get_aggregations(&connection, vec![article.id]).await;
+        let article_language_aggregations = ArticleLanguageService::get_aggregations(
+            &connection,
+            vec![article.id],
+            QueryOptions { is_actual: false },
+        )
+        .await;
 
         Some(ArticleMapper::map_to_full_aggregation(
             &article,
@@ -45,7 +49,7 @@ impl ArticleService {
         connection: &connection::PgConnection,
         query_options: QueryOptions,
     ) -> Vec<ArticleAggregation> {
-        let articles = ArticleRepository::get_many(connection, query_options).await;
+        let articles = ArticleRepository::get_many(connection, &query_options).await;
 
         let articles_ids: Vec<i32> = articles.iter().map(|article| article.id).collect();
 

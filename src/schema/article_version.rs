@@ -1,5 +1,5 @@
 use chrono::NaiveDateTime;
-use rocket::serde::Serialize;
+use rocket::serde::{Deserialize, Serialize};
 
 // TODO rename
 #[derive(Debug)]
@@ -21,4 +21,28 @@ pub struct ArticleVersionAggregation {
     pub created_at: NaiveDateTime,
 
     pub article_language_id: i32,
+}
+
+#[derive(Deserialize)]
+pub struct ArticleVersionCreateBody {
+    pub content: String,
+}
+
+#[derive(Deserialize)]
+pub struct ArticleVersionPatchBody {
+    pub enabled: bool,
+}
+
+pub struct ArticleVersionPatchDto {
+    pub enabled: bool,
+}
+
+pub struct ArticleVersionsSearchDto {
+    pub article_languages_ids: Option<Vec<i32>>,
+    pub ids: Option<Vec<i32>>,
+}
+
+pub struct ArticleVersionSearchDto {
+    pub id: Option<i32>,
+    pub article_languages_ids: Option<Vec<i32>>,
 }
