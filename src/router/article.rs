@@ -1,5 +1,9 @@
 use rocket::{response::status, serde::json::Json, *};
 
+use rocket_okapi::{
+    okapi::schemars::gen::SchemaSettings, openapi, openapi_get_routes, settings::OpenApiSettings,
+};
+
 use super::connection;
 use super::option_config::query_options::QueryOptions;
 use crate::error::formatted_error::FmtError;
@@ -10,6 +14,7 @@ use super::schema::article::{
 
 use super::service::article::ArticleService;
 
+#[openapi]
 #[get("/")]
 async fn get_articles(connection: connection::PgConnection) -> Json<Vec<ArticleAggregation>> {
     let articles =
@@ -18,6 +23,7 @@ async fn get_articles(connection: connection::PgConnection) -> Json<Vec<ArticleA
     Json(articles)
 }
 
+#[openapi]
 #[get("/<id>")]
 async fn get_article(
     connection: connection::PgConnection,
@@ -32,6 +38,7 @@ async fn get_article(
     }
 }
 
+#[openapi]
 #[post("/", data = "<creation_dto>")]
 async fn create_article(
     connection: connection::PgConnection,
@@ -53,6 +60,7 @@ async fn create_article(
     }
 }
 
+#[openapi]
 #[patch("/<id>", data = "<patch_body>")]
 async fn patch_article(
     connection: connection::PgConnection,
@@ -75,6 +83,7 @@ async fn patch_article(
     }
 }
 
+#[openapi]
 #[delete("/<id>")]
 async fn delete_article(
     connection: connection::PgConnection,
@@ -96,6 +105,7 @@ async fn delete_article(
     }
 }
 
+#[openapi]
 #[post("/<id>/restore")]
 async fn restore_article(
     connection: connection::PgConnection,
@@ -118,7 +128,13 @@ async fn restore_article(
 }
 
 pub fn routes() -> Vec<rocket::Route> {
-    routes![
+    let settings = OpenApiSettings {
+        json_path: "/article.json".to_owned(),
+        schema_settings: SchemaSettings::openapi3(),
+    };
+
+    openapi_get_routes![
+        settings:
         get_articles,
         get_article,
         create_article,

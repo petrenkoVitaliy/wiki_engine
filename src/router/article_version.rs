@@ -1,17 +1,21 @@
 use rocket::{response::status, serde::json::Json, *};
 
+use rocket_okapi::{
+    okapi::schemars::gen::SchemaSettings, openapi, openapi_get_routes, settings::OpenApiSettings,
+};
+
 use super::connection;
 use super::option_config::query_options::QueryOptions;
-use crate::error::formatted_error::FmtError;
-
 use super::schema::article_version::{
     ArticleVersionAggregation, ArticleVersionCreateBody, ArticleVersionPatchBody,
 };
+use crate::error::formatted_error::FmtError;
 
 use super::service::article_version::ArticleVersionService;
 
+#[openapi]
 #[get("/<article_id>/language/<language_code>/version/<id>")]
-async fn get_article_version(
+pub async fn get_article_version(
     connection: connection::PgConnection,
     article_id: i32,
     id: i32,
@@ -36,6 +40,7 @@ async fn get_article_version(
     }
 }
 
+#[openapi]
 #[get("/<article_id>/language/<language_code>/version")]
 async fn get_article_versions(
     connection: connection::PgConnection,
@@ -53,6 +58,7 @@ async fn get_article_versions(
     Ok(Json(article_versions))
 }
 
+#[openapi]
 #[post(
     "/<article_id>/language/<language_code>/version",
     data = "<creation_body>"
@@ -83,6 +89,7 @@ async fn create_article_version(
     }
 }
 
+#[openapi]
 #[patch(
     "/<article_id>/language/<language_code>/version/<id>",
     data = "<patch_body>"
@@ -116,7 +123,13 @@ async fn patch_article_version(
 }
 
 pub fn routes() -> Vec<rocket::Route> {
-    routes![
+    let settings = OpenApiSettings {
+        json_path: "/article_version.json".to_owned(),
+        schema_settings: SchemaSettings::openapi3(),
+    };
+
+    openapi_get_routes![
+        settings:
         get_article_versions,
         get_article_version,
         create_article_version,

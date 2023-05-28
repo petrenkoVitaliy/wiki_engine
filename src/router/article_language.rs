@@ -1,5 +1,9 @@
 use rocket::{response::status, serde::json::Json, *};
 
+use rocket_okapi::{
+    okapi::schemars::gen::SchemaSettings, openapi, openapi_get_routes, settings::OpenApiSettings,
+};
+
 use super::connection;
 use super::option_config::query_options::QueryOptions;
 use crate::error::formatted_error::FmtError;
@@ -11,6 +15,7 @@ use super::schema::article_language::{
 
 use super::service::article_language::ArticleLanguageService;
 
+#[openapi]
 #[get("/<article_id>/language/<language_code>")]
 async fn get_article_language(
     connection: connection::PgConnection,
@@ -35,6 +40,7 @@ async fn get_article_language(
     }
 }
 
+#[openapi]
 #[get("/<article_id>/language")]
 async fn get_article_languages(
     connection: connection::PgConnection,
@@ -50,6 +56,7 @@ async fn get_article_languages(
     Ok(Json(article_language))
 }
 
+#[openapi]
 #[post("/<article_id>/language/<language_code>", data = "<creation_body>")]
 async fn create_article_language(
     connection: connection::PgConnection,
@@ -71,6 +78,7 @@ async fn create_article_language(
     Ok(Json(article_language))
 }
 
+#[openapi]
 #[patch("/<article_id>/language/<language_code>", data = "<patch_body>")]
 async fn patch_article_language(
     connection: connection::PgConnection,
@@ -103,6 +111,7 @@ async fn patch_article_language(
     }
 }
 
+#[openapi]
 #[delete("/<article_id>/language/<language_code>")]
 async fn delete_article_language(
     connection: connection::PgConnection,
@@ -131,6 +140,7 @@ async fn delete_article_language(
     }
 }
 
+#[openapi]
 #[post("/<article_id>/language/<language_code>/restore")]
 async fn restore_article_language(
     connection: connection::PgConnection,
@@ -160,7 +170,13 @@ async fn restore_article_language(
 }
 
 pub fn routes() -> Vec<rocket::Route> {
-    routes![
+    let settings = OpenApiSettings {
+        json_path: "/article_language.json".to_owned(),
+        schema_settings: SchemaSettings::openapi3(),
+    };
+
+    openapi_get_routes![
+        settings:
         get_article_language,
         create_article_language,
         patch_article_language,

@@ -13,3 +13,10 @@ chrono = { version = "0.4.24", features = ["serde"]}
 diesel_cli = { version = "1.4.1", default-features = false, features = ["postgres"] }
 rocket_sync_db_pools = { version = "0.1.0-rc.3", features = ["diesel_postgres_pool"]}
 dotenv = { version = "0.15.0"}
+
+
+# https://github.com/GREsau/okapi/pull/122
+# revolt_rocket_okapi + schemars? (mb reexported) TMP as solution
+
+rocket_okapi = {git = "https://github.com/olback/okapi", branch = "rocket-0.5-rc3", features = ["swagger"]} 
+schemars = { features = ["chrono"] }

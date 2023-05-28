@@ -1,10 +1,11 @@
 use chrono::NaiveDateTime;
 use rocket::serde::{Deserialize, Serialize};
+use rocket_okapi::okapi::schemars::JsonSchema;
 
 use super::article_version::ArticleVersionAggregation;
 use super::language::LanguageAggregation;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct ArticleLanguageCreateBody {
     pub content: String,
     pub name: String,
@@ -25,7 +26,7 @@ pub struct ArticleLanguageCreateDto {
     pub language_id: i32,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, JsonSchema)]
 pub struct ArticleLanguageAggregation {
     pub id: i32,
     pub name: String,
@@ -40,7 +41,7 @@ pub struct ArticleLanguageAggregation {
     pub versions: Vec<ArticleVersionAggregation>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 pub struct ArticleLanguagePatchBody {
     pub enabled: Option<bool>,
     pub name: Option<String>,
