@@ -9,12 +9,17 @@ use super::language::LanguageService;
 use super::schema::article::{ArticleAggregation, ArticleCreateRelationsDto, ArticlePatchDto};
 use super::schema::article_language::ArticleLanguageCreateDto;
 use super::schema::article_version::ArticleVersionCreateDto;
+use super::schema::version_content::VersionContentDto;
 
 use super::repository::connection;
 use super::repository::module::{
     article::{model, ArticleRepository},
     article_language::{model::ArticleLanguage, ArticleLanguageRepository},
     article_version::{model::ArticleVersion, ArticleVersionRepository},
+    version_content::{
+        model::{ContentType, VersionContent},
+        VersionContentRepository,
+    },
 };
 
 use super::mapper::article::ArticleMapper;
@@ -78,14 +83,14 @@ impl ArticleService {
             .await
             .expect(FmtError::NotFound("language").fmt().as_str());
 
-        let (article, article_language, article_version) =
-            ArticleService::create_relations_transaction(connection, creation_dto, language.id)
-                .await;
+        let (article, article_language, version_content, article_version) =
+            Self::create_relations_transaction(connection, creation_dto, language.id).await;
 
         let article_aggregation = ArticleMapper::map_relations_to_aggregation(
             article,
             article_language,
             article_version,
+            version_content,
             language,
         );
 
@@ -104,20 +109,29 @@ impl ArticleService {
             return None;
         }
 
-        ArticleService::get_aggregation(connection, article_id, QueryOptions { is_actual: false })
-            .await
+        Self::get_aggregation(connection, article_id, QueryOptions { is_actual: false }).await
     }
 
     async fn create_relations_transaction(
         connection: &connection::PgConnection,
         creation_dto: ArticleCreateRelationsDto,
         language_id: i32,
-    ) -> (model::Article, ArticleLanguage, ArticleVersion) {
+    ) -> (
+        model::Article,
+        ArticleLanguage,
+        VersionContent,
+        ArticleVersion,
+    ) {
         connection
             .run(move |connection| {
-                return connection.transaction::<(model::Article, ArticleLanguage, ArticleVersion), diesel::result::Error, _>(
+                return connection.transaction::<(
+                    model::Article,
+                    ArticleLanguage,
+                    VersionContent,
+                    ArticleVersion,
+                ), diesel::result::Error, _>(
                     |transaction_connection| {
-                        Ok(ArticleService::create_relations(
+                        Ok(Self::create_relations(
                             transaction_connection,
                             creation_dto,
                             language_id,
@@ -133,7 +147,12 @@ impl ArticleService {
         connection: &mut diesel::PgConnection,
         creation_dto: ArticleCreateRelationsDto,
         language_id: i32,
-    ) -> (model::Article, ArticleLanguage, ArticleVersion) {
+    ) -> (
+        model::Article,
+        ArticleLanguage,
+        VersionContent,
+        ArticleVersion,
+    ) {
         let article = ArticleRepository::insert_raw(connection, ())
             .expect(FmtError::FailedToInsert("article").fmt().as_str());
 
@@ -147,16 +166,25 @@ impl ArticleService {
         )
         .expect(FmtError::FailedToInsert("article_language").fmt().as_str());
 
+        let version_content = VersionContentRepository::insert_raw(
+            connection,
+            VersionContentDto {
+                content: creation_dto.content.as_bytes().to_vec(),
+                content_type: ContentType::Full,
+            },
+        )
+        .expect(FmtError::FailedToInsert("version_content").fmt().as_str());
+
         let article_version = ArticleVersionRepository::insert_raw(
             connection,
             ArticleVersionCreateDto {
                 version: 1,
                 article_language_id: article_language.id,
-                content: creation_dto.content,
+                content_id: version_content.id,
             },
         )
         .expect(FmtError::FailedToInsert("article_version").fmt().as_str());
 
-        (article, article_language, article_version)
+        (article, article_language, version_content, article_version)
     }
 }

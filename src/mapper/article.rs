@@ -4,6 +4,7 @@ use super::schema::article_language::ArticleLanguageAggregation;
 use super::repository::module::{
     article::model::Article, article_language::model::ArticleLanguage,
     article_version::model::ArticleVersion, language::model::Language,
+    version_content::model::VersionContent,
 };
 
 use super::article_language::ArticleLanguageMapper;
@@ -32,10 +33,11 @@ impl ArticleMapper {
         article: Article,
         article_language: ArticleLanguage,
         article_version: ArticleVersion,
+        version_content: VersionContent,
         language: Language,
     ) -> ArticleAggregation {
         let article_versions_aggregations =
-            ArticleVersionMapper::map_to_aggregations(vec![article_version]);
+            ArticleVersionMapper::map_to_aggregations(vec![article_version], vec![version_content]);
 
         let languages_aggregation = LanguageMapper::map_to_aggregations(vec![language]);
         let article_language_aggregations = ArticleLanguageMapper::map_to_aggregations(

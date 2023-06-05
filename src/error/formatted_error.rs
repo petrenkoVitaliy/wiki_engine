@@ -1,5 +1,6 @@
 pub enum FmtError<'input> {
     NotFound(&'input str),
+    FailedToProcess(&'input str),
     FailedToFetch(&'input str),
     FailedToInsert(&'input str),
     FailedToUpdate(&'input str),
@@ -16,6 +17,7 @@ impl<'input> FmtError<'input> {
             FmtError::_FailedToDelete(s) => format!("Failed to delete: {}", s),
             FmtError::NotFound(s) => format!("Entity not found: {}", s),
             FmtError::AlreadyExists(s) => format!("Entity already exists: {}", s),
+            FmtError::FailedToProcess(s) => format!("Failed to process entity: {}", s),
         }
     }
 }

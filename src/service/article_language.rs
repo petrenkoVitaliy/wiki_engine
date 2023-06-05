@@ -9,6 +9,10 @@ use super::option_config::query_options::QueryOptions;
 use super::repository::connection;
 use super::repository::module::article_language::{model, ArticleLanguageRepository};
 use super::repository::module::article_version::{model::ArticleVersion, ArticleVersionRepository};
+use super::repository::module::version_content::{
+    model::{ContentType, VersionContent},
+    VersionContentRepository,
+};
 
 use super::article_version::ArticleVersionService;
 use super::language::LanguageService;
@@ -18,6 +22,7 @@ use super::schema::article_language::{
     ArticleLanguagePatchDto,
 };
 use super::schema::article_version::ArticleVersionCreateDto;
+use super::schema::version_content::VersionContentDto;
 
 use super::mapper::article_language::ArticleLanguageMapper;
 use super::mapper::article_version::ArticleVersionMapper;
@@ -60,13 +65,7 @@ impl ArticleLanguageService {
             Some(language) => language,
         };
 
-        ArticleLanguageService::get_aggregation_with_language(
-            connection,
-            article_id,
-            language,
-            query_options,
-        )
-        .await
+        Self::get_aggregation_with_language(connection, article_id, language, query_options).await
     }
 
     pub async fn get_aggregations(
@@ -117,16 +116,11 @@ impl ArticleLanguageService {
             _ => (),
         };
 
-        let (article_language, article_version) =
-            ArticleLanguageService::create_relations_transaction(
-                connection,
-                creation_dto,
-                language.id,
-            )
-            .await;
+        let (article_language, version_content, article_version) =
+            Self::create_relations_transaction(connection, creation_dto, language.id).await;
 
         let article_version_aggregations =
-            ArticleVersionMapper::map_to_aggregations(vec![article_version]);
+            ArticleVersionMapper::map_to_aggregations(vec![article_version], vec![version_content]);
 
         let article_language_aggregation = ArticleLanguageMapper::map_to_aggregations(
             vec![article_language],
@@ -157,7 +151,7 @@ impl ArticleLanguageService {
             return None;
         }
 
-        ArticleLanguageService::get_aggregation_with_language(
+        Self::get_aggregation_with_language(
             connection,
             article_id,
             language,
@@ -233,12 +227,12 @@ impl ArticleLanguageService {
         connection: &connection::PgConnection,
         creation_dto: ArticleLanguageCreateRelationsDto,
         language_id: i32,
-    ) -> (model::ArticleLanguage, ArticleVersion) {
+    ) -> (model::ArticleLanguage, VersionContent, ArticleVersion) {
         connection
             .run(move |connection| {
-                return connection.transaction::<(model::ArticleLanguage, ArticleVersion), diesel::result::Error, _>(
+                return connection.transaction::<(model::ArticleLanguage, VersionContent, ArticleVersion), diesel::result::Error, _>(
                     |transaction_connection| {
-                        Ok(ArticleLanguageService::create_relations(
+                        Ok(Self::create_relations(
                             transaction_connection,
                             creation_dto,
                             language_id,
@@ -254,7 +248,7 @@ impl ArticleLanguageService {
         connection: &mut diesel::PgConnection,
         creation_dto: ArticleLanguageCreateRelationsDto,
         language_id: i32,
-    ) -> (model::ArticleLanguage, ArticleVersion) {
+    ) -> (model::ArticleLanguage, VersionContent, ArticleVersion) {
         let article_language = ArticleLanguageRepository::insert_raw(
             connection,
             ArticleLanguageCreateDto {
@@ -265,16 +259,25 @@ impl ArticleLanguageService {
         )
         .expect(FmtError::FailedToInsert("article_language").fmt().as_str());
 
+        let version_content = VersionContentRepository::insert_raw(
+            connection,
+            VersionContentDto {
+                content: creation_dto.content.as_bytes().to_vec(),
+                content_type: ContentType::Full,
+            },
+        )
+        .expect(FmtError::FailedToInsert("version_content").fmt().as_str());
+
         let article_version = ArticleVersionRepository::insert_raw(
             connection,
             ArticleVersionCreateDto {
                 version: 1,
                 article_language_id: article_language.id,
-                content: creation_dto.content,
+                content_id: version_content.id,
             },
         )
         .expect(FmtError::FailedToInsert("article_version").fmt().as_str());
 
-        (article_language, article_version)
+        (article_language, version_content, article_version)
     }
 }

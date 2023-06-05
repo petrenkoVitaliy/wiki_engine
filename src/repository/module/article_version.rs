@@ -94,13 +94,13 @@ impl ArticleVersionRepository {
             .expect(FmtError::FailedToFetch("article_versions").fmt().as_str())
     }
 
-    pub async fn insert(
+    pub async fn _insert(
         connection: &connection::PgConnection,
         creation_dto: ArticleVersionCreateDto,
     ) -> model::ArticleVersion {
-        wrapper::wrap_db(
+        wrapper::_wrap_db(
             &connection,
-            ArticleVersionRepository::insert_raw,
+            Self::insert_raw,
             creation_dto,
             FmtError::FailedToInsert("article_version"),
         )
@@ -115,7 +115,7 @@ impl ArticleVersionRepository {
             .values(model::ArticleVersionInsertable {
                 id: None,
 
-                content: String::from(creation_dto.content),
+                content_id: creation_dto.content_id,
                 version: creation_dto.version,
                 article_language_id: creation_dto.article_language_id,
                 enabled: Some(true),
@@ -142,7 +142,7 @@ impl ArticleVersionRepository {
                         enabled: Some(patch_dto.enabled),
 
                         id: None,
-                        content: None,
+                        content_id: None,
                         version: None,
                         article_language_id: None,
                         updated_at: None,

@@ -1,4 +1,3 @@
--- Your SQL goes here
 CREATE TABLE article_language (
     id SERIAL PRIMARY KEY,
     
@@ -14,5 +13,7 @@ CREATE TABLE article_language (
     FOREIGN KEY (language_id) REFERENCES language(id) ON DELETE CASCADE,
 
     updated_at TIMESTAMP DEFAULT NOW(),
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT NOW(),
+
+    CONSTRAINT language_per_article UNIQUE (article_id, language_id)
 );

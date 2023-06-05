@@ -1,16 +1,24 @@
+use diesel::Connection;
+
 use super::repository::connection;
-use super::repository::module::article_version::ArticleVersionRepository;
+use super::repository::module::article_version::{model, ArticleVersionRepository};
+use super::repository::module::version_content::{
+    model::{ContentType, VersionContent},
+    VersionContentRepository,
+};
 
 use super::error::formatted_error::FmtError;
 use super::option_config::query_options::QueryOptions;
 
 use super::article_language::ArticleLanguageService;
+use super::version_content::VersionContentService;
 
 use super::schema::article_version::{
     ArticleVersionAggregation, ArticleVersionCreateBody, ArticleVersionCreateDto,
     ArticleVersionPatchBody, ArticleVersionPatchDto, ArticleVersionSearchDto,
     ArticleVersionsSearchDto,
 };
+use super::schema::version_content::VersionContentDto;
 
 use super::mapper::article_version::ArticleVersionMapper;
 
@@ -50,8 +58,19 @@ impl ArticleVersionService {
             Some(article_version) => article_version,
         };
 
-        let article_version_aggregation =
-            ArticleVersionMapper::map_to_aggregations(vec![article_version]).remove(0);
+        let version_content =
+            match VersionContentService::get_aggregation(connection, article_version.content_id)
+                .await
+            {
+                None => return None,
+                Some(version_content) => version_content,
+            };
+
+        let article_version_aggregation = ArticleVersionMapper::map_to_aggregations_with_content(
+            vec![article_version],
+            vec![version_content],
+        )
+        .remove(0);
 
         return Some(article_version_aggregation);
     }
@@ -74,9 +93,7 @@ impl ArticleVersionService {
             Some(article_language) => article_language,
         };
 
-        let article_versions: Vec<
-            crate::repository::module::article_version::model::ArticleVersion,
-        > = ArticleVersionRepository::get_many(
+        let article_versions: Vec<model::ArticleVersion> = ArticleVersionRepository::get_many(
             connection,
             ArticleVersionsSearchDto {
                 ids: None,
@@ -86,7 +103,15 @@ impl ArticleVersionService {
         )
         .await;
 
-        ArticleVersionMapper::map_to_aggregations(article_versions)
+        let article_versions_ids: Vec<i32> = article_versions
+            .iter()
+            .map(|article_version| article_version.id)
+            .collect();
+
+        let version_content =
+            VersionContentService::get_aggregations(connection, article_versions_ids).await;
+
+        ArticleVersionMapper::map_to_aggregations_with_content(article_versions, version_content)
     }
 
     pub async fn get_aggregations_by_languages(
@@ -104,7 +129,15 @@ impl ArticleVersionService {
         )
         .await;
 
-        ArticleVersionMapper::map_to_aggregations(article_versions)
+        let article_versions_ids: Vec<i32> = article_versions
+            .iter()
+            .map(|article_version| article_version.id)
+            .collect();
+
+        let version_content =
+            VersionContentService::get_aggregations(connection, article_versions_ids).await;
+
+        ArticleVersionMapper::map_to_aggregations_with_content(article_versions, version_content)
     }
 
     pub async fn insert(
@@ -128,17 +161,18 @@ impl ArticleVersionService {
         let article_versions_count =
             ArticleVersionRepository::get_count(connection, article_language.id).await;
 
-        let article_version = ArticleVersionRepository::insert(
+        let (article_version, version_content) = Self::create_relations_transaction(
             connection,
-            ArticleVersionCreateDto {
-                version: article_versions_count + 1,
-                content: creation_body.content,
-                article_language_id: article_language.id,
-            },
+            creation_body,
+            article_language.id,
+            article_versions_count,
         )
         .await;
 
-        Some(ArticleVersionMapper::map_to_aggregations(vec![article_version]).remove(0))
+        Some(
+            ArticleVersionMapper::map_to_aggregations(vec![article_version], vec![version_content])
+                .remove(0),
+        )
     }
 
     pub async fn patch(
@@ -170,6 +204,71 @@ impl ArticleVersionService {
         )
         .await;
 
-        Some(ArticleVersionMapper::map_to_aggregations(vec![article_version]).remove(0))
+        let version_content =
+            match VersionContentService::get_aggregation(connection, article_version.content_id)
+                .await
+            {
+                None => return None,
+                Some(version_content) => version_content,
+            };
+
+        Some(
+            ArticleVersionMapper::map_to_aggregations_with_content(
+                vec![article_version],
+                vec![version_content],
+            )
+            .remove(0),
+        )
+    }
+
+    async fn create_relations_transaction(
+        connection: &connection::PgConnection,
+        creation_body: ArticleVersionCreateBody,
+        article_language_id: i32,
+        article_versions_count: i32,
+    ) -> (model::ArticleVersion, VersionContent) {
+        connection
+            .run(move |connection| {
+                return connection.transaction::<(model::ArticleVersion, VersionContent), diesel::result::Error, _>(
+                    |transaction_connection| {
+                        Ok(Self::create_relations(
+                            transaction_connection,
+                            creation_body,
+                            article_language_id,
+                            article_versions_count
+                        ))
+                    },
+                );
+            })
+            .await
+            .expect("failed to create article_version relations")
+    }
+
+    fn create_relations(
+        connection: &mut diesel::PgConnection,
+        creation_body: ArticleVersionCreateBody,
+        article_language_id: i32,
+        article_versions_count: i32,
+    ) -> (model::ArticleVersion, VersionContent) {
+        let version_content = VersionContentRepository::insert_raw(
+            connection,
+            VersionContentDto {
+                content: creation_body.content.as_bytes().to_vec(),
+                content_type: ContentType::Full,
+            },
+        )
+        .expect(FmtError::FailedToInsert("version_content").fmt().as_str());
+
+        let article_version = ArticleVersionRepository::insert_raw(
+            connection,
+            ArticleVersionCreateDto {
+                article_language_id,
+                version: article_versions_count + 1,
+                content_id: version_content.id,
+            },
+        )
+        .expect(FmtError::FailedToInsert("article_version").fmt().as_str());
+
+        (article_version, version_content)
     }
 }

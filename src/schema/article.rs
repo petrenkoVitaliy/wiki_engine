@@ -3,6 +3,29 @@ use chrono::NaiveDateTime;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 
+#[derive(Serialize, JsonSchema)]
+pub struct ArticleAggregation {
+    pub id: i32,
+    pub enabled: bool,
+    pub archived: bool,
+
+    pub updated_at: Option<NaiveDateTime>,
+    pub created_at: NaiveDateTime,
+
+    pub languages: Vec<ArticleLanguageAggregation>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct ArticlePatchBody {
+    pub enabled: bool,
+}
+
+pub struct ArticlePatchDto {
+    pub id: i32,
+    pub enabled: Option<bool>,
+    pub archived: Option<bool>,
+}
+
 #[derive(Deserialize, JsonSchema)]
 pub struct ArticleCreateRelationsDto {
     pub content: String,
@@ -18,27 +41,4 @@ impl ArticleCreateRelationsDto {
             name: json_dto.name.to_string(),
         }
     }
-}
-
-#[derive(Deserialize, JsonSchema)]
-pub struct ArticlePatchBody {
-    pub enabled: bool,
-}
-
-pub struct ArticlePatchDto {
-    pub id: i32,
-    pub enabled: Option<bool>,
-    pub archived: Option<bool>,
-}
-
-#[derive(Serialize, JsonSchema)]
-pub struct ArticleAggregation {
-    pub id: i32,
-    pub enabled: bool,
-    pub archived: bool,
-
-    pub updated_at: Option<NaiveDateTime>,
-    pub created_at: NaiveDateTime,
-
-    pub languages: Vec<ArticleLanguageAggregation>,
 }

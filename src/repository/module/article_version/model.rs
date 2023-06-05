@@ -11,7 +11,7 @@ pub struct ArticleVersionInsertable {
     pub id: Option<i32>,
 
     pub version: i32,
-    pub content: String,
+    pub content_id: i32,
 
     pub enabled: Option<bool>,
 
@@ -27,7 +27,7 @@ pub struct ArticleVersionPatch {
     pub id: Option<i32>,
 
     pub version: Option<i32>,
-    pub content: Option<String>,
+    pub content_id: Option<i32>,
 
     pub enabled: Option<bool>,
 
@@ -42,7 +42,8 @@ pub struct ArticleVersionPatch {
 pub struct ArticleVersion {
     pub id: i32,
     pub version: i32,
-    pub content: String,
+
+    pub content_id: i32,
 
     pub enabled: bool,
 

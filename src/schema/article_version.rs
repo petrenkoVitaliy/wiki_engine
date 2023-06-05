@@ -2,21 +2,15 @@ use chrono::NaiveDateTime;
 use rocket::serde::{Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 
-// TODO rename
-#[derive(Debug)]
-pub struct ArticleVersionCreateDto {
-    pub version: i32,
-    pub content: String,
-
-    pub article_language_id: i32,
-}
+use super::version_content::VersionContentAggregation;
 
 #[derive(Serialize, JsonSchema)]
 pub struct ArticleVersionAggregation {
     pub id: i32,
     pub version: i32,
-    pub content: String,
     pub enabled: bool,
+
+    pub content: VersionContentAggregation,
 
     pub updated_at: Option<NaiveDateTime>,
     pub created_at: NaiveDateTime,
@@ -27,6 +21,14 @@ pub struct ArticleVersionAggregation {
 #[derive(Deserialize, JsonSchema)]
 pub struct ArticleVersionCreateBody {
     pub content: String,
+}
+
+#[derive(Debug)]
+pub struct ArticleVersionCreateDto {
+    pub version: i32,
+    pub content_id: i32,
+
+    pub article_language_id: i32,
 }
 
 #[derive(Deserialize, JsonSchema)]

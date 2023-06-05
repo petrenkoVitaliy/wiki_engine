@@ -66,9 +66,9 @@ impl ArticleLanguageRepository {
         connection: &PgConnection,
         creation_dto: ArticleLanguageCreateDto,
     ) -> model::ArticleLanguage {
-        wrapper::wrap_db(
+        wrapper::_wrap_db(
             &connection,
-            ArticleLanguageRepository::insert_raw,
+            Self::insert_raw,
             creation_dto,
             FmtError::FailedToInsert("article_language"),
         )

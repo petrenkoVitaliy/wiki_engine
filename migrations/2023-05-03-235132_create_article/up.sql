@@ -1,4 +1,3 @@
--- Your SQL goes here
 CREATE TABLE article (
     id SERIAL PRIMARY KEY,
 

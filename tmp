@@ -6,16 +6,15 @@
 
  // TODOs
     high:
+        - add decoder module
 
     medium:
-        - unique db fields (Postgres)
         - None vs expect (error handling)
+        - add tests
 
-        - init DI
-        - swagger
-
-        -dtos naming (split?)
+        - dtos naming (split?)
+        - move mappers to structs
 
     low:
         - test eq & eq_any perf
-j
+        - init DI (overhead for now)
