@@ -107,6 +107,17 @@ impl ArticleVersionRepository {
         .await
     }
 
+    pub fn get_by_version_raw(
+        connection: &mut diesel::PgConnection,
+        version: i32,
+    ) -> Result<Option<model::ArticleVersion>, diesel::result::Error> {
+        let mut query = db_schema::article_version::table.into_boxed();
+
+        query = query.filter(db_schema::article_version::version.eq(version));
+
+        return query.first(connection).optional();
+    }
+
     pub fn insert_raw(
         connection: &mut diesel::PgConnection,
         creation_dto: ArticleVersionCreateDto,

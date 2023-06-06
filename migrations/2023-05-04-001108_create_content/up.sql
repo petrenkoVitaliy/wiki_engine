@@ -1,4 +1,4 @@
-CREATE TYPE CONTENT_TYPE AS ENUM ('Full', 'Diff');
+CREATE TYPE CONTENT_TYPE AS ENUM ('full', 'diff');
 
 CREATE TABLE version_content (
     id SERIAL PRIMARY KEY,

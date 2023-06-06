@@ -28,6 +28,34 @@ impl VersionContentRepository {
             .expect(FmtError::FailedToFetch("version_content").fmt().as_str())
     }
 
+    pub fn get_one_raw(
+        connection: &mut diesel::PgConnection,
+        id: i32,
+    ) -> Result<Option<model::VersionContent>, diesel::result::Error> {
+        let mut query = db_schema::version_content::table.into_boxed();
+
+        query = query.filter(db_schema::version_content::id.eq(id));
+
+        return query.first(connection).optional();
+    }
+
+    pub fn patch_raw(
+        connection: &mut diesel::PgConnection,
+        id: i32,
+        content: Vec<u8>,
+    ) -> Result<model::VersionContent, diesel::result::Error> {
+        diesel::update(db_schema::version_content::table)
+            .filter(db_schema::version_content::id.eq(id))
+            .set(model::VersionContentPatch {
+                id: None,
+                content: Some(content),
+                content_type: Some(model::ContentType::Diff),
+                updated_at: None,
+                created_at: None,
+            })
+            .get_result::<model::VersionContent>(connection)
+    }
+
     pub async fn get_many(
         connection: &connection::PgConnection,
         ids: Vec<i32>,
@@ -65,8 +93,8 @@ impl VersionContentRepository {
             .values(model::VersionContentInsertable {
                 id: None,
 
-                content: Some(creation_dto.content),
-                content_type: Some(creation_dto.content_type),
+                content: creation_dto.content,
+                content_type: creation_dto.content_type,
 
                 updated_at: None,
                 created_at: None,

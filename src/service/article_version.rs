@@ -7,6 +7,7 @@ use super::repository::module::version_content::{
     VersionContentRepository,
 };
 
+use super::diff_handler::diff_handler::DiffHandler;
 use super::error::formatted_error::FmtError;
 use super::option_config::query_options::QueryOptions;
 
@@ -250,6 +251,28 @@ impl ArticleVersionService {
         article_language_id: i32,
         article_versions_count: i32,
     ) -> (model::ArticleVersion, VersionContent) {
+        if article_versions_count > 0 {
+            let article_version =
+                ArticleVersionRepository::get_by_version_raw(connection, article_versions_count)
+                    .expect(FmtError::FailedToFetch("article_version").fmt().as_str())
+                    .expect(FmtError::NotFound("article_version").fmt().as_str());
+
+            let version_content =
+                VersionContentRepository::get_one_raw(connection, article_versions_count)
+                    .expect(FmtError::FailedToFetch("version_content").fmt().as_str())
+                    .expect(FmtError::NotFound("version_content").fmt().as_str());
+
+            let content_delta =
+                DiffHandler::get_delta(&creation_body.content, version_content.content);
+
+            VersionContentRepository::patch_raw(
+                connection,
+                article_version.content_id,
+                content_delta,
+            )
+            .expect(FmtError::FailedToUpdate("version_content").fmt().as_str());
+        }
+
         let version_content = VersionContentRepository::insert_raw(
             connection,
             VersionContentDto {

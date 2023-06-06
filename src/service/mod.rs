@@ -1,3 +1,4 @@
+use super::diff_handler;
 use super::error;
 use super::mapper;
 use super::option_config;
