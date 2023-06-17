@@ -1,4 +1,3 @@
-use chrono::NaiveDateTime;
 use diesel::{AsChangeset, Insertable, Queryable};
 use diesel_derive_enum;
 use rocket::serde::{Deserialize, Serialize};
@@ -20,9 +19,7 @@ pub struct VersionContentInsertable {
 
     pub content: Vec<u8>,
     pub content_type: ContentType,
-
-    pub updated_at: Option<NaiveDateTime>,
-    pub created_at: Option<NaiveDateTime>,
+    pub content_length: i32,
 }
 
 #[derive(Queryable, Debug, Insertable, Serialize, Deserialize, AsChangeset)]
@@ -32,19 +29,15 @@ pub struct VersionContentPatch {
 
     pub content: Option<Vec<u8>>,
     pub content_type: Option<ContentType>,
-
-    pub updated_at: Option<NaiveDateTime>,
-    pub created_at: Option<NaiveDateTime>,
+    pub content_length: Option<i32>,
 }
 
 #[derive(Queryable, Debug, Serialize, Deserialize)]
-#[diesel(table_name = article_version)]
+#[diesel(table_name = version_content)]
 pub struct VersionContent {
     pub id: i32,
 
     pub content: Vec<u8>,
     pub content_type: ContentType,
-
-    pub updated_at: Option<NaiveDateTime>,
-    pub created_at: NaiveDateTime,
+    pub content_length: i32,
 }

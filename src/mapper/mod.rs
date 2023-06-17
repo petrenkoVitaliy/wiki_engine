@@ -1,3 +1,4 @@
+use super::diff_handler;
 use super::error;
 use super::repository;
 use super::schema;

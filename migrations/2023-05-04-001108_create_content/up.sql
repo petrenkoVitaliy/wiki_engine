@@ -5,7 +5,5 @@ CREATE TABLE version_content (
     
     content BYTEA NOT NULL,
     content_type CONTENT_TYPE NOT NULL,
-    
-    updated_at TIMESTAMP DEFAULT NOW(),
-    created_at TIMESTAMP DEFAULT NOW()
+    content_length INT NOT NULL
 );

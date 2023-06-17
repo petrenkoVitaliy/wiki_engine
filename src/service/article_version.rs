@@ -17,7 +17,7 @@ use super::version_content::VersionContentService;
 use super::schema::article_version::{
     ArticleVersionAggregation, ArticleVersionCreateBody, ArticleVersionCreateDto,
     ArticleVersionPatchBody, ArticleVersionPatchDto, ArticleVersionSearchDto,
-    ArticleVersionsSearchDto,
+    ArticleVersionsJoinSearchDto, ArticleVersionsSearchDto,
 };
 use super::schema::version_content::VersionContentDto;
 
@@ -80,6 +80,7 @@ impl ArticleVersionService {
         connection: &connection::PgConnection,
         article_id: i32,
         language_code: String,
+        // TODO is active
         query_options: QueryOptions,
     ) -> Vec<ArticleVersionAggregation> {
         let article_language = match ArticleLanguageService::get_one_by_language(
@@ -94,25 +95,28 @@ impl ArticleVersionService {
             Some(article_language) => article_language,
         };
 
-        let article_versions: Vec<model::ArticleVersion> = ArticleVersionRepository::get_many(
+        let article_versions_contents = ArticleVersionRepository::get_many_with_content(
             connection,
-            ArticleVersionsSearchDto {
-                ids: None,
+            ArticleVersionsJoinSearchDto {
+                version_gt: None,
                 article_languages_ids: Some(vec![article_language.id]),
             },
-            &query_options,
         )
         .await;
 
-        let article_versions_ids: Vec<i32> = article_versions
-            .iter()
-            .map(|article_version| article_version.id)
-            .collect();
+        let content_map =
+            match VersionContentService::get_contents_map_by_ids(&article_versions_contents) {
+                None => panic!(
+                    "{}",
+                    FmtError::FailedToProcess("content_map").fmt().as_str()
+                ),
+                Some(map) => map,
+            };
 
-        let version_content =
-            VersionContentService::get_aggregations(connection, article_versions_ids).await;
-
-        ArticleVersionMapper::map_to_aggregations_with_content(article_versions, version_content)
+        ArticleVersionMapper::map_to_aggregations_with_content_map(
+            article_versions_contents,
+            content_map,
+        )
     }
 
     pub async fn get_aggregations_by_languages(
@@ -258,7 +262,7 @@ impl ArticleVersionService {
                     .expect(FmtError::NotFound("article_version").fmt().as_str());
 
             let version_content =
-                VersionContentRepository::get_one_raw(connection, article_versions_count)
+                VersionContentRepository::get_one_raw(connection, article_version.content_id)
                     .expect(FmtError::FailedToFetch("version_content").fmt().as_str())
                     .expect(FmtError::NotFound("version_content").fmt().as_str());
 

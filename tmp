@@ -16,5 +16,6 @@
         - move mappers to structs
 
     low:
+        - cascade deleting doesn't work
         - test eq & eq_any perf
         - init DI (overhead for now)

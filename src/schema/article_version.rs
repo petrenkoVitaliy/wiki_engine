@@ -45,6 +45,11 @@ pub struct ArticleVersionsSearchDto {
     pub ids: Option<Vec<i32>>,
 }
 
+pub struct ArticleVersionsJoinSearchDto {
+    pub article_languages_ids: Option<Vec<i32>>,
+    pub version_gt: Option<i32>,
+}
+
 pub struct ArticleVersionSearchDto {
     pub id: Option<i32>,
     pub article_languages_ids: Option<Vec<i32>>,

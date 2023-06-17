@@ -1,8 +1,10 @@
-use super::error::formatted_error::FmtError;
+use std::collections::HashMap;
 
 use super::repository::module::version_content::model::VersionContent;
 
 use super::schema::version_content::{ContentType, VersionContentAggregation};
+
+use super::diff_handler::diff_handler::DiffHandler;
 
 pub struct VersionContentMapper {}
 
@@ -16,33 +18,38 @@ impl VersionContentMapper {
                 return VersionContentAggregation {
                     id: version_content.id,
 
-                    content: Self::get_content(&version_content),
-
-                    updated_at: version_content.updated_at,
-                    created_at: version_content.created_at,
+                    content: Self::get_content(&version_content, None),
                 };
             })
             .collect()
     }
 
-    pub fn map_to_aggregation(version_content: VersionContent) -> VersionContentAggregation {
+    pub fn map_to_aggregation(
+        version_content: VersionContent,
+        contents_map: Option<&HashMap<i32, String>>,
+    ) -> VersionContentAggregation {
         return VersionContentAggregation {
             id: version_content.id,
 
-            content: Self::get_content(&version_content),
-
-            updated_at: version_content.updated_at,
-            created_at: version_content.created_at,
+            content: Self::get_content(&version_content, contents_map),
         };
     }
 
-    fn get_content(version_content: &VersionContent) -> String {
-        let content = (&version_content.content).to_vec();
-
+    fn get_content(
+        version_content: &VersionContent,
+        contents_map: Option<&HashMap<i32, String>>,
+    ) -> String {
         match version_content.content_type {
-            ContentType::Diff => String::from("patch"),
-            ContentType::Full => String::from_utf8(content)
-                .expect(FmtError::FailedToProcess("content").fmt().as_str()),
+            ContentType::Diff => {
+                if let Some(contents_map) = contents_map {
+                    if let Some(content) = contents_map.get(&version_content.id) {
+                        return String::from(content);
+                    }
+                }
+
+                String::from("_patch_")
+            }
+            ContentType::Full => DiffHandler::get_string_from_bytes(&version_content.content),
         }
     }
 }

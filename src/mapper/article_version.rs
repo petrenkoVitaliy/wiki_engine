@@ -63,7 +63,32 @@ impl ArticleVersionMapper {
                     created_at: article_version.created_at,
 
                     article_language_id: article_version.article_language_id,
-                    content: VersionContentMapper::map_to_aggregation(content_version),
+                    content: VersionContentMapper::map_to_aggregation(content_version, None),
+                };
+            })
+            .collect()
+    }
+
+    pub fn map_to_aggregations_with_content_map(
+        article_versions_with_contents: Vec<(ArticleVersion, VersionContent)>,
+        contents_map: HashMap<i32, String>,
+    ) -> Vec<ArticleVersionAggregation> {
+        article_versions_with_contents
+            .into_iter()
+            .map(move |(article_version, version_content)| {
+                return ArticleVersionAggregation {
+                    id: article_version.id,
+                    version: article_version.version,
+                    enabled: article_version.enabled,
+
+                    updated_at: article_version.updated_at,
+                    created_at: article_version.created_at,
+
+                    article_language_id: article_version.article_language_id,
+                    content: VersionContentMapper::map_to_aggregation(
+                        version_content,
+                        Some(&contents_map),
+                    ),
                 };
             })
             .collect()

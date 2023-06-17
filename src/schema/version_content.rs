@@ -1,4 +1,3 @@
-use chrono::NaiveDateTime;
 use rocket::serde::Serialize;
 use rocket_okapi::okapi::schemars::JsonSchema;
 
@@ -8,9 +7,6 @@ pub use super::ContentType;
 pub struct VersionContentAggregation {
     pub id: i32,
     pub content: String,
-
-    pub updated_at: Option<NaiveDateTime>,
-    pub created_at: NaiveDateTime,
 }
 
 pub struct VersionContentDto {

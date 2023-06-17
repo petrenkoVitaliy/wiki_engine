@@ -50,8 +50,7 @@ impl VersionContentRepository {
                 id: None,
                 content: Some(content),
                 content_type: Some(model::ContentType::Diff),
-                updated_at: None,
-                created_at: None,
+                content_length: None,
             })
             .get_result::<model::VersionContent>(connection)
     }
@@ -89,15 +88,15 @@ impl VersionContentRepository {
         connection: &mut diesel::PgConnection,
         creation_dto: VersionContentDto,
     ) -> Result<model::VersionContent, diesel::result::Error> {
+        let content_length = creation_dto.content.len() as i32;
+
         diesel::insert_into(db_schema::version_content::table)
             .values(model::VersionContentInsertable {
                 id: None,
 
                 content: creation_dto.content,
                 content_type: creation_dto.content_type,
-
-                updated_at: None,
-                created_at: None,
+                content_length,
             })
             .get_result::<model::VersionContent>(connection)
     }

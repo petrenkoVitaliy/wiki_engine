@@ -8,8 +8,10 @@ use super::wrapper;
 
 use super::schema::article_version::{
     ArticleVersionCreateDto, ArticleVersionPatchDto, ArticleVersionSearchDto,
-    ArticleVersionsSearchDto,
+    ArticleVersionsJoinSearchDto, ArticleVersionsSearchDto,
 };
+
+use super::version_content::model::VersionContent;
 
 pub mod model;
 
@@ -60,6 +62,35 @@ impl ArticleVersionRepository {
             })
             .await
             .expect(FmtError::FailedToFetch("article_version").fmt().as_str())
+    }
+
+    pub async fn get_many_with_content(
+        connection: &connection::PgConnection,
+        query_dto: ArticleVersionsJoinSearchDto,
+    ) -> Vec<(model::ArticleVersion, VersionContent)> {
+        connection
+            .run(move |connection| {
+                let mut query = db_schema::article_version::table
+                    .inner_join(db_schema::version_content::table)
+                    .into_boxed();
+
+                if let Some(version_gt) = query_dto.version_gt {
+                    query = query.filter(db_schema::article_version::version.gt(version_gt));
+                }
+
+                if let Some(article_languages_ids) = query_dto.article_languages_ids {
+                    query = query.filter(
+                        db_schema::article_version::article_language_id
+                            .eq_any(article_languages_ids),
+                    );
+                }
+
+                return query
+                    .order(db_schema::article_version::version.asc())
+                    .load::<(model::ArticleVersion, VersionContent)>(connection);
+            })
+            .await
+            .expect(FmtError::FailedToFetch("article_versions").fmt().as_str())
     }
 
     pub async fn get_many(

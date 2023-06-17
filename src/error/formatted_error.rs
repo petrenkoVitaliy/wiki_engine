@@ -1,6 +1,6 @@
 pub enum FmtError<'input> {
-    NotFound(&'input str),
     FailedToProcess(&'input str),
+    NotFound(&'input str),
     FailedToFetch(&'input str),
     FailedToInsert(&'input str),
     FailedToUpdate(&'input str),

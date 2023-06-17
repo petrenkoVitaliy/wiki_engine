@@ -54,8 +54,7 @@ diesel::table! {
         id -> Int4,
         content -> Bytea,
         content_type -> ContentType,
-        updated_at -> Nullable<Timestamp>,
-        created_at -> Timestamp,
+        content_length -> Int4,
     }
 }
 
@@ -64,4 +63,10 @@ diesel::joinable!(article_language -> language (language_id));
 diesel::joinable!(article_version -> article_language (article_language_id));
 diesel::joinable!(article_version -> version_content (content_id));
 
-diesel::allow_tables_to_appear_in_same_query!(article, article_language, article_version, language,);
+diesel::allow_tables_to_appear_in_same_query!(
+    article,
+    article_language,
+    article_version,
+    version_content,
+    language,
+);
