@@ -1,17 +1,21 @@
+use rocket::serde::Serialize;
+use rocket_okapi::okapi::schemars::JsonSchema;
 use std::collections::HashMap;
 
-use super::repository::module::version_content::model::VersionContent;
+use super::repository::models::version_content::model::VersionContent;
 
-use super::schema::version_content::{ContentType, VersionContentAggregation};
+use super::schema::version_content::ContentType;
 
 use super::diff_handler::diff_handler::DiffHandler;
 
-pub struct VersionContentMapper {}
+#[derive(Serialize, JsonSchema)]
+pub struct VersionContentAggregation {
+    pub id: i32,
+    pub content: String,
+}
 
-impl VersionContentMapper {
-    pub fn map_to_aggregations(
-        version_content: Vec<VersionContent>,
-    ) -> Vec<VersionContentAggregation> {
+impl VersionContentAggregation {
+    pub fn from_model_list(version_content: Vec<VersionContent>) -> Vec<Self> {
         version_content
             .into_iter()
             .map(move |version_content| {
@@ -24,10 +28,10 @@ impl VersionContentMapper {
             .collect()
     }
 
-    pub fn map_to_aggregation(
+    pub fn from_model(
         version_content: VersionContent,
         contents_map: Option<&HashMap<i32, String>>,
-    ) -> VersionContentAggregation {
+    ) -> Self {
         return VersionContentAggregation {
             id: version_content.id,
 

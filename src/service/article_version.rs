@@ -1,8 +1,8 @@
 use diesel::Connection;
 
 use super::repository::connection;
-use super::repository::module::article_version::{model, ArticleVersionRepository};
-use super::repository::module::version_content::{
+use super::repository::models::article_version::{model, ArticleVersionRepository};
+use super::repository::models::version_content::{
     model::{ContentType, VersionContent},
     VersionContentRepository,
 };
@@ -15,13 +15,13 @@ use super::article_language::ArticleLanguageService;
 use super::version_content::VersionContentService;
 
 use super::schema::article_version::{
-    ArticleVersionAggregation, ArticleVersionCreateBody, ArticleVersionCreateDto,
-    ArticleVersionPatchBody, ArticleVersionPatchDto, ArticleVersionSearchDto,
-    ArticleVersionsJoinSearchDto, ArticleVersionsSearchDto,
+    ArticleVersionCreateBody, ArticleVersionCreateDto, ArticleVersionPatchBody,
+    ArticleVersionPatchDto, ArticleVersionSearchDto, ArticleVersionsJoinSearchDto,
+    ArticleVersionsSearchDto,
 };
 use super::schema::version_content::VersionContentDto;
 
-use super::mapper::article_version::ArticleVersionMapper;
+use super::aggregation::article_version::ArticleVersionAggregation;
 
 pub struct ArticleVersionService {}
 
@@ -67,7 +67,7 @@ impl ArticleVersionService {
                 Some(version_content) => version_content,
             };
 
-        let article_version_aggregation = ArticleVersionMapper::map_to_aggregations_with_content(
+        let article_version_aggregation = ArticleVersionAggregation::from_model_list_with_content(
             vec![article_version],
             vec![version_content],
         )
@@ -113,10 +113,19 @@ impl ArticleVersionService {
                 Some(map) => map,
             };
 
-        ArticleVersionMapper::map_to_aggregations_with_content_map(
-            article_versions_contents,
-            content_map,
-        )
+        let article_versions_aggregations =
+            ArticleVersionAggregation::from_content_map(article_versions_contents, content_map);
+
+        return article_versions_aggregations
+            .into_iter()
+            .filter(move |aggregation| {
+                if !query_options.is_actual {
+                    return true;
+                }
+
+                return aggregation.enabled;
+            })
+            .collect();
     }
 
     pub async fn get_aggregations_by_languages(
@@ -142,7 +151,7 @@ impl ArticleVersionService {
         let version_content =
             VersionContentService::get_aggregations(connection, article_versions_ids).await;
 
-        ArticleVersionMapper::map_to_aggregations_with_content(article_versions, version_content)
+        ArticleVersionAggregation::from_model_list_with_content(article_versions, version_content)
     }
 
     pub async fn insert(
@@ -175,8 +184,11 @@ impl ArticleVersionService {
         .await;
 
         Some(
-            ArticleVersionMapper::map_to_aggregations(vec![article_version], vec![version_content])
-                .remove(0),
+            ArticleVersionAggregation::from_related_models(
+                vec![article_version],
+                vec![version_content],
+            )
+            .remove(0),
         )
     }
 
@@ -218,7 +230,7 @@ impl ArticleVersionService {
             };
 
         Some(
-            ArticleVersionMapper::map_to_aggregations_with_content(
+            ArticleVersionAggregation::from_model_list_with_content(
                 vec![article_version],
                 vec![version_content],
             )

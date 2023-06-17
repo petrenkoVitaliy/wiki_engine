@@ -1,9 +1,7 @@
 use super::repository::connection;
-use super::repository::module::language::{model, LanguageRepository};
+use super::repository::models::language::{model, LanguageRepository};
 
-use super::schema::language::LanguageAggregation;
-
-use super::mapper::language::LanguageMapper;
+use super::aggregation::language::LanguageAggregation;
 
 pub struct LanguageService {}
 
@@ -24,7 +22,7 @@ impl LanguageService {
             Some(language) => language,
         };
 
-        Some(LanguageMapper::map_to_aggregation(language))
+        Some(LanguageAggregation::from_model(language))
     }
 
     pub async fn get_aggregations(
@@ -32,6 +30,6 @@ impl LanguageService {
     ) -> Vec<LanguageAggregation> {
         let languages = LanguageRepository::get_many(connection).await;
 
-        LanguageMapper::map_to_aggregations(languages)
+        LanguageAggregation::from_model_list(languages)
     }
 }

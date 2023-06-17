@@ -6,12 +6,12 @@ use rocket_okapi::{
 
 use super::connection;
 use super::option_config::query_options::QueryOptions;
-use super::schema::article_version::{
-    ArticleVersionAggregation, ArticleVersionCreateBody, ArticleVersionPatchBody,
-};
+use super::schema::article_version::{ArticleVersionCreateBody, ArticleVersionPatchBody};
 use crate::error::formatted_error::FmtError;
 
 use super::service::article_version::ArticleVersionService;
+
+use super::aggregation::article_version::ArticleVersionAggregation;
 
 #[openapi]
 #[get("/<article_id>/language/<language_code>/version/<id>")]

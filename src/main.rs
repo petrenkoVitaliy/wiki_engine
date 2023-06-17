@@ -6,6 +6,7 @@ use rocket_okapi::{
     swagger_ui::{make_swagger_ui, SwaggerUIConfig},
 };
 
+mod aggregation;
 mod diff_handler;
 mod error;
 mod mapper;

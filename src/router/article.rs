@@ -8,9 +8,8 @@ use super::connection;
 use super::option_config::query_options::QueryOptions;
 use crate::error::formatted_error::FmtError;
 
-use super::schema::article::{
-    ArticleAggregation, ArticleCreateRelationsDto, ArticlePatchBody, ArticlePatchDto,
-};
+use super::aggregation::article::ArticleAggregation;
+use super::schema::article::{ArticleCreateRelationsDto, ArticlePatchBody, ArticlePatchDto};
 
 use super::service::article::ArticleService;
 

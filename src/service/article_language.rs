@@ -1,15 +1,13 @@
 use diesel::Connection;
 use std::collections::HashMap;
 
-use crate::schema::language::LanguageAggregation;
-
 use super::error::formatted_error::FmtError;
 use super::option_config::query_options::QueryOptions;
 
 use super::repository::connection;
-use super::repository::module::article_language::{model, ArticleLanguageRepository};
-use super::repository::module::article_version::{model::ArticleVersion, ArticleVersionRepository};
-use super::repository::module::version_content::{
+use super::repository::models::article_language::{model, ArticleLanguageRepository};
+use super::repository::models::article_version::{model::ArticleVersion, ArticleVersionRepository};
+use super::repository::models::version_content::{
     model::{ContentType, VersionContent},
     VersionContentRepository,
 };
@@ -18,14 +16,15 @@ use super::article_version::ArticleVersionService;
 use super::language::LanguageService;
 
 use super::schema::article_language::{
-    ArticleLanguageAggregation, ArticleLanguageCreateDto, ArticleLanguageCreateRelationsDto,
-    ArticleLanguagePatchDto,
+    ArticleLanguageCreateDto, ArticleLanguageCreateRelationsDto, ArticleLanguagePatchDto,
 };
 use super::schema::article_version::ArticleVersionCreateDto;
 use super::schema::version_content::VersionContentDto;
 
-use super::mapper::article_language::ArticleLanguageMapper;
-use super::mapper::article_version::ArticleVersionMapper;
+use super::aggregation::article_language::ArticleLanguageAggregation;
+use super::aggregation::article_version::ArticleVersionAggregation;
+
+use crate::aggregation::language::LanguageAggregation;
 
 pub struct ArticleLanguageService {}
 
@@ -88,7 +87,11 @@ impl ArticleLanguageService {
         )
         .await;
 
-        ArticleLanguageMapper::map_to_aggregations(article_languages, article_versions, languages)
+        ArticleLanguageAggregation::from_related_models(
+            article_languages,
+            article_versions,
+            languages,
+        )
     }
 
     pub async fn insert(
@@ -119,10 +122,12 @@ impl ArticleLanguageService {
         let (article_language, version_content, article_version) =
             Self::create_relations_transaction(connection, creation_dto, language.id).await;
 
-        let article_version_aggregations =
-            ArticleVersionMapper::map_to_aggregations(vec![article_version], vec![version_content]);
+        let article_version_aggregations = ArticleVersionAggregation::from_related_models(
+            vec![article_version],
+            vec![version_content],
+        );
 
-        let article_language_aggregation = ArticleLanguageMapper::map_to_aggregations(
+        let article_language_aggregation = ArticleLanguageAggregation::from_related_models(
             vec![article_language],
             article_version_aggregations,
             vec![language],
@@ -181,7 +186,7 @@ impl ArticleLanguageService {
         )
         .await;
 
-        ArticleLanguageMapper::map_to_aggregations_map(
+        ArticleLanguageAggregation::get_aggregations_map(
             article_languages,
             article_versions,
             languages,
@@ -213,7 +218,7 @@ impl ArticleLanguageService {
         )
         .await;
 
-        let article_language_aggregation = ArticleLanguageMapper::map_to_aggregations(
+        let article_language_aggregation = ArticleLanguageAggregation::from_related_models(
             vec![article_language],
             article_versions,
             vec![language],

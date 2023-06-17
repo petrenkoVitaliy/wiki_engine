@@ -1,7 +1,6 @@
-use super::aggregation;
 use super::diff_handler;
 use super::error;
-use super::option_config;
+use super::mapper;
 use super::repository;
 use super::schema;
 

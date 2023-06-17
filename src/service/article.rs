@@ -6,13 +6,13 @@ use super::option_config::query_options::QueryOptions;
 use super::article_language::ArticleLanguageService;
 use super::language::LanguageService;
 
-use super::schema::article::{ArticleAggregation, ArticleCreateRelationsDto, ArticlePatchDto};
+use super::schema::article::{ArticleCreateRelationsDto, ArticlePatchDto};
 use super::schema::article_language::ArticleLanguageCreateDto;
 use super::schema::article_version::ArticleVersionCreateDto;
 use super::schema::version_content::VersionContentDto;
 
 use super::repository::connection;
-use super::repository::module::{
+use super::repository::models::{
     article::{model, ArticleRepository},
     article_language::{model::ArticleLanguage, ArticleLanguageRepository},
     article_version::{model::ArticleVersion, ArticleVersionRepository},
@@ -22,7 +22,7 @@ use super::repository::module::{
     },
 };
 
-use super::mapper::article::ArticleMapper;
+use super::aggregation::article::ArticleAggregation;
 
 pub struct ArticleService {}
 
@@ -44,7 +44,7 @@ impl ArticleService {
         )
         .await;
 
-        Some(ArticleMapper::map_to_full_aggregation(
+        Some(ArticleAggregation::from_model(
             &article,
             article_language_aggregations,
         ))
@@ -68,7 +68,7 @@ impl ArticleService {
                     .remove(&article.id)
                     .unwrap_or(vec![]);
 
-                ArticleMapper::map_to_full_aggregation(article, article_languages_aggregations)
+                ArticleAggregation::from_model(article, article_languages_aggregations)
             })
             .collect()
     }
@@ -86,7 +86,7 @@ impl ArticleService {
         let (article, article_language, version_content, article_version) =
             Self::create_relations_transaction(connection, creation_dto, language.id).await;
 
-        let article_aggregation = ArticleMapper::map_relations_to_aggregation(
+        let article_aggregation = ArticleAggregation::from_related_models(
             article,
             article_language,
             article_version,

@@ -9,11 +9,13 @@ use super::option_config::query_options::QueryOptions;
 use crate::error::formatted_error::FmtError;
 
 use super::schema::article_language::{
-    ArticleLanguageAggregation, ArticleLanguageCreateBody, ArticleLanguageCreateRelationsDto,
-    ArticleLanguagePatchBody, ArticleLanguagePatchDto,
+    ArticleLanguageCreateBody, ArticleLanguageCreateRelationsDto, ArticleLanguagePatchBody,
+    ArticleLanguagePatchDto,
 };
 
 use super::service::article_language::ArticleLanguageService;
+
+use super::aggregation::article_language::ArticleLanguageAggregation;
 
 #[openapi]
 #[get("/<article_id>/language/<language_code>")]

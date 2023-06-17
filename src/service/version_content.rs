@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
 use super::repository::connection;
-use super::repository::module::article_version::model::ArticleVersion;
-use super::repository::module::version_content::{model, VersionContentRepository};
+use super::repository::models::article_version::model::ArticleVersion;
+use super::repository::models::version_content::{model, VersionContentRepository};
 
-use super::schema::version_content::{ContentType, VersionContentAggregation};
+use super::schema::version_content::ContentType;
 
-use super::mapper::version_content::VersionContentMapper;
+use super::aggregation::version_content::VersionContentAggregation;
 
 use super::diff_handler::diff_handler::DiffHandler;
 
@@ -22,10 +22,7 @@ impl VersionContentService {
             Some(version_content) => version_content,
         };
 
-        Some(VersionContentMapper::map_to_aggregation(
-            version_content,
-            None,
-        ))
+        Some(VersionContentAggregation::from_model(version_content, None))
     }
 
     pub async fn get_aggregations(
@@ -34,7 +31,7 @@ impl VersionContentService {
     ) -> Vec<VersionContentAggregation> {
         let version_contents = VersionContentRepository::get_many(connection, ids).await;
 
-        VersionContentMapper::map_to_aggregations(version_contents)
+        VersionContentAggregation::from_model_list(version_contents)
     }
 
     pub fn get_contents_map_by_ids(

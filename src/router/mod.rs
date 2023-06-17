@@ -1,3 +1,4 @@
+use super::aggregation;
 use super::option_config;
 use super::repository::connection;
 use super::schema;
