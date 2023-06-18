@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use super::repository::connection;
-use super::repository::entity::article_version::model::ArticleVersion;
-use super::repository::entity::version_content::{model, VersionContentRepository};
+use super::repository::entity::article_version::ArticleVersion;
+use super::repository::entity::version_content::{VersionContent, VersionContentRepository};
 
 use super::schema::version_content::ContentType;
 
@@ -35,7 +35,7 @@ impl VersionContentService {
     }
 
     pub fn get_contents_map_by_ids(
-        article_versions_with_contents: &Vec<(ArticleVersion, model::VersionContent)>,
+        article_versions_with_contents: &Vec<(ArticleVersion, VersionContent)>,
     ) -> Option<HashMap<i32, String>> {
         let full_content = match article_versions_with_contents.last() {
             None => return None,

@@ -14,12 +14,9 @@ use super::schema::version_content::VersionContentDto;
 use super::repository::connection;
 use super::repository::entity::{
     article::{Article, ArticleRepository},
-    article_language::{model::ArticleLanguage, ArticleLanguageRepository},
-    article_version::{model::ArticleVersion, ArticleVersionRepository},
-    version_content::{
-        model::{ContentType, VersionContent},
-        VersionContentRepository,
-    },
+    article_language::{ArticleLanguage, ArticleLanguageRepository},
+    article_version::{ArticleVersion, ArticleVersionRepository},
+    version_content::{ContentType, VersionContent, VersionContentRepository},
 };
 
 use super::aggregation::article::ArticleAggregation;

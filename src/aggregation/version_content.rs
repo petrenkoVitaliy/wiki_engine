@@ -2,7 +2,7 @@ use rocket::serde::{Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 use std::collections::HashMap;
 
-use super::repository::entity::version_content::model::VersionContent;
+use super::repository::entity::version_content::VersionContent;
 
 use super::schema::version_content::ContentType;
 

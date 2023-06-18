@@ -3,9 +3,8 @@ use rocket::serde::{Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 
 use super::repository::entity::{
-    article::Article, article_language::model::ArticleLanguage,
-    article_version::model::ArticleVersion, language::model::Language,
-    version_content::model::VersionContent,
+    article::Article, article_language::ArticleLanguage, article_version::ArticleVersion,
+    language::Language, version_content::VersionContent,
 };
 
 use super::article_language::ArticleLanguageAggregation;

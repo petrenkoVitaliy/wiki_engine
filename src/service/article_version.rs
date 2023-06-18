@@ -1,10 +1,9 @@
 use diesel::Connection;
 
 use super::repository::connection;
-use super::repository::entity::article_version::{model, ArticleVersionRepository};
+use super::repository::entity::article_version::{ArticleVersion, ArticleVersionRepository};
 use super::repository::entity::version_content::{
-    model::{ContentType, VersionContent},
-    VersionContentRepository,
+    ContentType, VersionContent, VersionContentRepository,
 };
 
 use super::diff_handler::diff_handler::DiffHandler;
@@ -243,19 +242,20 @@ impl ArticleVersionService {
         creation_body: ArticleVersionCreateBody,
         article_language_id: i32,
         article_versions_count: i32,
-    ) -> (model::ArticleVersion, VersionContent) {
+    ) -> (ArticleVersion, VersionContent) {
         connection
             .run(move |connection| {
-                return connection.transaction::<(model::ArticleVersion, VersionContent), diesel::result::Error, _>(
-                    |transaction_connection| {
-                        Ok(Self::create_relations(
-                            transaction_connection,
-                            creation_body,
-                            article_language_id,
-                            article_versions_count
-                        ))
-                    },
-                );
+                return connection
+                    .transaction::<(ArticleVersion, VersionContent), diesel::result::Error, _>(
+                        |transaction_connection| {
+                            Ok(Self::create_relations(
+                                transaction_connection,
+                                creation_body,
+                                article_language_id,
+                                article_versions_count,
+                            ))
+                        },
+                    );
             })
             .await
             .expect("failed to create article_version relations")
@@ -266,7 +266,7 @@ impl ArticleVersionService {
         creation_body: ArticleVersionCreateBody,
         article_language_id: i32,
         article_versions_count: i32,
-    ) -> (model::ArticleVersion, VersionContent) {
+    ) -> (ArticleVersion, VersionContent) {
         if article_versions_count > 0 {
             let article_version =
                 ArticleVersionRepository::get_by_version_raw(connection, article_versions_count)

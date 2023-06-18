@@ -5,11 +5,10 @@ use super::error::formatted_error::FmtError;
 use super::option_config::query_options::QueryOptions;
 
 use super::repository::connection;
-use super::repository::entity::article_language::{model, ArticleLanguageRepository};
-use super::repository::entity::article_version::{model::ArticleVersion, ArticleVersionRepository};
+use super::repository::entity::article_language::{ArticleLanguage, ArticleLanguageRepository};
+use super::repository::entity::article_version::{ArticleVersion, ArticleVersionRepository};
 use super::repository::entity::version_content::{
-    model::{ContentType, VersionContent},
-    VersionContentRepository,
+    ContentType, VersionContent, VersionContentRepository,
 };
 
 use super::article_version::ArticleVersionService;
@@ -23,7 +22,6 @@ use super::schema::version_content::VersionContentDto;
 
 use super::aggregation::article_language::ArticleLanguageAggregation;
 use super::aggregation::article_version::ArticleVersionAggregation;
-
 use crate::aggregation::language::LanguageAggregation;
 
 pub struct ArticleLanguageService {}
@@ -34,7 +32,7 @@ impl ArticleLanguageService {
         article_id: i32,
         language_code: String,
         query_options: QueryOptions,
-    ) -> Option<model::ArticleLanguage> {
+    ) -> Option<ArticleLanguage> {
         let language = match LanguageService::get_aggregation(connection, language_code).await {
             None => return None,
             Some(language) => language,
@@ -232,10 +230,10 @@ impl ArticleLanguageService {
         connection: &connection::PgConnection,
         creation_dto: ArticleLanguageCreateRelationsDto,
         language_id: i32,
-    ) -> (model::ArticleLanguage, VersionContent, ArticleVersion) {
+    ) -> (ArticleLanguage, VersionContent, ArticleVersion) {
         connection
             .run(move |connection| {
-                return connection.transaction::<(model::ArticleLanguage, VersionContent, ArticleVersion), diesel::result::Error, _>(
+                return connection.transaction::<(ArticleLanguage, VersionContent, ArticleVersion), diesel::result::Error, _>(
                     |transaction_connection| {
                         Ok(Self::create_relations(
                             transaction_connection,
@@ -253,7 +251,7 @@ impl ArticleLanguageService {
         connection: &mut diesel::PgConnection,
         creation_dto: ArticleLanguageCreateRelationsDto,
         language_id: i32,
-    ) -> (model::ArticleLanguage, VersionContent, ArticleVersion) {
+    ) -> (ArticleLanguage, VersionContent, ArticleVersion) {
         let article_language = ArticleLanguageRepository::insert_raw(
             connection,
             ArticleLanguageCreateDto {

@@ -1,13 +1,13 @@
 use rocket::{response::status, serde::json::Json, *};
-
 use rocket_okapi::{
     okapi::schemars::gen::SchemaSettings, openapi, openapi_get_routes, settings::OpenApiSettings,
 };
 
 use super::connection;
 use super::option_config::query_options::QueryOptions;
-use super::schema::article_version::{ArticleVersionCreateBody, ArticleVersionPatchBody};
 use crate::error::formatted_error::FmtError;
+
+use super::schema::article_version::{ArticleVersionCreateBody, ArticleVersionPatchBody};
 
 use super::service::article_version::ArticleVersionService;
 

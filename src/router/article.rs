@@ -1,5 +1,4 @@
 use rocket::{response::status, serde::json::Json, *};
-
 use rocket_okapi::{
     okapi::schemars::gen::SchemaSettings, openapi, openapi_get_routes, settings::OpenApiSettings,
 };
@@ -9,6 +8,7 @@ use super::option_config::query_options::QueryOptions;
 use crate::error::formatted_error::FmtError;
 
 use super::aggregation::article::ArticleAggregation;
+
 use super::schema::article::{ArticleCreateRelationsDto, ArticlePatchBody, ArticlePatchDto};
 
 use super::service::article::ArticleService;

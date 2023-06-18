@@ -3,6 +3,8 @@ use diesel::prelude::*;
 use super::connection;
 use super::db_schema;
 use super::decorator::connection_result;
+use super::model;
+
 use super::error::formatted_error::FmtError;
 use super::option_config::query_options::QueryOptions;
 
@@ -11,9 +13,7 @@ use super::schema::article_version::{
     ArticleVersionsJoinSearchDto, ArticleVersionsSearchDto,
 };
 
-use super::version_content::model::VersionContent;
-
-pub mod model;
+use super::version_content::VersionContent;
 
 pub struct ArticleVersionRepository {}
 

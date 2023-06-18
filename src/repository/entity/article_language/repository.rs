@@ -1,20 +1,20 @@
 use diesel::prelude::*;
 
-use super::connection::PgConnection;
+use super::connection;
 use super::db_schema;
 use super::decorator::connection_result;
+use super::model;
+
 use super::error::formatted_error::FmtError;
 use super::option_config::query_options::QueryOptions;
 
 use super::schema::article_language::{ArticleLanguageCreateDto, ArticleLanguagePatchDto};
 
-pub mod model;
-
 pub struct ArticleLanguageRepository {}
 
 impl ArticleLanguageRepository {
     pub async fn get_one(
-        connection: &PgConnection,
+        connection: &connection::PgConnection,
         article_id: i32,
         language_id: i32,
         query_options: &QueryOptions,
@@ -49,7 +49,7 @@ impl ArticleLanguageRepository {
 
     // TODO test eq & eq_any perf
     pub async fn get_many(
-        connection: &PgConnection,
+        connection: &connection::PgConnection,
         article_ids: Vec<i32>,
     ) -> Vec<model::ArticleLanguage> {
         connection
@@ -63,7 +63,7 @@ impl ArticleLanguageRepository {
     }
 
     pub async fn _insert(
-        connection: &PgConnection,
+        connection: &connection::PgConnection,
         creation_dto: ArticleLanguageCreateDto,
     ) -> model::ArticleLanguage {
         connection_result::_wrap_db(
@@ -96,7 +96,7 @@ impl ArticleLanguageRepository {
     }
 
     pub async fn patch(
-        connection: &PgConnection,
+        connection: &connection::PgConnection,
         language_id: i32,
         article_id: i32,
         patch_dto: ArticleLanguagePatchDto,

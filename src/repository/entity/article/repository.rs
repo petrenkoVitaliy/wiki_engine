@@ -1,13 +1,15 @@
 use diesel::prelude::*;
 
+use super::error::formatted_error::FmtError;
+use super::option_config::query_options::QueryOptions;
+
 use super::connection;
 use super::db_schema;
 use super::decorator::connection_result;
-use super::error::formatted_error::FmtError;
-use super::model;
-use super::option_config::query_options::QueryOptions;
 
 use super::schema::article::ArticlePatchDto;
+
+use super::model;
 
 pub struct ArticleRepository {}
 

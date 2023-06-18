@@ -1,5 +1,4 @@
 use rocket::{response::status, serde::json::Json, *};
-
 use rocket_okapi::{
     okapi::schemars::gen::SchemaSettings, openapi, openapi_get_routes, settings::OpenApiSettings,
 };

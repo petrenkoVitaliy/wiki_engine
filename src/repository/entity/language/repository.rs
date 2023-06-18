@@ -2,9 +2,9 @@ use diesel::prelude::*;
 
 use super::connection;
 use super::db_schema;
-use super::error::formatted_error::FmtError;
+use super::model;
 
-pub mod model;
+use super::error::formatted_error::FmtError;
 
 pub struct LanguageRepository {}
 

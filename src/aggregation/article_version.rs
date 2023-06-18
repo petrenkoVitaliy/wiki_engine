@@ -6,8 +6,8 @@ use std::collections::HashMap;
 use super::error::formatted_error::FmtError;
 use super::mapper::values_mapper::ValuesMapper;
 
-use super::repository::entity::article_version::model::ArticleVersion;
-use super::repository::entity::version_content::model::VersionContent;
+use super::repository::entity::article_version::ArticleVersion;
+use super::repository::entity::version_content::VersionContent;
 
 use super::version_content::VersionContentAggregation;
 

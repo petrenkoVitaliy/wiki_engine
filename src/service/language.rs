@@ -1,15 +1,12 @@
 use super::repository::connection;
-use super::repository::entity::language::{model, LanguageRepository};
+use super::repository::entity::language::{Language, LanguageRepository};
 
 use super::aggregation::language::LanguageAggregation;
 
 pub struct LanguageService {}
 
 impl LanguageService {
-    pub async fn get_one(
-        connection: &connection::PgConnection,
-        code: String,
-    ) -> Option<model::Language> {
+    pub async fn get_one(connection: &connection::PgConnection, code: String) -> Option<Language> {
         LanguageRepository::get_one(connection, code).await
     }
 
