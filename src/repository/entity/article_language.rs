@@ -2,9 +2,9 @@ use diesel::prelude::*;
 
 use super::connection::PgConnection;
 use super::db_schema;
+use super::decorator::connection_result;
 use super::error::formatted_error::FmtError;
 use super::option_config::query_options::QueryOptions;
-use super::wrapper;
 
 use super::schema::article_language::{ArticleLanguageCreateDto, ArticleLanguagePatchDto};
 
@@ -66,7 +66,7 @@ impl ArticleLanguageRepository {
         connection: &PgConnection,
         creation_dto: ArticleLanguageCreateDto,
     ) -> model::ArticleLanguage {
-        wrapper::_wrap_db(
+        connection_result::_wrap_db(
             &connection,
             Self::insert_raw,
             creation_dto,

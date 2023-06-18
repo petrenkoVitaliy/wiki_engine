@@ -1,14 +1,14 @@
-use rocket::serde::Serialize;
+use rocket::serde::{Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 use std::collections::HashMap;
 
-use super::repository::models::version_content::model::VersionContent;
+use super::repository::entity::version_content::model::VersionContent;
 
 use super::schema::version_content::ContentType;
 
 use super::diff_handler::diff_handler::DiffHandler;
 
-#[derive(Serialize, JsonSchema)]
+#[derive(Serialize, JsonSchema, Deserialize, Debug)]
 pub struct VersionContentAggregation {
     pub id: i32,
     pub content: String,

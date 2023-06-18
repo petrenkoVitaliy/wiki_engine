@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use super::repository::connection;
-use super::repository::models::article_version::model::ArticleVersion;
-use super::repository::models::version_content::{model, VersionContentRepository};
+use super::repository::entity::article_version::model::ArticleVersion;
+use super::repository::entity::version_content::{model, VersionContentRepository};
 
 use super::schema::version_content::ContentType;
 

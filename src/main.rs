@@ -1,11 +1,3 @@
-use rocket::launch;
-
-use dotenv::dotenv;
-use rocket_okapi::{
-    settings::UrlObject,
-    swagger_ui::{make_swagger_ui, SwaggerUIConfig},
-};
-
 mod aggregation;
 mod diff_handler;
 mod error;
@@ -15,6 +7,16 @@ mod repository;
 mod router;
 mod schema;
 mod service;
+
+#[cfg(test)]
+mod test;
+
+use dotenv::dotenv;
+use rocket::launch;
+use rocket_okapi::{
+    settings::UrlObject,
+    swagger_ui::{make_swagger_ui, SwaggerUIConfig},
+};
 
 fn get_docs() -> SwaggerUIConfig {
     SwaggerUIConfig {

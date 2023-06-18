@@ -1,5 +1,5 @@
 use super::repository::connection;
-use super::repository::models::language::{model, LanguageRepository};
+use super::repository::entity::language::{model, LanguageRepository};
 
 use super::aggregation::language::LanguageAggregation;
 

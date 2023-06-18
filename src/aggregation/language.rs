@@ -1,9 +1,9 @@
-use rocket::serde::Serialize;
+use rocket::serde::{Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 
-use super::repository::models::language::model::Language;
+use super::repository::entity::language::model::Language;
 
-#[derive(Clone, Serialize, JsonSchema)]
+#[derive(Clone, Serialize, JsonSchema, Deserialize, Debug)]
 pub struct LanguageAggregation {
     pub id: i32,
     pub code: String,

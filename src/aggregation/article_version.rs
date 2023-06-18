@@ -1,17 +1,17 @@
 use chrono::NaiveDateTime;
-use rocket::serde::Serialize;
+use rocket::serde::{Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 use std::collections::HashMap;
 
 use super::error::formatted_error::FmtError;
 use super::mapper::values_mapper::ValuesMapper;
 
-use super::repository::models::article_version::model::ArticleVersion;
-use super::repository::models::version_content::model::VersionContent;
+use super::repository::entity::article_version::model::ArticleVersion;
+use super::repository::entity::version_content::model::VersionContent;
 
 use super::version_content::VersionContentAggregation;
 
-#[derive(Serialize, JsonSchema)]
+#[derive(Serialize, JsonSchema, Deserialize, Debug)]
 pub struct ArticleVersionAggregation {
     pub id: i32,
     pub version: i32,

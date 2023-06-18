@@ -2,8 +2,8 @@ use diesel::prelude::*;
 
 use super::connection;
 use super::db_schema;
+use super::decorator::connection_result;
 use super::error::formatted_error::FmtError;
-use super::wrapper;
 
 use super::schema::version_content::VersionContentDto;
 
@@ -75,7 +75,7 @@ impl VersionContentRepository {
         connection: &connection::PgConnection,
         creation_dto: VersionContentDto,
     ) -> model::VersionContent {
-        wrapper::_wrap_db(
+        connection_result::_wrap_db(
             &connection,
             Self::insert_raw,
             creation_dto,

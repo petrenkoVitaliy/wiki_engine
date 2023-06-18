@@ -1,8 +1,8 @@
 use diesel::Connection;
 
 use super::repository::connection;
-use super::repository::models::article_version::{model, ArticleVersionRepository};
-use super::repository::models::version_content::{
+use super::repository::entity::article_version::{model, ArticleVersionRepository};
+use super::repository::entity::version_content::{
     model::{ContentType, VersionContent},
     VersionContentRepository,
 };

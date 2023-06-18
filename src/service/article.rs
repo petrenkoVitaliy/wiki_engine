@@ -12,8 +12,8 @@ use super::schema::article_version::ArticleVersionCreateDto;
 use super::schema::version_content::VersionContentDto;
 
 use super::repository::connection;
-use super::repository::models::{
-    article::{model, ArticleRepository},
+use super::repository::entity::{
+    article::{Article, ArticleRepository},
     article_language::{model::ArticleLanguage, ArticleLanguageRepository},
     article_version::{model::ArticleVersion, ArticleVersionRepository},
     version_content::{
@@ -116,16 +116,11 @@ impl ArticleService {
         connection: &connection::PgConnection,
         creation_dto: ArticleCreateRelationsDto,
         language_id: i32,
-    ) -> (
-        model::Article,
-        ArticleLanguage,
-        VersionContent,
-        ArticleVersion,
-    ) {
+    ) -> (Article, ArticleLanguage, VersionContent, ArticleVersion) {
         connection
             .run(move |connection| {
                 return connection.transaction::<(
-                    model::Article,
+                    Article,
                     ArticleLanguage,
                     VersionContent,
                     ArticleVersion,
@@ -147,12 +142,7 @@ impl ArticleService {
         connection: &mut diesel::PgConnection,
         creation_dto: ArticleCreateRelationsDto,
         language_id: i32,
-    ) -> (
-        model::Article,
-        ArticleLanguage,
-        VersionContent,
-        ArticleVersion,
-    ) {
+    ) -> (Article, ArticleLanguage, VersionContent, ArticleVersion) {
         let article = ArticleRepository::insert_raw(connection, ())
             .expect(FmtError::FailedToInsert("article").fmt().as_str());
 

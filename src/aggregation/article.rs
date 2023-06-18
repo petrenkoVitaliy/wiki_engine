@@ -1,9 +1,9 @@
 use chrono::NaiveDateTime;
-use rocket::serde::Serialize;
+use rocket::serde::{Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 
-use super::repository::models::{
-    article::model::Article, article_language::model::ArticleLanguage,
+use super::repository::entity::{
+    article::Article, article_language::model::ArticleLanguage,
     article_version::model::ArticleVersion, language::model::Language,
     version_content::model::VersionContent,
 };
@@ -12,7 +12,7 @@ use super::article_language::ArticleLanguageAggregation;
 use super::article_version::ArticleVersionAggregation;
 use super::language::LanguageAggregation;
 
-#[derive(Serialize, JsonSchema)]
+#[derive(Serialize, JsonSchema, Debug, Deserialize)]
 pub struct ArticleAggregation {
     pub id: i32,
     pub enabled: bool,

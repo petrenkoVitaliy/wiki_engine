@@ -2,13 +2,12 @@ use diesel::prelude::*;
 
 use super::connection;
 use super::db_schema;
+use super::decorator::connection_result;
 use super::error::formatted_error::FmtError;
+use super::model;
 use super::option_config::query_options::QueryOptions;
-use super::wrapper;
 
 use super::schema::article::ArticlePatchDto;
-
-pub mod model;
 
 pub struct ArticleRepository {}
 
@@ -80,7 +79,7 @@ impl ArticleRepository {
     }
 
     pub async fn _insert(connection: &connection::PgConnection) -> model::Article {
-        wrapper::_wrap_db(
+        connection_result::_wrap_db(
             &connection,
             Self::insert_raw,
             (),

@@ -5,9 +5,9 @@ use super::error::formatted_error::FmtError;
 use super::option_config::query_options::QueryOptions;
 
 use super::repository::connection;
-use super::repository::models::article_language::{model, ArticleLanguageRepository};
-use super::repository::models::article_version::{model::ArticleVersion, ArticleVersionRepository};
-use super::repository::models::version_content::{
+use super::repository::entity::article_language::{model, ArticleLanguageRepository};
+use super::repository::entity::article_version::{model::ArticleVersion, ArticleVersionRepository};
+use super::repository::entity::version_content::{
     model::{ContentType, VersionContent},
     VersionContentRepository,
 };

@@ -1,5 +1,5 @@
 use chrono::NaiveDateTime;
-use rocket::serde::Serialize;
+use rocket::serde::{Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
@@ -7,12 +7,12 @@ use std::collections::HashMap;
 use super::error::formatted_error::FmtError;
 use super::mapper::values_mapper::ValuesMapper;
 
-use super::repository::models::article_language::model::ArticleLanguage;
+use super::repository::entity::article_language::model::ArticleLanguage;
 
 use super::article_version::ArticleVersionAggregation;
 use super::language::LanguageAggregation;
 
-#[derive(Serialize, JsonSchema)]
+#[derive(Serialize, JsonSchema, Deserialize, Debug)]
 pub struct ArticleLanguageAggregation {
     pub id: i32,
     pub name: String,
