@@ -1,0 +1,1 @@
+env ROCKET_PROFILE=development cargo-watch -x run
