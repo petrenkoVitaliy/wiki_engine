@@ -1,4 +1,4 @@
-use rocket::serde::{json::Json, Deserialize};
+use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 
 #[derive(Deserialize, JsonSchema)]
@@ -12,7 +12,7 @@ pub struct ArticlePatchDto {
     pub archived: Option<bool>,
 }
 
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize, JsonSchema, Serialize)]
 pub struct ArticleCreateRelationsDto {
     pub content: String,
     pub language: String,

@@ -10,4 +10,4 @@ while getopts ":f" option; do
   esac
 done
 
-env ROCKET_PROFILE=test cargo test -- --nocapture
+env ROCKET_PROFILE=test cargo test -- --nocapture --color=always
