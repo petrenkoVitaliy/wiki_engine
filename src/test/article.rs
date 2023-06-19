@@ -1,15 +1,15 @@
 use rocket::{http::Status, uri};
 
-use super::launch::get_client;
+use super::setup::{SetupOptions, TestSetup};
+
+use super::router::article::*;
 
 use super::aggregation::article::ArticleAggregation;
 use super::schema::article::ArticleCreateRelationsDto;
 
-use super::router::article::*;
-
 #[test]
 fn create_article() {
-    let client = get_client();
+    let setup = TestSetup::new(SetupOptions { is_lock: true });
 
     let creation_body = ArticleCreateRelationsDto {
         name: String::from("test name 1"),
@@ -17,7 +17,8 @@ fn create_article() {
         language: String::from("ua"),
     };
 
-    let response = client
+    let response = setup
+        .client
         .post(uri!("/articles", create_article))
         .json::<ArticleCreateRelationsDto>(&creation_body)
         .dispatch();
@@ -52,4 +53,23 @@ fn create_article() {
     assert_eq!(article_version.enabled, true);
 
     assert_eq!(article_version.content.content, creation_body.content);
+}
+
+#[test]
+fn create_article1() {
+    let setup = TestSetup::new(SetupOptions { is_lock: true });
+
+    let creation_body = ArticleCreateRelationsDto {
+        name: String::from("test name 1"),
+        content: String::from("test content"),
+        language: String::from("ua"),
+    };
+
+    let response = setup
+        .client
+        .post(uri!("/articles", create_article))
+        .json::<ArticleCreateRelationsDto>(&creation_body)
+        .dispatch();
+
+    assert_eq!(response.status(), Status::Ok);
 }
