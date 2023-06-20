@@ -4,6 +4,6 @@ CREATE TABLE article (
     enabled BOOLEAN DEFAULT true,
     archived BOOLEAN DEFAULT false,
     
-    updated_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW()
 );

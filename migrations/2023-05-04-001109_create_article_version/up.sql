@@ -10,7 +10,7 @@ CREATE TABLE article_version (
     article_language_id INT NOT NULL,
     FOREIGN KEY (article_language_id) REFERENCES article_language(id) ON DELETE CASCADE,
 
-    updated_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW(),
 
     CONSTRAINT version_per_article_language UNIQUE (version, article_language_id)
