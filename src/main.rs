@@ -55,5 +55,6 @@ fn rocket() -> _ {
         .mount("/articles", router::article::routes())
         .mount("/articles", router::article_language::routes())
         .mount("/articles", router::article_version::routes())
+        .register("/", router::catchers::catchers())
         .mount("/swagger", make_swagger_ui(&get_docs()))
 }

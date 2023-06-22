@@ -1,45 +1,451 @@
-use rocket::{http::Status, uri};
+use rocket::http::Status;
 
-mod validator;
-use validator::ArticleResponseValidator;
+use crate::error::formatted_error::FmtError;
 
-mod expected_mock;
-use expected_mock::ArticleExpectedMock;
-
-use super::router::article::*;
 use super::setup::{SetupOptions, TestSetup};
+use super::utils::{
+    mock_handler::{ArticleExpectedMock, ArticleMockOptions},
+    request_handler::{ArticleRequest, ArticleRequestHandler},
+    validator::ArticleResponseValidator,
+};
 
-use super::aggregation::article::ArticleAggregation;
-use super::aggregation::article_language::ArticleLanguageAggregation;
-use super::aggregation::article_version::ArticleVersionAggregation;
-use super::aggregation::language::LanguageAggregation;
-use super::aggregation::version_content::VersionContentAggregation;
-
-use super::schema::article::ArticleCreateRelationsDto;
+use super::schema::article::{ArticleCreateRelationsDto, ArticlePatchBody};
 
 #[test]
 fn create_article() {
     let setup = TestSetup::new(SetupOptions { is_lock: true });
 
     let creation_body = ArticleCreateRelationsDto {
+        name: String::from("test create article"),
+        content: String::from("test create article content"),
+        language: String::from("ua"),
+    };
+
+    let response_body = ArticleRequestHandler::create_article_handler(&setup, &creation_body);
+
+    ArticleResponseValidator::validate_article_aggregation(
+        response_body,
+        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions::from_creation_dto(
+            creation_body,
+        )),
+    );
+}
+
+#[test]
+fn create_article_with_wrong_language() {
+    let setup = TestSetup::new(SetupOptions { is_lock: true });
+
+    let creation_body = ArticleCreateRelationsDto {
+        name: String::from("test create wrong article"),
+        content: String::from("test content"),
+        language: String::from("incorrect"),
+    };
+
+    let response = ArticleRequest::create_article(&setup, &creation_body);
+
+    assert_eq!(response.status(), Status::NotFound);
+    let error_message = response.into_string().unwrap();
+
+    assert_eq!(error_message, FmtError::NotFound("language").fmt());
+}
+
+#[test]
+fn create_large_article() {
+    let setup = TestSetup::new(SetupOptions { is_lock: true });
+
+    let content = "
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam et sodales ipsum, vitae imperdiet ex. 
+    Vivamus at arcu libero. Nullam quam magna, condimentum eu tristique a, elementum nec ligula. 
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed id ultrices mauris. Morbi eget leo eget nisi vestibulum pulvinar. 
+    Donec porta sapien in nunc ultrices, quis suscipit nisl vulputate. Cras egestas et neque non lobortis.
+    Donec tempus volutpat nulla, non dictum enim maximus eget. Nunc finibus sagittis rhoncus. In hac habitasse platea dictumst. 
+    Ut elementum rutrum augue, et hendrerit felis interdum tristique. Nunc vulputate accumsan tellus, vitae consequat ipsum mattis sed. 
+    Morbi sit amet turpis mollis, porta turpis vitae, sagittis felis. Nullam non hendrerit sapien. Morbi sodales urna vitae volutpat fermentum.
+    Cras mollis vel quam vel varius. Etiam ornare efficitur feugiat. Donec vitae nibh at turpis placerat efficitur. Nullam ut bibendum purus. 
+    Proin eget est a neque mattis posuere donec.
+    ";
+
+    let creation_body = ArticleCreateRelationsDto {
         name: String::from("test name 1"),
+        content: String::from(content),
+        language: String::from("ua"),
+    };
+
+    let response_body = ArticleRequestHandler::create_article_handler(&setup, &creation_body);
+
+    ArticleResponseValidator::validate_article_aggregation(
+        response_body,
+        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions::from_creation_dto(
+            creation_body,
+        )),
+    );
+}
+
+#[test]
+fn get_article() {
+    let setup = TestSetup::new(SetupOptions { is_lock: true });
+
+    let creation_body = ArticleCreateRelationsDto {
+        name: String::from("test get article"),
         content: String::from("test content"),
         language: String::from("ua"),
     };
 
-    let response = setup
-        .client
-        .post(uri!("/articles", create_article))
-        .json::<ArticleCreateRelationsDto>(&creation_body)
-        .dispatch();
+    let created_article = ArticleRequestHandler::create_article_handler(&setup, &creation_body);
 
-    print!("{:?}", response.body());
-    assert_eq!(response.status(), Status::Ok);
-
-    let response_body = response.into_json::<ArticleAggregation>().unwrap();
+    let received_article = ArticleRequestHandler::get_article_handler(&setup, created_article.id);
 
     ArticleResponseValidator::validate_article_aggregation(
-        response_body,
-        ArticleExpectedMock::get_article_aggregation(creation_body),
+        received_article,
+        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions::from_creation_dto(
+            creation_body,
+        )),
+    );
+}
+
+#[test]
+fn get_nonexisting_article() {
+    let setup = TestSetup::new(SetupOptions { is_lock: true });
+
+    let response = ArticleRequest::get_article(&setup, 0);
+
+    assert_eq!(response.status(), Status::NotFound);
+    let error_message = response.into_string().unwrap();
+
+    assert_eq!(error_message, FmtError::NotFound("article").fmt());
+}
+
+#[test]
+fn get_articles() {
+    let setup = TestSetup::new(SetupOptions { is_lock: true });
+
+    let creation_body = ArticleCreateRelationsDto {
+        name: String::from("test get articles"),
+        content: String::from("test content"),
+        language: String::from("ua"),
+    };
+
+    let created_article = ArticleRequestHandler::create_article_handler(&setup, &creation_body);
+
+    let received_articles = ArticleRequestHandler::get_articles_handler(&setup);
+
+    let expected_article = received_articles
+        .into_iter()
+        .find(|article| article.id == created_article.id)
+        .expect("Article not found");
+
+    assert_eq!(expected_article.languages[0].name, creation_body.name);
+
+    ArticleResponseValidator::validate_article_aggregation(
+        expected_article,
+        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions::from_creation_dto(
+            creation_body,
+        )),
+    );
+}
+
+#[test]
+fn patch_article() {
+    let setup = TestSetup::new(SetupOptions { is_lock: true });
+
+    let creation_body = ArticleCreateRelationsDto {
+        name: String::from("test patch article"),
+        content: String::from("test content"),
+        language: String::from("ua"),
+    };
+
+    let created_article = ArticleRequestHandler::create_article_handler(&setup, &creation_body);
+
+    let patched_article = ArticleRequestHandler::patch_article_handler(
+        &setup,
+        created_article.id,
+        &ArticlePatchBody { enabled: false },
+    );
+
+    ArticleResponseValidator::validate_article_aggregation(
+        patched_article,
+        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions {
+            enabled: false,
+
+            archived: false,
+            name: String::from(creation_body.name.clone()),
+            content: String::from(creation_body.content.clone()),
+            language: String::from(creation_body.language.clone()),
+        }),
+    );
+
+    let patched_article = ArticleRequestHandler::patch_article_handler(
+        &setup,
+        created_article.id,
+        &ArticlePatchBody { enabled: true },
+    );
+
+    ArticleResponseValidator::validate_article_aggregation(
+        patched_article,
+        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions {
+            enabled: true,
+
+            archived: false,
+            name: String::from(creation_body.name.clone()),
+            content: String::from(creation_body.content.clone()),
+            language: String::from(creation_body.language.clone()),
+        }),
+    );
+}
+
+#[test]
+fn patch_nonexisting_article() {
+    let setup = TestSetup::new(SetupOptions { is_lock: true });
+
+    let response = ArticleRequest::patch_article(&setup, 0, &ArticlePatchBody { enabled: false });
+
+    assert_eq!(response.status(), Status::NotFound);
+    let error_message = response.into_string().unwrap();
+
+    assert_eq!(error_message, FmtError::NotFound("article").fmt());
+}
+
+#[test]
+fn delete_article() {
+    let setup = TestSetup::new(SetupOptions { is_lock: true });
+
+    let creation_body = ArticleCreateRelationsDto {
+        name: String::from("test delete article"),
+        content: String::from("test content"),
+        language: String::from("ua"),
+    };
+
+    let created_article = ArticleRequestHandler::create_article_handler(&setup, &creation_body);
+
+    let deleted_article = ArticleRequestHandler::delete_article_handler(&setup, created_article.id);
+
+    ArticleResponseValidator::validate_article_aggregation(
+        deleted_article,
+        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions {
+            archived: true,
+
+            enabled: true,
+            name: String::from(creation_body.name),
+            content: String::from(creation_body.content),
+            language: String::from(creation_body.language),
+        }),
+    );
+}
+
+#[test]
+fn delete_nonexisting_article() {
+    let setup = TestSetup::new(SetupOptions { is_lock: true });
+
+    let response = ArticleRequest::delete_article(&setup, 0);
+
+    assert_eq!(response.status(), Status::NotFound);
+    let error_message = response.into_string().unwrap();
+
+    assert_eq!(error_message, FmtError::NotFound("article").fmt());
+}
+
+#[test]
+fn restore_article() {
+    let setup = TestSetup::new(SetupOptions { is_lock: true });
+
+    let creation_body = ArticleCreateRelationsDto {
+        name: String::from("test restore article"),
+        content: String::from("test content"),
+        language: String::from("ua"),
+    };
+
+    let created_article = ArticleRequestHandler::create_article_handler(&setup, &creation_body);
+
+    let deleted_article = ArticleRequestHandler::delete_article_handler(&setup, created_article.id);
+
+    ArticleResponseValidator::validate_article_aggregation(
+        deleted_article,
+        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions {
+            archived: true,
+
+            enabled: true,
+            name: String::from(creation_body.name.clone()),
+            content: String::from(creation_body.content.clone()),
+            language: String::from(creation_body.language.clone()),
+        }),
+    );
+
+    let restored_article =
+        ArticleRequestHandler::restore_article_handler(&setup, created_article.id);
+
+    ArticleResponseValidator::validate_article_aggregation(
+        restored_article,
+        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions {
+            archived: false,
+
+            enabled: true,
+            name: String::from(creation_body.name),
+            content: String::from(creation_body.content),
+            language: String::from(creation_body.language),
+        }),
+    );
+}
+
+#[test]
+fn get_disabled_article() {
+    let setup = TestSetup::new(SetupOptions { is_lock: true });
+
+    let creation_body = ArticleCreateRelationsDto {
+        name: String::from("test get disabled article"),
+        content: String::from("test content"),
+        language: String::from("ua"),
+    };
+
+    let created_article = ArticleRequestHandler::create_article_handler(&setup, &creation_body);
+
+    ArticleRequestHandler::patch_article_handler(
+        &setup,
+        created_article.id,
+        &ArticlePatchBody { enabled: false },
+    );
+
+    let response = ArticleRequest::get_article(&setup, created_article.id);
+
+    assert_eq!(response.status(), Status::NotFound);
+    let error_message = response.into_string().unwrap();
+
+    assert_eq!(error_message, FmtError::NotFound("article").fmt());
+
+    ArticleRequestHandler::patch_article_handler(
+        &setup,
+        created_article.id,
+        &ArticlePatchBody { enabled: true },
+    );
+
+    let received_article = ArticleRequestHandler::get_article_handler(&setup, created_article.id);
+
+    ArticleResponseValidator::validate_article_aggregation(
+        received_article,
+        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions::from_creation_dto(
+            creation_body,
+        )),
+    );
+}
+
+#[test]
+fn get_disabled_articles() {
+    let setup = TestSetup::new(SetupOptions { is_lock: true });
+
+    let creation_body = ArticleCreateRelationsDto {
+        name: String::from("test get disabled articles"),
+        content: String::from("test content"),
+        language: String::from("ua"),
+    };
+
+    let created_article = ArticleRequestHandler::create_article_handler(&setup, &creation_body);
+
+    ArticleRequestHandler::patch_article_handler(
+        &setup,
+        created_article.id,
+        &ArticlePatchBody { enabled: false },
+    );
+
+    let received_articles = ArticleRequestHandler::get_articles_handler(&setup);
+
+    let expected_article = received_articles
+        .into_iter()
+        .find(|article| article.id == created_article.id);
+
+    assert_eq!(expected_article.is_none(), true);
+
+    ArticleRequestHandler::patch_article_handler(
+        &setup,
+        created_article.id,
+        &ArticlePatchBody { enabled: true },
+    );
+
+    let received_articles = ArticleRequestHandler::get_articles_handler(&setup);
+
+    let expected_article = received_articles
+        .into_iter()
+        .find(|article| article.id == created_article.id)
+        .expect("Article not found");
+
+    assert_eq!(expected_article.languages[0].name, creation_body.name);
+
+    ArticleResponseValidator::validate_article_aggregation(
+        expected_article,
+        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions::from_creation_dto(
+            creation_body,
+        )),
+    );
+}
+
+#[test]
+fn get_deleted_article() {
+    let setup = TestSetup::new(SetupOptions { is_lock: true });
+
+    let creation_body = ArticleCreateRelationsDto {
+        name: String::from("test deleted article"),
+        content: String::from("test content"),
+        language: String::from("ua"),
+    };
+
+    let created_article = ArticleRequestHandler::create_article_handler(&setup, &creation_body);
+
+    ArticleRequestHandler::delete_article_handler(&setup, created_article.id);
+
+    let response = ArticleRequest::get_article(&setup, created_article.id);
+
+    assert_eq!(response.status(), Status::NotFound);
+    let error_message = response.into_string().unwrap();
+
+    assert_eq!(error_message, FmtError::NotFound("article").fmt());
+
+    ArticleRequestHandler::restore_article_handler(&setup, created_article.id);
+
+    let received_article = ArticleRequestHandler::get_article_handler(&setup, created_article.id);
+
+    ArticleResponseValidator::validate_article_aggregation(
+        received_article,
+        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions::from_creation_dto(
+            creation_body,
+        )),
+    );
+}
+
+#[test]
+fn get_deleted_articles() {
+    let setup = TestSetup::new(SetupOptions { is_lock: true });
+
+    let creation_body = ArticleCreateRelationsDto {
+        name: String::from("test get disabled articles"),
+        content: String::from("test content"),
+        language: String::from("ua"),
+    };
+
+    let created_article = ArticleRequestHandler::create_article_handler(&setup, &creation_body);
+
+    ArticleRequestHandler::delete_article_handler(&setup, created_article.id);
+
+    let received_articles = ArticleRequestHandler::get_articles_handler(&setup);
+
+    let expected_article = received_articles
+        .into_iter()
+        .find(|article| article.id == created_article.id);
+
+    assert_eq!(expected_article.is_none(), true);
+
+    ArticleRequestHandler::restore_article_handler(&setup, created_article.id);
+
+    let received_articles = ArticleRequestHandler::get_articles_handler(&setup);
+
+    let expected_article = received_articles
+        .into_iter()
+        .find(|article| article.id == created_article.id)
+        .expect("Article not found");
+
+    assert_eq!(expected_article.languages[0].name, creation_body.name);
+
+    ArticleResponseValidator::validate_article_aggregation(
+        expected_article,
+        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions::from_creation_dto(
+            creation_body,
+        )),
     );
 }

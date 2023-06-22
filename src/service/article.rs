@@ -1,5 +1,7 @@
 use diesel::Connection;
 
+use crate::error::error_wrapper::ErrorWrapper;
+
 use super::error::formatted_error::FmtError;
 use super::option_config::query_options::QueryOptions;
 
@@ -27,21 +29,18 @@ impl ArticleService {
     pub async fn get_aggregation(
         connection: &connection::PgConnection,
         id: i32,
-        query_options: QueryOptions,
-    ) -> Option<ArticleAggregation> {
-        let article = match ArticleRepository::get_one(connection, id, &query_options).await {
-            None => return None,
+        query_options: &QueryOptions,
+    ) -> Result<ArticleAggregation, ErrorWrapper> {
+        let article = match ArticleRepository::get_one(connection, id, query_options).await {
+            None => return FmtError::NotFound("article").error(),
             Some(article) => article,
         };
 
-        let article_language_aggregations = ArticleLanguageService::get_aggregations(
-            &connection,
-            vec![article.id],
-            QueryOptions { is_actual: false },
-        )
-        .await;
+        let article_language_aggregations =
+            ArticleLanguageService::get_aggregations(&connection, vec![article.id], query_options)
+                .await;
 
-        Some(ArticleAggregation::from_model(
+        Ok(ArticleAggregation::from_model(
             &article,
             article_language_aggregations,
         ))
@@ -49,36 +48,29 @@ impl ArticleService {
 
     pub async fn get_aggregations(
         connection: &connection::PgConnection,
-        query_options: QueryOptions,
+        query_options: &QueryOptions,
     ) -> Vec<ArticleAggregation> {
-        let articles = ArticleRepository::get_many(connection, &query_options).await;
+        let articles = ArticleRepository::get_many(connection, query_options).await;
 
-        let articles_ids: Vec<i32> = articles.iter().map(|article| article.id).collect();
+        let articles_ids = articles.iter().map(|article| article.id).collect();
 
-        let mut article_language_aggregations_map =
-            ArticleLanguageService::get_aggregations_map(&connection, articles_ids).await;
+        let article_language_aggregations_map =
+            ArticleLanguageService::get_aggregations_map(&connection, articles_ids, query_options)
+                .await;
 
-        articles
-            .iter()
-            .map(|article| {
-                let article_languages_aggregations = article_language_aggregations_map
-                    .remove(&article.id)
-                    .unwrap_or(vec![]);
-
-                ArticleAggregation::from_model(article, article_languages_aggregations)
-            })
-            .collect()
+        ArticleAggregation::from_languages_map(articles, article_language_aggregations_map)
     }
 
     pub async fn insert(
         connection: &connection::PgConnection,
         creation_dto: ArticleCreateRelationsDto,
-    ) -> Option<ArticleAggregation> {
+    ) -> Result<ArticleAggregation, ErrorWrapper> {
         let language_code = String::from(&creation_dto.language);
 
-        let language = LanguageService::get_one(connection, language_code)
-            .await
-            .expect(FmtError::NotFound("language").fmt().as_str());
+        let language = match LanguageService::get_one(connection, language_code).await {
+            None => return FmtError::NotFound("language").error(),
+            Some(language) => language,
+        };
 
         let (article, article_language, version_content, article_version) =
             Self::create_relations_transaction(connection, creation_dto, language.id).await;
@@ -91,22 +83,22 @@ impl ArticleService {
             language,
         );
 
-        Some(article_aggregation)
+        Ok(article_aggregation)
     }
 
     pub async fn patch(
         connection: &connection::PgConnection,
         patch_dto: ArticlePatchDto,
-    ) -> Option<ArticleAggregation> {
+    ) -> Result<ArticleAggregation, ErrorWrapper> {
         let article_id = patch_dto.id;
 
         let updated_count = ArticleRepository::patch(connection, patch_dto).await;
 
         if updated_count == 0 {
-            return None;
+            return FmtError::NotFound("article").error();
         }
 
-        Self::get_aggregation(connection, article_id, QueryOptions { is_actual: false }).await
+        Self::get_aggregation(connection, article_id, &QueryOptions { is_actual: false }).await
     }
 
     async fn create_relations_transaction(

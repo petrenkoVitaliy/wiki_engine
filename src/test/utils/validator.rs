@@ -1,6 +1,7 @@
-use super::{
-    ArticleAggregation, ArticleLanguageAggregation, ArticleVersionAggregation, LanguageAggregation,
-    VersionContentAggregation,
+use super::aggregation::{
+    article::ArticleAggregation, article_language::ArticleLanguageAggregation,
+    article_version::ArticleVersionAggregation, language::LanguageAggregation,
+    version_content::VersionContentAggregation,
 };
 
 pub struct ArticleResponseValidator {}

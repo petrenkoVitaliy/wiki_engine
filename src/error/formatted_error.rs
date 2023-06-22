@@ -1,3 +1,5 @@
+use super::error_wrapper::ErrorWrapper;
+
 pub enum FmtError<'input> {
     FailedToProcess(&'input str),
     NotFound(&'input str),
@@ -19,5 +21,9 @@ impl<'input> FmtError<'input> {
             FmtError::AlreadyExists(s) => format!("Entity already exists: {}", s),
             FmtError::FailedToProcess(s) => format!("Failed to process entity: {}", s),
         }
+    }
+
+    pub fn error<T>(&self) -> Result<T, ErrorWrapper> {
+        Err(ErrorWrapper::new(self))
     }
 }

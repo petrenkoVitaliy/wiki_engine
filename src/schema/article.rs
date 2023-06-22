@@ -1,7 +1,7 @@
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize, Serialize, JsonSchema)]
 pub struct ArticlePatchBody {
     pub enabled: bool,
 }

@@ -4,5 +4,6 @@ use super::router;
 use super::schema;
 
 mod setup;
+mod utils;
 
 mod article;

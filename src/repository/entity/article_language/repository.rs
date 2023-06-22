@@ -51,12 +51,25 @@ impl ArticleLanguageRepository {
     pub async fn get_many(
         connection: &connection::PgConnection,
         article_ids: Vec<i32>,
+        query_options: &QueryOptions,
     ) -> Vec<model::ArticleLanguage> {
+        let is_actual = query_options.is_actual;
+
         connection
-            .run(|connection| {
-                db_schema::article_language::table
+            .run(move |connection| {
+                let mut query = db_schema::article_language::table
                     .filter(db_schema::article_language::article_id.eq_any(article_ids))
-                    .load(connection)
+                    .into_boxed();
+
+                if is_actual {
+                    query = query.filter(
+                        db_schema::article_language::enabled
+                            .eq(true)
+                            .and(db_schema::article_language::archived.eq(false)),
+                    );
+                }
+
+                return query.load(connection);
             })
             .await
             .expect(FmtError::FailedToFetch("article_languages").fmt().as_str())

@@ -68,9 +68,10 @@ impl ArticleLanguageService {
     pub async fn get_aggregations(
         connection: &connection::PgConnection,
         article_ids: Vec<i32>,
-        query_options: QueryOptions,
+        query_options: &QueryOptions,
     ) -> Vec<ArticleLanguageAggregation> {
-        let article_languages = ArticleLanguageRepository::get_many(connection, article_ids).await;
+        let article_languages =
+            ArticleLanguageRepository::get_many(connection, article_ids, query_options).await;
 
         let article_languages_ids: Vec<i32> = article_languages
             .iter()
@@ -166,21 +167,21 @@ impl ArticleLanguageService {
     pub async fn get_aggregations_map(
         connection: &connection::PgConnection,
         article_ids: Vec<i32>,
+        query_options: &QueryOptions,
     ) -> HashMap<i32, Vec<ArticleLanguageAggregation>> {
-        let query_options = QueryOptions { is_actual: false };
+        let article_languages =
+            ArticleLanguageRepository::get_many(connection, article_ids, &query_options).await;
 
-        let article_languages = ArticleLanguageRepository::get_many(connection, article_ids).await;
+        let languages = LanguageService::get_aggregations(connection).await;
 
         let article_languages_ids: Vec<i32> = article_languages
             .iter()
             .map(|article_language| article_language.id)
             .collect();
-
-        let languages = LanguageService::get_aggregations(connection).await;
         let article_versions = ArticleVersionService::get_aggregations_by_languages(
             connection,
             article_languages_ids,
-            query_options,
+            &query_options,
         )
         .await;
 
@@ -212,7 +213,7 @@ impl ArticleLanguageService {
         let article_versions = ArticleVersionService::get_aggregations_by_languages(
             connection,
             vec![article_language.id],
-            query_options,
+            &query_options,
         )
         .await;
 

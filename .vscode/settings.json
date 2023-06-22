@@ -1,5 +1,15 @@
 {
     "cSpell.words": [
-        "Insertable"
-    ]
+        "Insertable",
+        "openapi"
+    ],
+    "coverage-gutters.coverageFileNames": [
+        "coverage/tests.lcov",
+        "lcov.info",
+        "cov.xml",
+        "coverage.xml",
+        "jacoco.xml",
+        "coverage.cobertura.xml"
+      ],
+    
 }

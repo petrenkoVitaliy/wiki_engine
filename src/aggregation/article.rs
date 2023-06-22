@@ -1,6 +1,7 @@
 use chrono::NaiveDateTime;
 use rocket::serde::{Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
+use std::collections::HashMap;
 
 use super::repository::entity::{
     article::Article, article_language::ArticleLanguage, article_version::ArticleVersion,
@@ -37,6 +38,22 @@ impl ArticleAggregation {
 
             languages: article_language_aggregations,
         }
+    }
+
+    pub fn from_languages_map(
+        articles: Vec<Article>,
+        mut languages_aggregations_map: HashMap<i32, Vec<ArticleLanguageAggregation>>,
+    ) -> Vec<Self> {
+        articles
+            .iter()
+            .map(|article| {
+                let article_languages_aggregations = languages_aggregations_map
+                    .remove(&article.id)
+                    .unwrap_or(vec![]);
+
+                Self::from_model(article, article_languages_aggregations)
+            })
+            .collect()
     }
 
     pub fn from_related_models(

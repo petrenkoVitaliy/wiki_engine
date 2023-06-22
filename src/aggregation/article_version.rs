@@ -37,7 +37,7 @@ impl ArticleVersionAggregation {
             .map(move |article_version| {
                 let content_version_aggregation = content_map
                     .remove(&article_version.content_id)
-                    .expect(FmtError::NotFound("article_versions").fmt().as_str());
+                    .expect(FmtError::NotFound("version_content").fmt().as_str());
 
                 return Self {
                     id: article_version.id,

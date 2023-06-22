@@ -1,4 +1,4 @@
-use rocket::{response::status, serde::json::Json, *};
+use rocket::{delete, get, patch, post, response::status, serde::json::Json};
 use rocket_okapi::{
     okapi::schemars::gen::SchemaSettings, openapi, openapi_get_routes, settings::OpenApiSettings,
 };
@@ -50,7 +50,7 @@ async fn get_article_languages(
     let article_language = ArticleLanguageService::get_aggregations(
         &connection,
         vec![article_id],
-        QueryOptions { is_actual: true },
+        &QueryOptions { is_actual: true },
     )
     .await;
 

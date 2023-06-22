@@ -28,7 +28,7 @@ impl DiffHandler {
 
         let mut cursor = Cursor::new(delta);
 
-        let mut patched = vec![0; length as usize]; // TODO ? type
+        let mut patched = vec![0; length as usize];
         patch::patch(full_version.as_bytes(), &mut cursor, &mut patched)
             .expect(FmtError::FailedToProcess("patch").fmt().as_str());
 

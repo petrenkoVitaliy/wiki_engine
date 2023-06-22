@@ -1,18 +1,42 @@
 use chrono::Utc;
 
-use super::{
-    ArticleAggregation, ArticleCreateRelationsDto, ArticleLanguageAggregation,
-    ArticleVersionAggregation, LanguageAggregation, VersionContentAggregation,
+use super::aggregation::{
+    article::ArticleAggregation, article_language::ArticleLanguageAggregation,
+    article_version::ArticleVersionAggregation, language::LanguageAggregation,
+    version_content::VersionContentAggregation,
 };
+
+use super::schema::article::ArticleCreateRelationsDto;
+
+pub struct ArticleMockOptions {
+    pub content: String,
+    pub language: String,
+    pub name: String,
+    pub enabled: bool,
+    pub archived: bool,
+}
+
+impl ArticleMockOptions {
+    pub fn from_creation_dto(creation_dto: ArticleCreateRelationsDto) -> Self {
+        Self {
+            enabled: true,
+            archived: false,
+
+            content: String::from(creation_dto.content),
+            language: String::from(creation_dto.language),
+            name: String::from(creation_dto.name),
+        }
+    }
+}
 
 pub struct ArticleExpectedMock {}
 
 impl ArticleExpectedMock {
-    pub fn get_article_aggregation(create_dto: ArticleCreateRelationsDto) -> ArticleAggregation {
+    pub fn get_article_aggregation(create_dto: ArticleMockOptions) -> ArticleAggregation {
         ArticleAggregation {
             id: 0,
-            enabled: true,
-            archived: false,
+            enabled: create_dto.enabled,
+            archived: create_dto.archived,
             updated_at: None,
             created_at: Utc::now().naive_utc(),
             languages: vec![ArticleLanguageAggregation {

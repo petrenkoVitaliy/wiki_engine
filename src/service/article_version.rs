@@ -130,7 +130,7 @@ impl ArticleVersionService {
     pub async fn get_aggregations_by_languages(
         connection: &connection::PgConnection,
         article_languages_ids: Vec<i32>,
-        query_options: QueryOptions,
+        query_options: &QueryOptions,
     ) -> Vec<ArticleVersionAggregation> {
         let article_versions = ArticleVersionRepository::get_many(
             connection,

@@ -1,19 +1,12 @@
  diesel migration run --database-url postgresql://postgres:test@localhost:5432/postgres 
-
  diesel migration generate create_blog_posts     
-
  diesel print-schema 
 
  // TODOs
     high:
-        - add decoder module
 
     medium:
-        - None vs expect (error handling)
-        - add tests
-
-        - dtos naming (split?)
-        - move mappers to structs
+        - add tests [IN_PROGRESS]
 
     low:
         - cascade deleting doesn't work
