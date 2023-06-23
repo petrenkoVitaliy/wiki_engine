@@ -1,7 +1,7 @@
-use rocket::serde::Deserialize;
+use rocket::serde::{Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize, JsonSchema, Serialize)]
 pub struct ArticleLanguageCreateBody {
     pub content: String,
     pub name: String,

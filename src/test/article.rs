@@ -3,10 +3,10 @@ use rocket::http::Status;
 use crate::error::formatted_error::FmtError;
 
 use super::setup::{SetupOptions, TestSetup};
-use super::utils::{
-    mock_handler::{ArticleExpectedMock, ArticleMockOptions},
-    request_handler::{ArticleRequest, ArticleRequestHandler},
-    validator::ArticleResponseValidator,
+use super::test_handler::{
+    assert_handler::article::ArticleAssertHandler,
+    mock_handler::article::{ArticleMockHandler, ArticleMockOptions},
+    request_handler::article::{ArticleRequest, ArticleRequestHandler},
 };
 
 use super::schema::article::{ArticleCreateRelationsDto, ArticlePatchBody};
@@ -23,9 +23,9 @@ fn create_article() {
 
     let response_body = ArticleRequestHandler::create_article_handler(&setup, &creation_body);
 
-    ArticleResponseValidator::validate_article_aggregation(
+    ArticleAssertHandler::assert_article_aggregation(
         response_body,
-        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions::from_creation_dto(
+        ArticleMockHandler::get_article_aggregation(ArticleMockOptions::from_creation_dto(
             creation_body,
         )),
     );
@@ -73,9 +73,9 @@ fn create_large_article() {
 
     let response_body = ArticleRequestHandler::create_article_handler(&setup, &creation_body);
 
-    ArticleResponseValidator::validate_article_aggregation(
+    ArticleAssertHandler::assert_article_aggregation(
         response_body,
-        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions::from_creation_dto(
+        ArticleMockHandler::get_article_aggregation(ArticleMockOptions::from_creation_dto(
             creation_body,
         )),
     );
@@ -95,9 +95,9 @@ fn get_article() {
 
     let received_article = ArticleRequestHandler::get_article_handler(&setup, created_article.id);
 
-    ArticleResponseValidator::validate_article_aggregation(
+    ArticleAssertHandler::assert_article_aggregation(
         received_article,
-        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions::from_creation_dto(
+        ArticleMockHandler::get_article_aggregation(ArticleMockOptions::from_creation_dto(
             creation_body,
         )),
     );
@@ -136,9 +136,9 @@ fn get_articles() {
 
     assert_eq!(expected_article.languages[0].name, creation_body.name);
 
-    ArticleResponseValidator::validate_article_aggregation(
+    ArticleAssertHandler::assert_article_aggregation(
         expected_article,
-        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions::from_creation_dto(
+        ArticleMockHandler::get_article_aggregation(ArticleMockOptions::from_creation_dto(
             creation_body,
         )),
     );
@@ -162,9 +162,9 @@ fn patch_article() {
         &ArticlePatchBody { enabled: false },
     );
 
-    ArticleResponseValidator::validate_article_aggregation(
+    ArticleAssertHandler::assert_article_aggregation(
         patched_article,
-        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions {
+        ArticleMockHandler::get_article_aggregation(ArticleMockOptions {
             enabled: false,
 
             archived: false,
@@ -180,9 +180,9 @@ fn patch_article() {
         &ArticlePatchBody { enabled: true },
     );
 
-    ArticleResponseValidator::validate_article_aggregation(
+    ArticleAssertHandler::assert_article_aggregation(
         patched_article,
-        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions {
+        ArticleMockHandler::get_article_aggregation(ArticleMockOptions {
             enabled: true,
 
             archived: false,
@@ -219,9 +219,9 @@ fn delete_article() {
 
     let deleted_article = ArticleRequestHandler::delete_article_handler(&setup, created_article.id);
 
-    ArticleResponseValidator::validate_article_aggregation(
+    ArticleAssertHandler::assert_article_aggregation(
         deleted_article,
-        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions {
+        ArticleMockHandler::get_article_aggregation(ArticleMockOptions {
             archived: true,
 
             enabled: true,
@@ -258,9 +258,9 @@ fn restore_article() {
 
     let deleted_article = ArticleRequestHandler::delete_article_handler(&setup, created_article.id);
 
-    ArticleResponseValidator::validate_article_aggregation(
+    ArticleAssertHandler::assert_article_aggregation(
         deleted_article,
-        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions {
+        ArticleMockHandler::get_article_aggregation(ArticleMockOptions {
             archived: true,
 
             enabled: true,
@@ -273,9 +273,9 @@ fn restore_article() {
     let restored_article =
         ArticleRequestHandler::restore_article_handler(&setup, created_article.id);
 
-    ArticleResponseValidator::validate_article_aggregation(
+    ArticleAssertHandler::assert_article_aggregation(
         restored_article,
-        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions {
+        ArticleMockHandler::get_article_aggregation(ArticleMockOptions {
             archived: false,
 
             enabled: true,
@@ -319,9 +319,9 @@ fn get_disabled_article() {
 
     let received_article = ArticleRequestHandler::get_article_handler(&setup, created_article.id);
 
-    ArticleResponseValidator::validate_article_aggregation(
+    ArticleAssertHandler::assert_article_aggregation(
         received_article,
-        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions::from_creation_dto(
+        ArticleMockHandler::get_article_aggregation(ArticleMockOptions::from_creation_dto(
             creation_body,
         )),
     );
@@ -368,9 +368,9 @@ fn get_disabled_articles() {
 
     assert_eq!(expected_article.languages[0].name, creation_body.name);
 
-    ArticleResponseValidator::validate_article_aggregation(
+    ArticleAssertHandler::assert_article_aggregation(
         expected_article,
-        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions::from_creation_dto(
+        ArticleMockHandler::get_article_aggregation(ArticleMockOptions::from_creation_dto(
             creation_body,
         )),
     );
@@ -401,9 +401,9 @@ fn get_deleted_article() {
 
     let received_article = ArticleRequestHandler::get_article_handler(&setup, created_article.id);
 
-    ArticleResponseValidator::validate_article_aggregation(
+    ArticleAssertHandler::assert_article_aggregation(
         received_article,
-        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions::from_creation_dto(
+        ArticleMockHandler::get_article_aggregation(ArticleMockOptions::from_creation_dto(
             creation_body,
         )),
     );
@@ -442,9 +442,9 @@ fn get_deleted_articles() {
 
     assert_eq!(expected_article.languages[0].name, creation_body.name);
 
-    ArticleResponseValidator::validate_article_aggregation(
+    ArticleAssertHandler::assert_article_aggregation(
         expected_article,
-        ArticleExpectedMock::get_article_aggregation(ArticleMockOptions::from_creation_dto(
+        ArticleMockHandler::get_article_aggregation(ArticleMockOptions::from_creation_dto(
             creation_body,
         )),
     );

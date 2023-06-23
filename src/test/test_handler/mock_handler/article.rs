@@ -29,9 +29,9 @@ impl ArticleMockOptions {
     }
 }
 
-pub struct ArticleExpectedMock {}
+pub struct ArticleMockHandler {}
 
-impl ArticleExpectedMock {
+impl ArticleMockHandler {
     pub fn get_article_aggregation(create_dto: ArticleMockOptions) -> ArticleAggregation {
         ArticleAggregation {
             id: 0,

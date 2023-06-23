@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 use super::error::formatted_error::FmtError;
 use super::option_config::query_options::QueryOptions;
+use crate::error::error_wrapper::ErrorWrapper;
 
 use super::repository::connection;
 use super::repository::entity::article_language::{ArticleLanguage, ArticleLanguageRepository};
@@ -96,12 +97,13 @@ impl ArticleLanguageService {
     pub async fn insert(
         connection: &connection::PgConnection,
         creation_dto: ArticleLanguageCreateRelationsDto,
-    ) -> ArticleLanguageAggregation {
+    ) -> Result<ArticleLanguageAggregation, ErrorWrapper> {
         let language_code = String::from(&creation_dto.language_code);
 
-        let language = LanguageService::get_aggregation(connection, language_code)
-            .await
-            .expect(FmtError::NotFound("language").fmt().as_str());
+        let language = match LanguageService::get_aggregation(connection, language_code).await {
+            None => return FmtError::NotFound("language").error(),
+            Some(language) => language,
+        };
 
         match ArticleLanguageRepository::get_one(
             connection,
@@ -111,10 +113,7 @@ impl ArticleLanguageService {
         )
         .await
         {
-            Some(_) => panic!(
-                "{}",
-                FmtError::AlreadyExists("article_language").fmt().as_str()
-            ),
+            Some(_) => return FmtError::AlreadyExists("article_language").error(),
             _ => (),
         };
 
@@ -133,7 +132,7 @@ impl ArticleLanguageService {
         )
         .remove(0);
 
-        article_language_aggregation
+        Ok(article_language_aggregation)
     }
 
     pub async fn patch(

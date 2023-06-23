@@ -64,8 +64,8 @@ async fn create_article_language(
     creation_body: Json<ArticleLanguageCreateBody>,
     article_id: i32,
     language_code: String,
-) -> Result<Json<ArticleLanguageAggregation>, status::BadRequest<String>> {
-    let article_language = ArticleLanguageService::insert(
+) -> Result<Json<ArticleLanguageAggregation>, status::Custom<String>> {
+    match ArticleLanguageService::insert(
         &connection,
         ArticleLanguageCreateRelationsDto {
             article_id,
@@ -74,9 +74,11 @@ async fn create_article_language(
             name: creation_body.name.to_string(),
         },
     )
-    .await;
-
-    Ok(Json(article_language))
+    .await
+    {
+        Ok(article_language_aggregation) => Ok(Json(article_language_aggregation)),
+        Err(e) => Err(e.custom()),
+    }
 }
 
 #[openapi]

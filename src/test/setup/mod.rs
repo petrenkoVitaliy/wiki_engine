@@ -4,6 +4,7 @@ use rocket::{local::blocking::Client, Build, Rocket};
 
 use super::repository;
 use super::router::article;
+use super::router::article_language;
 
 pub struct SetupOptions {
     pub is_lock: bool,
@@ -35,6 +36,7 @@ impl TestSetup {
         rocket::build()
             .attach(repository::connection::PgConnection::fairing())
             .mount("/articles", article::routes())
+            .mount("/articles", article_language::routes())
     }
 
     fn get_client() -> Client {
