@@ -8,3 +8,4 @@ mod test_handler;
 
 mod article;
 mod article_language;
+mod article_version;

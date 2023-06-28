@@ -7,6 +7,7 @@ use super::repository::entity::version_content::{
 };
 
 use super::diff_handler::diff_handler::DiffHandler;
+use super::error::error_wrapper::ErrorWrapper;
 use super::error::formatted_error::FmtError;
 use super::option_config::query_options::QueryOptions;
 
@@ -31,17 +32,17 @@ impl ArticleVersionService {
         article_id: i32,
         language_code: String,
         query_options: QueryOptions,
-    ) -> Option<ArticleVersionAggregation> {
-        let article_language = match ArticleLanguageService::get_one_by_language(
+    ) -> Result<ArticleVersionAggregation, ErrorWrapper> {
+        let article_language = match ArticleLanguageService::get_one_with_language(
             connection,
             article_id,
             language_code,
-            QueryOptions { is_actual: true },
+            &QueryOptions { is_actual: true },
         )
         .await
         {
-            None => return None,
-            Some(article_language) => article_language,
+            Err(e) => return Err(e),
+            Ok((article_language, _)) => article_language,
         };
 
         let article_version = match ArticleVersionRepository::get_one(
@@ -54,7 +55,7 @@ impl ArticleVersionService {
         )
         .await
         {
-            None => return None,
+            None => return FmtError::NotFound("article_version").error(),
             Some(article_version) => article_version,
         };
 
@@ -62,7 +63,7 @@ impl ArticleVersionService {
             match VersionContentService::get_aggregation(connection, article_version.content_id)
                 .await
             {
-                None => return None,
+                None => return FmtError::NotFound("version_content").error(),
                 Some(version_content) => version_content,
             };
 
@@ -72,26 +73,26 @@ impl ArticleVersionService {
         )
         .remove(0);
 
-        return Some(article_version_aggregation);
+        return Ok(article_version_aggregation);
     }
 
     pub async fn get_aggregations(
         connection: &connection::PgConnection,
         article_id: i32,
         language_code: String,
-        // TODO is active
         query_options: QueryOptions,
-    ) -> Vec<ArticleVersionAggregation> {
-        let article_language = match ArticleLanguageService::get_one_by_language(
+    ) -> Result<Vec<ArticleVersionAggregation>, ErrorWrapper> {
+        // TODO combine with get_aggregations_by_languages
+        let article_language = match ArticleLanguageService::get_one_with_language(
             connection,
             article_id,
             language_code,
-            QueryOptions { is_actual: true },
+            &QueryOptions { is_actual: true },
         )
         .await
         {
-            None => panic!("{}", FmtError::NotFound("article_language").fmt().as_str()),
-            Some(article_language) => article_language,
+            Err(e) => return Err(e),
+            Ok((article_language, _)) => article_language,
         };
 
         let article_versions_contents = ArticleVersionRepository::get_many_with_content(
@@ -105,17 +106,14 @@ impl ArticleVersionService {
 
         let content_map =
             match VersionContentService::get_contents_map_by_ids(&article_versions_contents) {
-                None => panic!(
-                    "{}",
-                    FmtError::FailedToProcess("content_map").fmt().as_str()
-                ),
-                Some(map) => map,
+                Err(e) => return Err(e),
+                Ok(map) => map,
             };
 
         let article_versions_aggregations =
             ArticleVersionAggregation::from_content_map(article_versions_contents, content_map);
 
-        return article_versions_aggregations
+        Ok(article_versions_aggregations
             .into_iter()
             .filter(move |aggregation| {
                 if !query_options.is_actual {
@@ -124,7 +122,7 @@ impl ArticleVersionService {
 
                 return aggregation.enabled;
             })
-            .collect();
+            .collect::<Vec<ArticleVersionAggregation>>())
     }
 
     pub async fn get_aggregations_by_languages(
@@ -158,17 +156,17 @@ impl ArticleVersionService {
         article_id: i32,
         language_code: String,
         creation_body: ArticleVersionCreateBody,
-    ) -> Option<ArticleVersionAggregation> {
-        let article_language = match ArticleLanguageService::get_one_by_language(
+    ) -> Result<ArticleVersionAggregation, ErrorWrapper> {
+        let article_language = match ArticleLanguageService::get_one_with_language(
             connection,
             article_id,
             language_code,
-            QueryOptions { is_actual: true },
+            &QueryOptions { is_actual: true },
         )
         .await
         {
-            None => return None,
-            Some(article_language) => article_language,
+            Err(e) => return Err(e),
+            Ok((article_language, _)) => article_language,
         };
 
         let article_versions_count =
@@ -182,13 +180,11 @@ impl ArticleVersionService {
         )
         .await;
 
-        Some(
-            ArticleVersionAggregation::from_related_models(
-                vec![article_version],
-                vec![version_content],
-            )
-            .remove(0),
+        Ok(ArticleVersionAggregation::from_related_models(
+            vec![article_version],
+            vec![version_content],
         )
+        .remove(0))
     }
 
     pub async fn patch(
@@ -197,17 +193,17 @@ impl ArticleVersionService {
         article_id: i32,
         language_code: String,
         patch_body: ArticleVersionPatchBody,
-    ) -> Option<ArticleVersionAggregation> {
-        let article_language = match ArticleLanguageService::get_one_by_language(
+    ) -> Result<ArticleVersionAggregation, ErrorWrapper> {
+        let article_language = match ArticleLanguageService::get_one_with_language(
             connection,
             article_id,
             language_code,
-            QueryOptions { is_actual: true },
+            &QueryOptions { is_actual: true },
         )
         .await
         {
-            None => return None,
-            Some(article_language) => article_language,
+            Err(e) => return Err(e),
+            Ok((article_language, _)) => article_language,
         };
 
         let article_version = ArticleVersionRepository::patch(
@@ -224,17 +220,15 @@ impl ArticleVersionService {
             match VersionContentService::get_aggregation(connection, article_version.content_id)
                 .await
             {
-                None => return None,
+                None => return FmtError::NotFound("version_content").error(),
                 Some(version_content) => version_content,
             };
 
-        Some(
-            ArticleVersionAggregation::from_model_list_with_content(
-                vec![article_version],
-                vec![version_content],
-            )
-            .remove(0),
+        Ok(ArticleVersionAggregation::from_model_list_with_content(
+            vec![article_version],
+            vec![version_content],
         )
+        .remove(0))
     }
 
     async fn create_relations_transaction(
@@ -268,25 +262,11 @@ impl ArticleVersionService {
         article_versions_count: i32,
     ) -> (ArticleVersion, VersionContent) {
         if article_versions_count > 0 {
-            let article_version =
-                ArticleVersionRepository::get_by_version_raw(connection, article_versions_count)
-                    .expect(FmtError::FailedToFetch("article_version").fmt().as_str())
-                    .expect(FmtError::NotFound("article_version").fmt().as_str());
-
-            let version_content =
-                VersionContentRepository::get_one_raw(connection, article_version.content_id)
-                    .expect(FmtError::FailedToFetch("version_content").fmt().as_str())
-                    .expect(FmtError::NotFound("version_content").fmt().as_str());
-
-            let content_delta =
-                DiffHandler::get_delta(&creation_body.content, version_content.content);
-
-            VersionContentRepository::patch_raw(
+            Self::update_previous_version_content(
                 connection,
-                article_version.content_id,
-                content_delta,
-            )
-            .expect(FmtError::FailedToUpdate("version_content").fmt().as_str());
+                article_versions_count,
+                &creation_body,
+            );
         }
 
         let version_content = VersionContentRepository::insert_raw(
@@ -309,5 +289,26 @@ impl ArticleVersionService {
         .expect(FmtError::FailedToInsert("article_version").fmt().as_str());
 
         (article_version, version_content)
+    }
+
+    fn update_previous_version_content(
+        connection: &mut diesel::PgConnection,
+        article_versions_count: i32,
+        creation_body: &ArticleVersionCreateBody,
+    ) {
+        let article_version =
+            ArticleVersionRepository::get_by_version_raw(connection, article_versions_count)
+                .expect(FmtError::FailedToFetch("article_version").fmt().as_str())
+                .expect(FmtError::NotFound("article_version").fmt().as_str());
+
+        let version_content =
+            VersionContentRepository::get_one_raw(connection, article_version.content_id)
+                .expect(FmtError::FailedToFetch("version_content").fmt().as_str())
+                .expect(FmtError::NotFound("version_content").fmt().as_str());
+
+        let content_delta = DiffHandler::get_delta(&creation_body.content, version_content.content);
+
+        VersionContentRepository::patch_raw(connection, article_version.content_id, content_delta)
+            .expect(FmtError::FailedToUpdate("version_content").fmt().as_str());
     }
 }

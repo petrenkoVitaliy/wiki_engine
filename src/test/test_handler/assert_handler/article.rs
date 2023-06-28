@@ -2,7 +2,7 @@ use super::aggregation::article::ArticleAggregation;
 
 use super::article_language::ArticleLanguageAssertHandler;
 
-pub struct ArticleAssertHandler {}
+pub struct ArticleAssertHandler;
 
 impl ArticleAssertHandler {
     pub fn assert_article_aggregation(

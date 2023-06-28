@@ -1,24 +1,30 @@
 use chrono::Utc;
 
 use super::aggregation::{
-    article_language::ArticleLanguageAggregation, article_version::ArticleVersionAggregation,
-    language::LanguageAggregation, version_content::VersionContentAggregation,
+    article_language::ArticleLanguageAggregation, language::LanguageAggregation,
 };
 
 use super::schema::article_language::ArticleLanguageCreateBody;
+
+use super::article_version::{ArticleVersionMockHandler, ArticleVersionMockOptions};
 
 pub struct ArticleLanguageMockOptions {
     pub content: String,
     pub name: String,
     pub language: String,
+    pub enabled: bool,
+    pub archived: bool,
 }
 
 impl ArticleLanguageMockOptions {
-    pub fn from_creation_dto(creation_dto: ArticleLanguageCreateBody, language: String) -> Self {
+    pub fn from_creation_dto(creation_dto: &ArticleLanguageCreateBody, language: &String) -> Self {
         Self {
-            language,
-            content: String::from(creation_dto.content),
-            name: String::from(creation_dto.name),
+            enabled: true,
+            archived: false,
+
+            language: String::from(language),
+            content: creation_dto.content.clone(),
+            name: creation_dto.name.clone(),
         }
     }
 }
@@ -26,31 +32,26 @@ impl ArticleLanguageMockOptions {
 pub struct ArticleLanguageMockHandler;
 impl ArticleLanguageMockHandler {
     pub fn get_article_language_aggregation(
-        mock_options: ArticleLanguageMockOptions,
+        mock_options: &ArticleLanguageMockOptions,
     ) -> ArticleLanguageAggregation {
         ArticleLanguageAggregation {
             id: 0,
-            name: String::from(mock_options.name),
-            enabled: true,
-            archived: false,
+            name: mock_options.name.clone(),
+            enabled: mock_options.enabled,
+            archived: mock_options.archived,
             updated_at: None,
             created_at: Utc::now().naive_utc(),
             language: LanguageAggregation {
                 id: 0,
-                code: String::from(mock_options.language),
+                code: mock_options.language.clone(),
             },
-            versions: vec![ArticleVersionAggregation {
-                id: 0,
-                article_language_id: 0,
-                version: 1,
-                enabled: true,
-                updated_at: None,
-                created_at: Utc::now().naive_utc(),
-                content: VersionContentAggregation {
-                    id: 0,
-                    content: String::from(mock_options.content),
+            versions: vec![ArticleVersionMockHandler::get_article_version_aggregation(
+                &ArticleVersionMockOptions {
+                    enabled: true,
+                    version: 1,
+                    content: mock_options.content.clone(),
                 },
-            }],
+            )],
         }
     }
 }

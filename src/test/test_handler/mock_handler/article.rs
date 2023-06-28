@@ -1,12 +1,10 @@
 use chrono::Utc;
 
-use super::aggregation::{
-    article::ArticleAggregation, article_language::ArticleLanguageAggregation,
-    article_version::ArticleVersionAggregation, language::LanguageAggregation,
-    version_content::VersionContentAggregation,
-};
+use super::aggregation::article::ArticleAggregation;
 
 use super::schema::article::ArticleCreateRelationsDto;
+
+use super::article_language::{ArticleLanguageMockHandler, ArticleLanguageMockOptions};
 
 pub struct ArticleMockOptions {
     pub content: String,
@@ -39,30 +37,17 @@ impl ArticleMockHandler {
             archived: create_dto.archived,
             updated_at: None,
             created_at: Utc::now().naive_utc(),
-            languages: vec![ArticleLanguageAggregation {
-                id: 0,
-                name: String::from(create_dto.name),
-                enabled: true,
-                archived: false,
-                updated_at: None,
-                created_at: Utc::now().naive_utc(),
-                language: LanguageAggregation {
-                    id: 0,
-                    code: String::from(create_dto.language),
-                },
-                versions: vec![ArticleVersionAggregation {
-                    id: 0,
-                    article_language_id: 0,
-                    version: 1,
-                    enabled: true,
-                    updated_at: None,
-                    created_at: Utc::now().naive_utc(),
-                    content: VersionContentAggregation {
-                        id: 0,
+            languages: vec![
+                ArticleLanguageMockHandler::get_article_language_aggregation(
+                    &ArticleLanguageMockOptions {
                         content: String::from(create_dto.content),
+                        name: String::from(create_dto.name),
+                        language: String::from(create_dto.language),
+                        enabled: true,
+                        archived: false,
                     },
-                }],
-            }],
+                ),
+            ],
         }
     }
 }

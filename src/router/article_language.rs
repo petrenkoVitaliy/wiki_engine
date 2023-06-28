@@ -5,7 +5,6 @@ use rocket_okapi::{
 
 use super::connection;
 use super::option_config::query_options::QueryOptions;
-use crate::error::formatted_error::FmtError;
 
 use super::schema::article_language::{
     ArticleLanguageCreateBody, ArticleLanguageCreateRelationsDto, ArticleLanguagePatchBody,
@@ -22,22 +21,17 @@ async fn get_article_language(
     connection: connection::PgConnection,
     article_id: i32,
     language_code: String,
-) -> Result<Json<ArticleLanguageAggregation>, status::NotFound<String>> {
-    let article_language = ArticleLanguageService::get_aggregation(
+) -> Result<Json<ArticleLanguageAggregation>, status::Custom<String>> {
+    match ArticleLanguageService::get_aggregation(
         &connection,
         article_id,
         language_code,
         QueryOptions { is_actual: true },
     )
-    .await;
-
-    match article_language {
-        None => {
-            return Err(status::NotFound(
-                FmtError::NotFound("article_language").fmt(),
-            ))
-        }
-        Some(article_language) => Ok(Json(article_language)),
+    .await
+    {
+        Ok(article_language_aggregation) => Ok(Json(article_language_aggregation)),
+        Err(e) => Err(e.custom()),
     }
 }
 
@@ -88,29 +82,21 @@ async fn patch_article_language(
     patch_body: Json<ArticleLanguagePatchBody>,
     article_id: i32,
     language_code: String,
-) -> Result<Json<ArticleLanguageAggregation>, status::NotFound<String>> {
-    let article_language = ArticleLanguageService::patch(
+) -> Result<Json<ArticleLanguageAggregation>, status::Custom<String>> {
+    match ArticleLanguageService::patch(
         &connection,
         language_code,
         article_id,
         ArticleLanguagePatchDto {
             enabled: patch_body.enabled,
-            name: match patch_body.name.as_ref() {
-                Some(name) => Some(String::from(name)),
-                _ => None,
-            },
+            name: patch_body.name.clone(),
             archived: None,
         },
     )
-    .await;
-
-    match article_language {
-        Some(article_language) => Ok(Json(article_language)),
-        _ => {
-            return Err(status::NotFound(
-                FmtError::NotFound("article_language").fmt(),
-            ))
-        }
+    .await
+    {
+        Ok(article_language_aggregation) => Ok(Json(article_language_aggregation)),
+        Err(e) => Err(e.custom()),
     }
 }
 
@@ -120,8 +106,8 @@ async fn delete_article_language(
     connection: connection::PgConnection,
     article_id: i32,
     language_code: String,
-) -> Result<Json<ArticleLanguageAggregation>, status::NotFound<String>> {
-    let article_language = ArticleLanguageService::patch(
+) -> Result<Json<ArticleLanguageAggregation>, status::Custom<String>> {
+    match ArticleLanguageService::patch(
         &connection,
         language_code,
         article_id,
@@ -131,15 +117,10 @@ async fn delete_article_language(
             name: None,
         },
     )
-    .await;
-
-    match article_language {
-        Some(article_language) => Ok(Json(article_language)),
-        _ => {
-            return Err(status::NotFound(
-                FmtError::NotFound("article_language").fmt(),
-            ))
-        }
+    .await
+    {
+        Ok(article_language_aggregation) => Ok(Json(article_language_aggregation)),
+        Err(e) => Err(e.custom()),
     }
 }
 
@@ -149,8 +130,8 @@ async fn restore_article_language(
     connection: connection::PgConnection,
     article_id: i32,
     language_code: String,
-) -> Result<Json<ArticleLanguageAggregation>, status::NotFound<String>> {
-    let article_language = ArticleLanguageService::patch(
+) -> Result<Json<ArticleLanguageAggregation>, status::Custom<String>> {
+    match ArticleLanguageService::patch(
         &connection,
         language_code,
         article_id,
@@ -160,15 +141,10 @@ async fn restore_article_language(
             name: None,
         },
     )
-    .await;
-
-    match article_language {
-        Some(article_language) => Ok(Json(article_language)),
-        _ => {
-            return Err(status::NotFound(
-                FmtError::NotFound("article_language").fmt(),
-            ))
-        }
+    .await
+    {
+        Ok(article_language_aggregation) => Ok(Json(article_language_aggregation)),
+        Err(e) => Err(e.custom()),
     }
 }
 

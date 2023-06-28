@@ -9,6 +9,8 @@ use super::schema::version_content::ContentType;
 use super::aggregation::version_content::VersionContentAggregation;
 
 use super::diff_handler::diff_handler::DiffHandler;
+use super::error::error_wrapper::ErrorWrapper;
+use super::error::formatted_error::FmtError;
 
 pub struct VersionContentService {}
 
@@ -36,12 +38,12 @@ impl VersionContentService {
 
     pub fn get_contents_map_by_ids(
         article_versions_with_contents: &Vec<(ArticleVersion, VersionContent)>,
-    ) -> Option<HashMap<i32, String>> {
+    ) -> Result<HashMap<i32, String>, ErrorWrapper> {
         let full_content = match article_versions_with_contents.last() {
-            None => return None,
+            None => return FmtError::NotFound("article_version").error(),
             Some((article_version, version_content)) => {
                 if !matches!(version_content.content_type, ContentType::Full) {
-                    return None;
+                    return FmtError::FailedToProcess("version_content").error();
                 }
 
                 (article_version, version_content)
@@ -65,14 +67,12 @@ impl VersionContentService {
                         previous_full_content,
                     );
 
-                    let current_content = String::from(&content);
-
-                    content_map.insert(version_content.id, current_content);
+                    content_map.insert(version_content.id, String::from(&content));
 
                     return (content_map, content);
                 },
             );
 
-        Some(content_map)
+        Ok(content_map)
     }
 }

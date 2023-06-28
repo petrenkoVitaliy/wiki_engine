@@ -5,7 +5,6 @@ use rocket_okapi::{
 
 use super::connection;
 use super::option_config::query_options::QueryOptions;
-use crate::error::formatted_error::FmtError;
 
 use super::schema::article_version::{ArticleVersionCreateBody, ArticleVersionPatchBody};
 
@@ -20,23 +19,18 @@ pub async fn get_article_version(
     article_id: i32,
     id: i32,
     language_code: String,
-) -> Result<Json<ArticleVersionAggregation>, status::NotFound<String>> {
-    let article_version = ArticleVersionService::get_aggregation(
+) -> Result<Json<ArticleVersionAggregation>, status::Custom<String>> {
+    match ArticleVersionService::get_aggregation(
         &connection,
         id,
         article_id,
         language_code,
         QueryOptions { is_actual: true },
     )
-    .await;
-
-    match article_version {
-        None => {
-            return Err(status::NotFound(
-                FmtError::NotFound("article_version").fmt(),
-            ))
-        }
-        Some(article_version) => Ok(Json(article_version)),
+    .await
+    {
+        Ok(article_version_aggregation) => Ok(Json(article_version_aggregation)),
+        Err(e) => Err(e.custom()),
     }
 }
 
@@ -46,16 +40,18 @@ async fn get_article_versions(
     connection: connection::PgConnection,
     article_id: i32,
     language_code: String,
-) -> Result<Json<Vec<ArticleVersionAggregation>>, status::NotFound<String>> {
-    let article_versions = ArticleVersionService::get_aggregations(
+) -> Result<Json<Vec<ArticleVersionAggregation>>, status::Custom<String>> {
+    match ArticleVersionService::get_aggregations(
         &connection,
         article_id,
         language_code,
         QueryOptions { is_actual: true },
     )
-    .await;
-
-    Ok(Json(article_versions))
+    .await
+    {
+        Err(e) => Err(e.custom()),
+        Ok(article_versions_aggregations) => Ok(Json(article_versions_aggregations)),
+    }
 }
 
 #[openapi]
@@ -68,8 +64,8 @@ async fn create_article_version(
     creation_body: Json<ArticleVersionCreateBody>,
     article_id: i32,
     language_code: String,
-) -> Result<Json<ArticleVersionAggregation>, status::BadRequest<String>> {
-    let article_version = ArticleVersionService::insert(
+) -> Result<Json<ArticleVersionAggregation>, status::Custom<String>> {
+    match ArticleVersionService::insert(
         &connection,
         article_id,
         language_code,
@@ -77,15 +73,10 @@ async fn create_article_version(
             content: creation_body.content.to_string(),
         },
     )
-    .await;
-
-    match article_version {
-        Some(article_version) => Ok(Json(article_version)),
-        _ => {
-            return Err(status::BadRequest(Some(
-                FmtError::NotFound("article_version").fmt(),
-            )))
-        }
+    .await
+    {
+        Ok(article_version_aggregation) => Ok(Json(article_version_aggregation)),
+        Err(e) => Err(e.custom()),
     }
 }
 
@@ -100,8 +91,8 @@ async fn patch_article_version(
     id: i32,
     language_code: String,
     patch_body: Json<ArticleVersionPatchBody>,
-) -> Result<Json<ArticleVersionAggregation>, status::NotFound<String>> {
-    let article_version = ArticleVersionService::patch(
+) -> Result<Json<ArticleVersionAggregation>, status::Custom<String>> {
+    match ArticleVersionService::patch(
         &connection,
         id,
         article_id,
@@ -110,15 +101,10 @@ async fn patch_article_version(
             enabled: patch_body.enabled,
         },
     )
-    .await;
-
-    match article_version {
-        Some(article_version) => Ok(Json(article_version)),
-        _ => {
-            return Err(status::NotFound(
-                FmtError::NotFound("article_version").fmt(),
-            ))
-        }
+    .await
+    {
+        Ok(article_version_aggregation) => Ok(Json(article_version_aggregation)),
+        Err(e) => Err(e.custom()),
     }
 }
 

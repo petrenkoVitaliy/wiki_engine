@@ -1,6 +1,6 @@
 source "$(dirname "$0")/.utils.sh"
 
-cov=false;
+coverage=false;
 
 while getopts ":f :c" option; do
   case $option in
@@ -12,13 +12,13 @@ while getopts ":f :c" option; do
       env DATABASE_URL="postgresql://wiki_user:test@localhost:5432/postgres?options=-c search_path%3Dtest" diesel migration run
       ;;
     c)
-      cov=true;
+      coverage=true;
       ;;
   esac
 done
 
-if $cov; then
-    print_log "running tests (cov):"
+if $coverage; then
+    print_log "running tests (coverage):"
     
     CARGO_INCREMENTAL=0 RUSTFLAGS='-Cinstrument-coverage' LLVM_PROFILE_FILE='coverage/cargo-test-%p-%m.profraw' ROCKET_PROFILE=test cargo test
 else

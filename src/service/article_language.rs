@@ -1,9 +1,9 @@
 use diesel::Connection;
 use std::collections::HashMap;
 
+use super::error::error_wrapper::ErrorWrapper;
 use super::error::formatted_error::FmtError;
 use super::option_config::query_options::QueryOptions;
-use crate::error::error_wrapper::ErrorWrapper;
 
 use super::repository::connection;
 use super::repository::entity::article_language::{ArticleLanguage, ArticleLanguageRepository};
@@ -23,47 +23,37 @@ use super::schema::version_content::VersionContentDto;
 
 use super::aggregation::article_language::ArticleLanguageAggregation;
 use super::aggregation::article_version::ArticleVersionAggregation;
-use crate::aggregation::language::LanguageAggregation;
+use super::aggregation::language::LanguageAggregation;
 
 pub struct ArticleLanguageService {}
 
 impl ArticleLanguageService {
-    pub async fn get_one_by_language(
-        connection: &connection::PgConnection,
-        article_id: i32,
-        language_code: String,
-        query_options: QueryOptions,
-    ) -> Option<ArticleLanguage> {
-        let language = match LanguageService::get_aggregation(connection, language_code).await {
-            None => return None,
-            Some(language) => language,
-        };
-
-        match ArticleLanguageRepository::get_one(
-            connection,
-            article_id,
-            language.id,
-            &query_options,
-        )
-        .await
-        {
-            None => return None,
-            Some(article_language) => Some(article_language),
-        }
-    }
-
     pub async fn get_aggregation(
         connection: &connection::PgConnection,
         article_id: i32,
         language_code: String,
         query_options: QueryOptions,
-    ) -> Option<ArticleLanguageAggregation> {
-        let language = match LanguageService::get_aggregation(connection, language_code).await {
-            None => return None,
-            Some(language) => language,
+    ) -> Result<ArticleLanguageAggregation, ErrorWrapper> {
+        let (article_language, language) = match Self::get_one_with_language(
+            connection,
+            article_id,
+            language_code,
+            &query_options,
+        )
+        .await
+        {
+            Err(e) => return Err(e),
+            Ok((article_language, language)) => (article_language, language),
         };
 
-        Self::get_aggregation_with_language(connection, article_id, language, query_options).await
+        Self::get_aggregation_with_relations(
+            connection,
+            article_id,
+            &query_options,
+            language,
+            Some(article_language),
+        )
+        .await
     }
 
     pub async fn get_aggregations(
@@ -94,6 +84,32 @@ impl ArticleLanguageService {
         )
     }
 
+    pub async fn get_one_with_language(
+        connection: &connection::PgConnection,
+        article_id: i32,
+        language_code: String,
+        query_options: &QueryOptions,
+    ) -> Result<(ArticleLanguage, LanguageAggregation), ErrorWrapper> {
+        let language = match LanguageService::get_aggregation(connection, language_code).await {
+            None => return FmtError::NotFound("language").error(),
+            Some(language) => language,
+        };
+
+        let article_language = match ArticleLanguageRepository::get_one(
+            connection,
+            article_id,
+            language.id,
+            &query_options,
+        )
+        .await
+        {
+            None => return FmtError::NotFound("article_language").error(),
+            Some(language) => language,
+        };
+
+        Ok((article_language, language))
+    }
+
     pub async fn insert(
         connection: &connection::PgConnection,
         creation_dto: ArticleLanguageCreateRelationsDto,
@@ -105,6 +121,7 @@ impl ArticleLanguageService {
             Some(language) => language,
         };
 
+        // TODO test with DB level
         match ArticleLanguageRepository::get_one(
             connection,
             creation_dto.article_id,
@@ -140,25 +157,25 @@ impl ArticleLanguageService {
         language_code: String,
         article_id: i32,
         patch_dto: ArticleLanguagePatchDto,
-    ) -> Option<ArticleLanguageAggregation> {
-        let language: LanguageAggregation =
-            match LanguageService::get_aggregation(connection, language_code).await {
-                None => return None,
-                Some(language) => language,
-            };
+    ) -> Result<ArticleLanguageAggregation, ErrorWrapper> {
+        let language = match LanguageService::get_aggregation(connection, language_code).await {
+            None => return FmtError::NotFound("language").error(),
+            Some(language) => language,
+        };
 
         let updated_count =
             ArticleLanguageRepository::patch(connection, language.id, article_id, patch_dto).await;
 
         if updated_count == 0 {
-            return None;
+            return FmtError::NotFound("article_language").error();
         }
 
-        Self::get_aggregation_with_language(
+        Self::get_aggregation_with_relations(
             connection,
             article_id,
+            &QueryOptions { is_actual: false },
             language,
-            QueryOptions { is_actual: false },
+            None,
         )
         .await
     }
@@ -191,22 +208,28 @@ impl ArticleLanguageService {
         )
     }
 
-    async fn get_aggregation_with_language(
+    async fn get_aggregation_with_relations(
         connection: &connection::PgConnection,
         article_id: i32,
+        query_options: &QueryOptions,
         language: LanguageAggregation,
-        query_options: QueryOptions,
-    ) -> Option<ArticleLanguageAggregation> {
-        let article_language = match ArticleLanguageRepository::get_one(
-            connection,
-            article_id,
-            language.id,
-            &query_options,
-        )
-        .await
-        {
-            None => return None,
-            Some(article) => article,
+        article_language: Option<ArticleLanguage>,
+    ) -> Result<ArticleLanguageAggregation, ErrorWrapper> {
+        let article_language = match article_language {
+            Some(article_language) => article_language,
+            None => {
+                match ArticleLanguageRepository::get_one(
+                    connection,
+                    article_id,
+                    language.id,
+                    &query_options,
+                )
+                .await
+                {
+                    None => return FmtError::NotFound("article_language").error(),
+                    Some(language) => language,
+                }
+            }
         };
 
         let article_versions = ArticleVersionService::get_aggregations_by_languages(
@@ -223,7 +246,7 @@ impl ArticleLanguageService {
         )
         .remove(0);
 
-        Some(article_language_aggregation)
+        Ok(article_language_aggregation)
     }
 
     async fn create_relations_transaction(
