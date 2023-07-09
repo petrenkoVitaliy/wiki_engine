@@ -6,11 +6,9 @@ use super::decorator::connection_result;
 use super::model;
 
 use super::error::formatted_error::FmtError;
-use super::option_config::query_options::QueryOptions;
 
 use super::schema::article_version::{
-    ArticleVersionCreateDto, ArticleVersionPatchDto, ArticleVersionSearchDto,
-    ArticleVersionsJoinSearchDto, ArticleVersionsSearchDto,
+    ArticleVersionCreateDto, ArticleVersionPatchDto, ArticleVersionsJoinSearchDto,
 };
 
 use super::version_content::VersionContent;
@@ -30,39 +28,6 @@ impl ArticleVersionRepository {
             .expect(FmtError::FailedToFetch("article_versions").fmt().as_str());
 
         return count as i32;
-    }
-
-    // TODO rm?
-    pub async fn _get_one(
-        connection: &connection::PgConnection,
-        query_dto: ArticleVersionSearchDto,
-        query_options: &QueryOptions,
-    ) -> Option<model::ArticleVersion> {
-        let is_actual = query_options.is_actual;
-
-        connection
-            .run(move |connection| {
-                let mut query = db_schema::article_version::table.into_boxed();
-
-                if let Some(id) = query_dto.id {
-                    query = query.filter(db_schema::article_version::id.eq(id));
-                }
-
-                if let Some(article_languages_ids) = query_dto.article_languages_ids {
-                    query = query.filter(
-                        db_schema::article_version::article_language_id
-                            .eq_any(article_languages_ids),
-                    );
-                }
-
-                if is_actual {
-                    query = query.filter(db_schema::article_version::enabled.eq(true))
-                }
-
-                return query.first(connection).optional();
-            })
-            .await
-            .expect(FmtError::FailedToFetch("article_version").fmt().as_str())
     }
 
     pub async fn get_many_with_content(
@@ -89,38 +54,6 @@ impl ArticleVersionRepository {
                 return query
                     .order(db_schema::article_version::version.asc())
                     .load::<(model::ArticleVersion, VersionContent)>(connection);
-            })
-            .await
-            .expect(FmtError::FailedToFetch("article_versions").fmt().as_str())
-    }
-
-    pub async fn get_many(
-        connection: &connection::PgConnection,
-        query_dto: ArticleVersionsSearchDto,
-        query_options: &QueryOptions,
-    ) -> Vec<model::ArticleVersion> {
-        let is_actual = query_options.is_actual;
-
-        connection
-            .run(move |connection| {
-                let mut query = db_schema::article_version::table.into_boxed();
-
-                if let Some(ids) = query_dto.ids {
-                    query = query.filter(db_schema::article_version::id.eq_any(ids));
-                }
-
-                if let Some(article_languages_ids) = query_dto.article_languages_ids {
-                    query = query.filter(
-                        db_schema::article_version::article_language_id
-                            .eq_any(article_languages_ids),
-                    );
-                }
-
-                if is_actual {
-                    query = query.filter(db_schema::article_version::enabled.eq(true))
-                }
-
-                return query.load(connection);
             })
             .await
             .expect(FmtError::FailedToFetch("article_versions").fmt().as_str())

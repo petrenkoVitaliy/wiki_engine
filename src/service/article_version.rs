@@ -17,8 +17,7 @@ use super::version_content::VersionContentService;
 
 use super::schema::article_version::{
     ArticleVersionCreateBody, ArticleVersionCreateDto, ArticleVersionPatchBody,
-    ArticleVersionPatchDto, ArticleVersionsJoinSearchDto, ArticleVersionsSearchDto,
-    LanguageSearchDto,
+    ArticleVersionPatchDto, ArticleVersionsJoinSearchDto, LanguageSearchDto,
 };
 use super::schema::version_content::VersionContentDto;
 

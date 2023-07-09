@@ -15,19 +15,6 @@ pub struct VersionContentAggregation {
 }
 
 impl VersionContentAggregation {
-    pub fn from_model_list(version_content: Vec<VersionContent>) -> Vec<Self> {
-        version_content
-            .into_iter()
-            .map(move |version_content| {
-                return VersionContentAggregation {
-                    id: version_content.id,
-
-                    content: Self::get_content(&version_content, None),
-                };
-            })
-            .collect()
-    }
-
     pub fn from_model(
         version_content: VersionContent,
         contents_map: Option<&HashMap<i32, String>>,

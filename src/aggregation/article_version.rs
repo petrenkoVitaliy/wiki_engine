@@ -26,34 +26,6 @@ pub struct ArticleVersionAggregation {
 }
 
 impl ArticleVersionAggregation {
-    pub fn from_model_list_with_content(
-        article_versions: Vec<ArticleVersion>,
-        version_contents: Vec<VersionContentAggregation>,
-    ) -> Vec<Self> {
-        let mut content_map = ValuesMapper::vector_to_hashmap(version_contents, |ver| ver.id);
-
-        article_versions
-            .into_iter()
-            .map(move |article_version| {
-                let content_version_aggregation = content_map
-                    .remove(&article_version.content_id)
-                    .expect(FmtError::NotFound("version_content").fmt().as_str());
-
-                return Self {
-                    id: article_version.id,
-                    version: article_version.version,
-                    enabled: article_version.enabled,
-
-                    updated_at: article_version.updated_at,
-                    created_at: article_version.created_at,
-
-                    article_language_id: article_version.article_language_id,
-                    content: content_version_aggregation,
-                };
-            })
-            .collect()
-    }
-
     pub fn from_related_models(
         article_versions: Vec<ArticleVersion>,
         version_contents: Vec<VersionContent>,

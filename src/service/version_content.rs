@@ -1,12 +1,9 @@
 use std::collections::{hash_map::Entry, HashMap};
 
-use super::repository::connection;
 use super::repository::entity::article_version::ArticleVersion;
-use super::repository::entity::version_content::{VersionContent, VersionContentRepository};
+use super::repository::entity::version_content::VersionContent;
 
 use super::schema::version_content::ContentType;
-
-use super::aggregation::version_content::VersionContentAggregation;
 
 use super::diff_handler::diff_handler::DiffHandler;
 use super::error::error_wrapper::ErrorWrapper;
@@ -15,27 +12,6 @@ use super::error::formatted_error::FmtError;
 pub struct VersionContentService {}
 
 impl VersionContentService {
-    pub async fn get_aggregation(
-        connection: &connection::PgConnection,
-        id: i32,
-    ) -> Option<VersionContentAggregation> {
-        let version_content = match VersionContentRepository::get_one(connection, id).await {
-            None => return None,
-            Some(version_content) => version_content,
-        };
-
-        Some(VersionContentAggregation::from_model(version_content, None))
-    }
-
-    pub async fn get_aggregations(
-        connection: &connection::PgConnection,
-        ids: Vec<i32>,
-    ) -> Vec<VersionContentAggregation> {
-        let version_contents = VersionContentRepository::get_many(connection, ids).await;
-
-        VersionContentAggregation::from_model_list(version_contents)
-    }
-
     pub fn get_contents_map_by_ids(
         article_versions_with_contents: &Vec<(ArticleVersion, VersionContent)>,
     ) -> Result<HashMap<i32, String>, ErrorWrapper> {

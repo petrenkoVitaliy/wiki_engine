@@ -12,22 +12,6 @@ use super::schema::version_content::VersionContentDto;
 pub struct VersionContentRepository {}
 
 impl VersionContentRepository {
-    pub async fn get_one(
-        connection: &connection::PgConnection,
-        id: i32,
-    ) -> Option<model::VersionContent> {
-        connection
-            .run(move |connection| {
-                let mut query = db_schema::version_content::table.into_boxed();
-
-                query = query.filter(db_schema::version_content::id.eq(id));
-
-                return query.first(connection).optional();
-            })
-            .await
-            .expect(FmtError::FailedToFetch("version_content").fmt().as_str())
-    }
-
     pub fn get_one_raw(
         connection: &mut diesel::PgConnection,
         id: i32,
@@ -53,22 +37,6 @@ impl VersionContentRepository {
                 content_length: None,
             })
             .get_result::<model::VersionContent>(connection)
-    }
-
-    pub async fn get_many(
-        connection: &connection::PgConnection,
-        ids: Vec<i32>,
-    ) -> Vec<model::VersionContent> {
-        connection
-            .run(move |connection| {
-                let mut query = db_schema::version_content::table.into_boxed();
-
-                query = query.filter(db_schema::version_content::id.eq_any(ids));
-
-                return query.load(connection);
-            })
-            .await
-            .expect(FmtError::FailedToFetch("version_contents").fmt().as_str())
     }
 
     pub async fn _insert(
