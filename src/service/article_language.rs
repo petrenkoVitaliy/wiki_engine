@@ -58,11 +58,11 @@ impl ArticleLanguageService {
 
     pub async fn get_aggregations(
         connection: &connection::PgConnection,
-        article_ids: Vec<i32>,
+        article_id: i32,
         query_options: &QueryOptions,
     ) -> Vec<ArticleLanguageAggregation> {
         let article_languages =
-            ArticleLanguageRepository::get_many(connection, article_ids, query_options).await;
+            ArticleLanguageRepository::get_many(connection, vec![article_id], query_options).await;
 
         let article_languages_ids: Vec<i32> = article_languages
             .iter()
@@ -134,7 +134,6 @@ impl ArticleLanguageService {
             Some(language) => language,
         };
 
-        // TODO test with DB level
         match ArticleLanguageRepository::get_one(
             connection,
             creation_dto.article_id,

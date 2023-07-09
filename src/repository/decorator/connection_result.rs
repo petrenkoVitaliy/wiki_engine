@@ -1,7 +1,7 @@
 use super::connection;
 use super::error::formatted_error::FmtError;
 
-// unused
+// hof -> raw connection to handled wrapper
 pub async fn _wrap_db<T: Send + 'static, U: Send + 'static>(
     connection: &connection::PgConnection,
     cb: fn(connection: &mut diesel::PgConnection, dto: U) -> Result<T, diesel::result::Error>,

@@ -37,8 +37,7 @@ impl ArticleService {
         };
 
         let article_language_aggregations =
-            ArticleLanguageService::get_aggregations(&connection, vec![article.id], query_options)
-                .await;
+            ArticleLanguageService::get_aggregations(&connection, article.id, query_options).await;
 
         Ok(ArticleAggregation::from_model(
             &article,

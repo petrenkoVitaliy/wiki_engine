@@ -7,9 +7,4 @@
 
     medium:
         - add drafts + renovate
-
     low:
-        - cascade deleting doesn't work
-        - test eq & eq_any perf
-
-        - add aggregations sort

@@ -54,7 +54,9 @@ impl ArticleRepository {
                         .load(connection);
                 }
 
-                query.load(connection)
+                query
+                    .order(db_schema::article::created_at.desc())
+                    .load(connection)
             })
             .await
             .expect(FmtError::FailedToFetch("articles").fmt().as_str())

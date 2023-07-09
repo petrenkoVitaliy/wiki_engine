@@ -46,7 +46,6 @@ impl ArticleLanguageRepository {
             .expect(FmtError::FailedToFetch("article_language").fmt().as_str())
     }
 
-    // TODO test eq & eq_any perf
     pub async fn get_many(
         connection: &connection::PgConnection,
         article_ids: Vec<i32>,
@@ -56,9 +55,13 @@ impl ArticleLanguageRepository {
 
         connection
             .run(move |connection| {
-                let mut query = db_schema::article_language::table
-                    .filter(db_schema::article_language::article_id.eq_any(article_ids))
-                    .into_boxed();
+                let mut query = db_schema::article_language::table.into_boxed();
+
+                query = if article_ids.len() == 1 {
+                    query.filter(db_schema::article_language::article_id.eq(article_ids[0]))
+                } else {
+                    query.filter(db_schema::article_language::article_id.eq_any(article_ids))
+                };
 
                 if is_actual {
                     query = query.filter(
@@ -68,7 +71,9 @@ impl ArticleLanguageRepository {
                     );
                 }
 
-                return query.load(connection);
+                return query
+                    .order(db_schema::article_language::created_at.desc())
+                    .load(connection);
             })
             .await
             .expect(FmtError::FailedToFetch("article_languages").fmt().as_str())

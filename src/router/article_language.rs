@@ -43,7 +43,7 @@ async fn get_article_languages(
 ) -> Result<Json<Vec<ArticleLanguageAggregation>>, status::Custom<String>> {
     let article_languages = ArticleLanguageService::get_aggregations(
         &connection,
-        vec![article_id],
+        article_id,
         &QueryOptions { is_actual: true },
     )
     .await;
