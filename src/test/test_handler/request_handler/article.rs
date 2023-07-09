@@ -5,11 +5,12 @@ use serde::Serialize;
 use super::router::article::*;
 
 use super::aggregation::article::ArticleAggregation;
+
 use super::setup::TestSetup;
 
 pub struct ArticleRequestHandler;
 impl ArticleRequestHandler {
-    pub fn create_article_handler<T>(setup: &TestSetup, creation_body: &T) -> ArticleAggregation
+    pub fn create_article<T>(setup: &TestSetup, creation_body: &T) -> ArticleAggregation
     where
         T: Serialize,
     {
@@ -20,7 +21,7 @@ impl ArticleRequestHandler {
         response.into_json::<ArticleAggregation>().unwrap()
     }
 
-    pub fn get_article_handler(setup: &TestSetup, article_id: i32) -> ArticleAggregation {
+    pub fn get_article(setup: &TestSetup, article_id: i32) -> ArticleAggregation {
         let response = ArticleRequest::get_article(setup, article_id);
 
         assert_eq!(response.status(), Status::Ok);
@@ -28,7 +29,7 @@ impl ArticleRequestHandler {
         response.into_json::<ArticleAggregation>().unwrap()
     }
 
-    pub fn get_articles_handler(setup: &TestSetup) -> Vec<ArticleAggregation> {
+    pub fn get_articles(setup: &TestSetup) -> Vec<ArticleAggregation> {
         let response = ArticleRequest::get_articles(setup);
 
         assert_eq!(response.status(), Status::Ok);
@@ -36,7 +37,7 @@ impl ArticleRequestHandler {
         response.into_json::<Vec<ArticleAggregation>>().unwrap()
     }
 
-    pub fn delete_article_handler(setup: &TestSetup, article_id: i32) -> ArticleAggregation {
+    pub fn delete_article(setup: &TestSetup, article_id: i32) -> ArticleAggregation {
         let response = ArticleRequest::delete_article(setup, article_id);
 
         assert_eq!(response.status(), Status::Ok);
@@ -44,7 +45,7 @@ impl ArticleRequestHandler {
         response.into_json::<ArticleAggregation>().unwrap()
     }
 
-    pub fn restore_article_handler(setup: &TestSetup, article_id: i32) -> ArticleAggregation {
+    pub fn restore_article(setup: &TestSetup, article_id: i32) -> ArticleAggregation {
         let response = ArticleRequest::restore_article(setup, article_id);
 
         assert_eq!(response.status(), Status::Ok);
@@ -52,7 +53,7 @@ impl ArticleRequestHandler {
         response.into_json::<ArticleAggregation>().unwrap()
     }
 
-    pub fn patch_article_handler<T>(
+    pub fn patch_article<T>(
         setup: &TestSetup,
         article_id: i32,
         patch_body: &T,

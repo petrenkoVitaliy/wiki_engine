@@ -60,7 +60,7 @@ impl ArticleLanguageService {
         connection: &connection::PgConnection,
         article_ids: Vec<i32>,
         query_options: &QueryOptions,
-    ) -> Result<Vec<ArticleLanguageAggregation>, ErrorWrapper> {
+    ) -> Vec<ArticleLanguageAggregation> {
         let article_languages =
             ArticleLanguageRepository::get_many(connection, article_ids, query_options).await;
 
@@ -84,14 +84,17 @@ impl ArticleLanguageService {
         .await
         {
             Ok(article_versions) => article_versions,
-            Err(e) => return Err(e),
+            Err(_) => panic!(
+                "{}",
+                FmtError::FailedToFetch("article_versions").fmt().as_str()
+            ),
         };
 
-        Ok(ArticleLanguageAggregation::from_related_models(
+        ArticleLanguageAggregation::from_related_models(
             article_languages,
             article_versions,
             languages,
-        ))
+        )
     }
 
     pub async fn get_one_with_language(
@@ -194,7 +197,7 @@ impl ArticleLanguageService {
         connection: &connection::PgConnection,
         article_ids: Vec<i32>,
         query_options: &QueryOptions,
-    ) -> Result<HashMap<i32, Vec<ArticleLanguageAggregation>>, ErrorWrapper> {
+    ) -> HashMap<i32, Vec<ArticleLanguageAggregation>> {
         let article_languages =
             ArticleLanguageRepository::get_many(connection, article_ids, &query_options).await;
 
@@ -219,14 +222,17 @@ impl ArticleLanguageService {
         .await
         {
             Ok(article_versions) => article_versions,
-            Err(e) => return Err(e),
+            Err(_) => panic!(
+                "{}",
+                FmtError::FailedToFetch("article_versions").fmt().as_str()
+            ),
         };
 
-        Ok(ArticleLanguageAggregation::get_aggregations_map(
+        ArticleLanguageAggregation::get_aggregations_map(
             article_languages,
             article_versions,
             languages,
-        ))
+        )
     }
 
     async fn get_aggregation_with_relations(
@@ -267,7 +273,10 @@ impl ArticleLanguageService {
         .await
         {
             Ok(article_versions) => article_versions,
-            Err(e) => return Err(e),
+            Err(_) => panic!(
+                "{}",
+                FmtError::FailedToFetch("article_versions").fmt().as_str()
+            ),
         };
 
         let article_language_aggregation = ArticleLanguageAggregation::from_related_models(
@@ -298,7 +307,7 @@ impl ArticleLanguageService {
                 );
             })
             .await
-            .expect("failed to create article_language relations")
+            .expect(FmtError::FailedToInsert("article_language_relations").fmt().as_str())
     }
 
     fn create_relations(

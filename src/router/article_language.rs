@@ -41,16 +41,14 @@ async fn get_article_languages(
     connection: connection::PgConnection,
     article_id: i32,
 ) -> Result<Json<Vec<ArticleLanguageAggregation>>, status::Custom<String>> {
-    match ArticleLanguageService::get_aggregations(
+    let article_languages = ArticleLanguageService::get_aggregations(
         &connection,
         vec![article_id],
         &QueryOptions { is_actual: true },
     )
-    .await
-    {
-        Ok(article_language_aggregation) => Ok(Json(article_language_aggregation)),
-        Err(e) => Err(e.custom()),
-    }
+    .await;
+
+    Ok(Json(article_languages))
 }
 
 #[openapi]

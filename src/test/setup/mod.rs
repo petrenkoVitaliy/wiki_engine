@@ -3,10 +3,7 @@ use parking_lot::MutexGuard;
 use rocket::{local::blocking::Client, Build, Rocket};
 
 use super::repository;
-use super::router::article;
-use super::router::article_language;
-use super::router::article_version;
-use super::router::catchers;
+use super::router::{article, article_language, article_version, catchers};
 
 pub struct SetupOptions {
     pub is_lock: bool,

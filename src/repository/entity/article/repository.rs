@@ -5,11 +5,9 @@ use super::option_config::query_options::QueryOptions;
 
 use super::connection;
 use super::db_schema;
-use super::decorator::connection_result;
+use super::model;
 
 use super::schema::article::ArticlePatchDto;
-
-use super::model;
 
 pub struct ArticleRepository {}
 
@@ -78,16 +76,6 @@ impl ArticleRepository {
             })
             .await
             .expect(FmtError::FailedToUpdate("article").fmt().as_str())
-    }
-
-    pub async fn _insert(connection: &connection::PgConnection) -> model::Article {
-        connection_result::_wrap_db(
-            &connection,
-            Self::insert_raw,
-            (),
-            FmtError::FailedToInsert("article"),
-        )
-        .await
     }
 
     pub fn insert_raw(

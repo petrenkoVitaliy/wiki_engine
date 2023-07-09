@@ -12,7 +12,7 @@ use super::router::article_version::*;
 
 pub struct ArticleVersionRequestHandler;
 impl ArticleVersionRequestHandler {
-    pub fn create_article_version_handler<T>(
+    pub fn create_article_version<T>(
         setup: &TestSetup,
         creation_body: &T,
         article_id: i32,
@@ -33,7 +33,7 @@ impl ArticleVersionRequestHandler {
         response.into_json::<ArticleVersionAggregation>().unwrap()
     }
 
-    pub fn get_article_version_handler<'s>(
+    pub fn get_article_version<'s>(
         setup: &'s TestSetup,
         article_id: i32,
         language_code: &String,
@@ -47,7 +47,7 @@ impl ArticleVersionRequestHandler {
         response.into_json::<ArticleVersionAggregation>().unwrap()
     }
 
-    pub fn get_article_versions_handler<'s>(
+    pub fn get_article_versions<'s>(
         setup: &'s TestSetup,
         article_id: i32,
         language_code: &String,
@@ -62,7 +62,7 @@ impl ArticleVersionRequestHandler {
             .unwrap()
     }
 
-    pub fn patch_article_language_handler<'s>(
+    pub fn patch_article_language<'s>(
         setup: &'s TestSetup,
         patch_body: &ArticleVersionPatchBody,
         article_id: i32,

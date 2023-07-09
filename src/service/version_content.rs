@@ -6,7 +6,6 @@ use super::repository::entity::version_content::VersionContent;
 use super::schema::version_content::ContentType;
 
 use super::diff_handler::diff_handler::DiffHandler;
-use super::error::error_wrapper::ErrorWrapper;
 use super::error::formatted_error::FmtError;
 
 pub struct VersionContentService {}
@@ -14,7 +13,7 @@ pub struct VersionContentService {}
 impl VersionContentService {
     pub fn get_contents_map_by_ids(
         article_versions_with_contents: &Vec<(ArticleVersion, VersionContent)>,
-    ) -> Result<HashMap<i32, String>, ErrorWrapper> {
+    ) -> HashMap<i32, String> {
         let mut contents_map: HashMap<i32, String> = HashMap::new();
 
         let versions_contents_by_language_map = article_versions_with_contents.into_iter().fold(
@@ -34,29 +33,26 @@ impl VersionContentService {
         );
 
         for (_, article_versions_with_contents) in versions_contents_by_language_map {
-            match Self::update_contents_map(&mut contents_map, &article_versions_with_contents) {
-                Err(e) => return Err(e),
-                _ => (),
-            }
+            Self::update_contents_map(&mut contents_map, &article_versions_with_contents);
         }
 
-        return Ok(contents_map);
+        return contents_map;
     }
 
     fn update_contents_map<'s>(
         contents_map: &'s mut HashMap<i32, String>,
         article_versions_with_contents: &Vec<(&ArticleVersion, &VersionContent)>,
-    ) -> Result<&'s HashMap<i32, String>, ErrorWrapper> {
-        let full_content = match article_versions_with_contents.last() {
-            None => return FmtError::NotFound("article_version").error(),
-            Some((article_version, version_content)) => {
-                if !matches!(version_content.content_type, ContentType::Full) {
-                    return FmtError::FailedToProcess("version_content").error();
-                }
+    ) -> &'s HashMap<i32, String> {
+        let full_content = article_versions_with_contents
+            .last()
+            .expect(FmtError::NotFound("article_version").fmt().as_str());
 
-                (article_version, version_content)
-            }
-        };
+        if !matches!(full_content.1.content_type, ContentType::Full) {
+            panic!(
+                "{}",
+                FmtError::FailedToProcess("version_content").fmt().as_str()
+            );
+        }
 
         let (content_map, _) = article_versions_with_contents
             [0..article_versions_with_contents.len() - 1]
@@ -81,6 +77,6 @@ impl VersionContentService {
                 },
             );
 
-        Ok(content_map)
+        content_map
     }
 }

@@ -7,7 +7,6 @@ pub enum FmtError<'input> {
     FailedToInsert(&'input str),
     FailedToUpdate(&'input str),
     AlreadyExists(&'input str),
-    _FailedToDelete(&'input str),
 }
 
 impl<'input> FmtError<'input> {
@@ -17,7 +16,6 @@ impl<'input> FmtError<'input> {
             FmtError::FailedToFetch(s) => format!("Failed to fetch: {}", s),
             FmtError::FailedToInsert(s) => format!("Failed to insert: {}", s),
             FmtError::FailedToUpdate(s) => format!("Failed to update: {}", s),
-            FmtError::_FailedToDelete(s) => format!("Failed to delete: {}", s),
             FmtError::AlreadyExists(s) => format!("Entity already exists: {}", s),
             FmtError::FailedToProcess(s) => format!("Failed to process entity: {}", s),
         }

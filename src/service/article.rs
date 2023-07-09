@@ -1,6 +1,6 @@
 use diesel::Connection;
 
-use crate::error::error_wrapper::ErrorWrapper;
+use super::error::error_wrapper::ErrorWrapper;
 
 use super::error::formatted_error::FmtError;
 use super::option_config::query_options::QueryOptions;
@@ -36,16 +36,9 @@ impl ArticleService {
             Some(article) => article,
         };
 
-        let article_language_aggregations = match ArticleLanguageService::get_aggregations(
-            &connection,
-            vec![article.id],
-            query_options,
-        )
-        .await
-        {
-            Ok(article_language_aggregations) => article_language_aggregations,
-            Err(e) => return Err(e),
-        };
+        let article_language_aggregations =
+            ArticleLanguageService::get_aggregations(&connection, vec![article.id], query_options)
+                .await;
 
         Ok(ArticleAggregation::from_model(
             &article,
@@ -56,26 +49,16 @@ impl ArticleService {
     pub async fn get_aggregations(
         connection: &connection::PgConnection,
         query_options: &QueryOptions,
-    ) -> Result<Vec<ArticleAggregation>, ErrorWrapper> {
+    ) -> Vec<ArticleAggregation> {
         let articles = ArticleRepository::get_many(connection, query_options).await;
 
         let articles_ids = articles.iter().map(|article| article.id).collect();
 
-        let article_language_aggregations_map = match ArticleLanguageService::get_aggregations_map(
-            &connection,
-            articles_ids,
-            query_options,
-        )
-        .await
-        {
-            Ok(aggregations_map) => aggregations_map,
-            Err(e) => return Err(e),
-        };
+        let article_language_aggregations_map =
+            ArticleLanguageService::get_aggregations_map(&connection, articles_ids, query_options)
+                .await;
 
-        Ok(ArticleAggregation::from_languages_map(
-            articles,
-            article_language_aggregations_map,
-        ))
+        ArticleAggregation::from_languages_map(articles, article_language_aggregations_map)
     }
 
     pub async fn insert(
@@ -141,7 +124,7 @@ impl ArticleService {
                 );
             })
             .await
-            .expect("failed to create article relations")
+            .expect(FmtError::FailedToInsert("article_relations").fmt().as_str())
     }
 
     fn create_relations(

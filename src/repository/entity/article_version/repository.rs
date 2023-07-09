@@ -2,7 +2,6 @@ use diesel::prelude::*;
 
 use super::connection;
 use super::db_schema;
-use super::decorator::connection_result;
 use super::model;
 
 use super::error::formatted_error::FmtError;
@@ -57,19 +56,6 @@ impl ArticleVersionRepository {
             })
             .await
             .expect(FmtError::FailedToFetch("article_versions").fmt().as_str())
-    }
-
-    pub async fn _insert(
-        connection: &connection::PgConnection,
-        creation_dto: ArticleVersionCreateDto,
-    ) -> model::ArticleVersion {
-        connection_result::_wrap_db(
-            &connection,
-            Self::insert_raw,
-            creation_dto,
-            FmtError::FailedToInsert("article_version"),
-        )
-        .await
     }
 
     pub fn get_by_version_raw(

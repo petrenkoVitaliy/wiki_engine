@@ -6,12 +6,10 @@
     high:
 
     medium:
-        - add tests [IN_PROGRESS]
         - add drafts + renovate
-
-        - add aggregations sort!
 
     low:
         - cascade deleting doesn't work
         - test eq & eq_any perf
-        - init DI (overhead for now)
+
+        - add aggregations sort

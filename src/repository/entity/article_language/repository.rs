@@ -2,7 +2,6 @@ use diesel::prelude::*;
 
 use super::connection;
 use super::db_schema;
-use super::decorator::connection_result;
 use super::model;
 
 use super::error::formatted_error::FmtError;
@@ -73,19 +72,6 @@ impl ArticleLanguageRepository {
             })
             .await
             .expect(FmtError::FailedToFetch("article_languages").fmt().as_str())
-    }
-
-    pub async fn _insert(
-        connection: &connection::PgConnection,
-        creation_dto: ArticleLanguageCreateDto,
-    ) -> model::ArticleLanguage {
-        connection_result::_wrap_db(
-            &connection,
-            Self::insert_raw,
-            creation_dto,
-            FmtError::FailedToInsert("article_language"),
-        )
-        .await
     }
 
     pub fn insert_raw(

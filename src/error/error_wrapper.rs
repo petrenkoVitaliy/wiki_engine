@@ -1,5 +1,6 @@
-use super::formatted_error::FmtError;
 use rocket::{http::Status, response::status};
+
+use super::formatted_error::FmtError;
 
 pub struct ErrorWrapper {
     pub status: Status,
@@ -13,15 +14,7 @@ impl ErrorWrapper {
                 status: Status::NotFound,
                 message: fmt_error.fmt(),
             },
-            FmtError::FailedToUpdate(_) => ErrorWrapper {
-                status: Status::NotModified,
-                message: fmt_error.fmt(),
-            },
             FmtError::AlreadyExists(_) => ErrorWrapper {
-                status: Status::BadRequest,
-                message: fmt_error.fmt(),
-            },
-            FmtError::FailedToProcess(_) => ErrorWrapper {
                 status: Status::BadRequest,
                 message: fmt_error.fmt(),
             },

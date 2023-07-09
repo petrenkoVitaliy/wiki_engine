@@ -17,10 +17,10 @@ use super::service::article::ArticleService;
 async fn get_articles(
     connection: connection::PgConnection,
 ) -> Result<Json<Vec<ArticleAggregation>>, status::Custom<String>> {
-    match ArticleService::get_aggregations(&connection, &QueryOptions { is_actual: true }).await {
-        Ok(article_aggregation) => Ok(Json(article_aggregation)),
-        Err(e) => Err(e.custom()),
-    }
+    let article_aggregation =
+        ArticleService::get_aggregations(&connection, &QueryOptions { is_actual: true }).await;
+
+    return Ok(Json(article_aggregation));
 }
 
 #[openapi]

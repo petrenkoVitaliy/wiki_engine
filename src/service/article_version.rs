@@ -200,7 +200,11 @@ impl ArticleVersionService {
                     );
             })
             .await
-            .expect("failed to create article_version relations")
+            .expect(
+                FmtError::FailedToInsert("article_version_relations")
+                    .fmt()
+                    .as_str(),
+            )
     }
 
     fn create_relations(
@@ -286,7 +290,10 @@ impl ArticleVersionService {
                         language_search_dto.article_id,
                     ) {
                         (Some(language_code), Some(article_id)) => (language_code, article_id),
-                        _ => return FmtError::FailedToProcess("language_code").error(),
+                        _ => panic!(
+                            "{}",
+                            FmtError::FailedToProcess("language_code").fmt().as_str()
+                        ),
                     };
 
                     match ArticleLanguageService::get_one_with_language(
@@ -314,10 +321,7 @@ impl ArticleVersionService {
         .await;
 
         let content_map =
-            match VersionContentService::get_contents_map_by_ids(&article_versions_contents) {
-                Err(e) => return Err(e),
-                Ok(map) => map,
-            };
+            VersionContentService::get_contents_map_by_ids(&article_versions_contents);
 
         Ok((article_versions_contents, content_map))
     }

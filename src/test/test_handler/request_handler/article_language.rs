@@ -4,12 +4,14 @@ use rocket::{http::Status, uri};
 use super::router::article_language::*;
 
 use super::aggregation::article_language::ArticleLanguageAggregation;
+
 use super::schema::article_language::{ArticleLanguageCreateBody, ArticleLanguagePatchBody};
+
 use super::setup::TestSetup;
 
 pub struct ArticleLanguageRequestHandler;
 impl ArticleLanguageRequestHandler {
-    pub fn create_article_language_handler<'s>(
+    pub fn create_article_language<'s>(
         setup: &'s TestSetup,
         creation_body: &ArticleLanguageCreateBody,
         article_id: i32,
@@ -27,7 +29,7 @@ impl ArticleLanguageRequestHandler {
         response.into_json::<ArticleLanguageAggregation>().unwrap()
     }
 
-    pub fn get_article_language_handler<'s>(
+    pub fn get_article_language<'s>(
         setup: &'s TestSetup,
         article_id: i32,
         language_code: &String,
@@ -40,7 +42,7 @@ impl ArticleLanguageRequestHandler {
         response.into_json::<ArticleLanguageAggregation>().unwrap()
     }
 
-    pub fn get_article_languages_handler<'s>(
+    pub fn get_article_languages<'s>(
         setup: &'s TestSetup,
         article_id: i32,
     ) -> Vec<ArticleLanguageAggregation> {
@@ -53,7 +55,7 @@ impl ArticleLanguageRequestHandler {
             .unwrap()
     }
 
-    pub fn patch_article_language_handler<'s>(
+    pub fn patch_article_language<'s>(
         setup: &'s TestSetup,
         patch_body: &ArticleLanguagePatchBody,
         article_id: i32,
@@ -71,7 +73,7 @@ impl ArticleLanguageRequestHandler {
         response.into_json::<ArticleLanguageAggregation>().unwrap()
     }
 
-    pub fn delete_article_language_handler<'s>(
+    pub fn delete_article_language<'s>(
         setup: &'s TestSetup,
         article_id: i32,
         language_code: &String,
@@ -84,7 +86,7 @@ impl ArticleLanguageRequestHandler {
         response.into_json::<ArticleLanguageAggregation>().unwrap()
     }
 
-    pub fn restore_article_language_handler<'s>(
+    pub fn restore_article_language<'s>(
         setup: &'s TestSetup,
         article_id: i32,
         language_code: &String,

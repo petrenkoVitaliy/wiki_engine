@@ -8,7 +8,6 @@ pub struct ArticleVersionCreateBody {
     pub content: String,
 }
 
-#[derive(Debug)]
 pub struct ArticleVersionCreateDto {
     pub version: i32,
     pub content_id: i32,

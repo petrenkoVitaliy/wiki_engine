@@ -1,11 +1,7 @@
 use diesel::prelude::*;
 
-use super::connection;
 use super::db_schema;
-use super::decorator::connection_result;
 use super::model;
-
-use super::error::formatted_error::FmtError;
 
 use super::schema::version_content::VersionContentDto;
 
@@ -37,19 +33,6 @@ impl VersionContentRepository {
                 content_length: None,
             })
             .get_result::<model::VersionContent>(connection)
-    }
-
-    pub async fn _insert(
-        connection: &connection::PgConnection,
-        creation_dto: VersionContentDto,
-    ) -> model::VersionContent {
-        connection_result::_wrap_db(
-            &connection,
-            Self::insert_raw,
-            creation_dto,
-            FmtError::FailedToInsert("version_content"),
-        )
-        .await
     }
 
     pub fn insert_raw(
