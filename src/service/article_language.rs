@@ -18,7 +18,7 @@ use super::language::LanguageService;
 use super::schema::article_language::{
     ArticleLanguageCreateDto, ArticleLanguageCreateRelationsDto, ArticleLanguagePatchDto,
 };
-use super::schema::article_version::ArticleVersionCreateDto;
+use super::schema::article_version::{ArticleVersionCreateDto, LanguageSearchDto};
 use super::schema::version_content::VersionContentDto;
 
 use super::aggregation::article_language::ArticleLanguageAggregation;
@@ -60,7 +60,7 @@ impl ArticleLanguageService {
         connection: &connection::PgConnection,
         article_ids: Vec<i32>,
         query_options: &QueryOptions,
-    ) -> Vec<ArticleLanguageAggregation> {
+    ) -> Result<Vec<ArticleLanguageAggregation>, ErrorWrapper> {
         let article_languages =
             ArticleLanguageRepository::get_many(connection, article_ids, query_options).await;
 
@@ -70,18 +70,28 @@ impl ArticleLanguageService {
             .collect();
 
         let languages = LanguageService::get_aggregations(connection).await;
-        let article_versions = ArticleVersionService::get_aggregations_by_languages(
+        let article_versions = match ArticleVersionService::get_aggregations(
             connection,
-            article_languages_ids,
+            LanguageSearchDto {
+                article_languages_ids: Some(article_languages_ids),
+
+                language_code: None,
+                article_id: None,
+                article_language: None,
+            },
             query_options,
         )
-        .await;
+        .await
+        {
+            Ok(article_versions) => article_versions,
+            Err(e) => return Err(e),
+        };
 
-        ArticleLanguageAggregation::from_related_models(
+        Ok(ArticleLanguageAggregation::from_related_models(
             article_languages,
             article_versions,
             languages,
-        )
+        ))
     }
 
     pub async fn get_one_with_language(
@@ -184,7 +194,7 @@ impl ArticleLanguageService {
         connection: &connection::PgConnection,
         article_ids: Vec<i32>,
         query_options: &QueryOptions,
-    ) -> HashMap<i32, Vec<ArticleLanguageAggregation>> {
+    ) -> Result<HashMap<i32, Vec<ArticleLanguageAggregation>>, ErrorWrapper> {
         let article_languages =
             ArticleLanguageRepository::get_many(connection, article_ids, &query_options).await;
 
@@ -194,18 +204,29 @@ impl ArticleLanguageService {
             .iter()
             .map(|article_language| article_language.id)
             .collect();
-        let article_versions = ArticleVersionService::get_aggregations_by_languages(
-            connection,
-            article_languages_ids,
-            &query_options,
-        )
-        .await;
 
-        ArticleLanguageAggregation::get_aggregations_map(
+        let article_versions = match ArticleVersionService::get_aggregations(
+            connection,
+            LanguageSearchDto {
+                article_languages_ids: Some(article_languages_ids),
+
+                language_code: None,
+                article_id: None,
+                article_language: None,
+            },
+            query_options,
+        )
+        .await
+        {
+            Ok(article_versions) => article_versions,
+            Err(e) => return Err(e),
+        };
+
+        Ok(ArticleLanguageAggregation::get_aggregations_map(
             article_languages,
             article_versions,
             languages,
-        )
+        ))
     }
 
     async fn get_aggregation_with_relations(
@@ -232,12 +253,22 @@ impl ArticleLanguageService {
             }
         };
 
-        let article_versions = ArticleVersionService::get_aggregations_by_languages(
+        let article_versions = match ArticleVersionService::get_aggregations(
             connection,
-            vec![article_language.id],
-            &query_options,
+            LanguageSearchDto {
+                article_languages_ids: Some(vec![article_language.id]),
+
+                language_code: None,
+                article_id: None,
+                article_language: None,
+            },
+            query_options,
         )
-        .await;
+        .await
+        {
+            Ok(article_versions) => article_versions,
+            Err(e) => return Err(e),
+        };
 
         let article_language_aggregation = ArticleLanguageAggregation::from_related_models(
             vec![article_language],

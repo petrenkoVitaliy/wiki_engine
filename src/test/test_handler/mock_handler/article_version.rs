@@ -4,25 +4,24 @@ use super::aggregation::{
     article_version::ArticleVersionAggregation, version_content::VersionContentAggregation,
 };
 
+use super::schema::article_version::ArticleVersionCreateBody;
+
 pub struct ArticleVersionMockOptions {
     pub content: String,
     pub version: i32,
     pub enabled: bool,
 }
 
-// TODO
-// impl ArticleVersionMockOptions {
-//     pub fn from_creation_dto(creation_dto: &ArticleLanguageCreateBody, language: &String) -> Self {
-//         Self {
-//             enabled: true,
-//             archived: false,
+impl ArticleVersionMockOptions {
+    pub fn from_creation_dto(creation_dto: &ArticleVersionCreateBody, version: i32) -> Self {
+        Self {
+            version,
 
-//             language: String::from(language),
-//             content: creation_dto.content.clone(),
-//             name: creation_dto.name.clone(),
-//         }
-//     }
-// }
+            enabled: true,
+            content: creation_dto.content.clone(),
+        }
+    }
+}
 
 pub struct ArticleVersionMockHandler;
 impl ArticleVersionMockHandler {

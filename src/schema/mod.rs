@@ -1,3 +1,4 @@
+pub use super::repository::entity::article_language::ArticleLanguage;
 pub use super::repository::entity::version_content::ContentType;
 
 pub mod article;

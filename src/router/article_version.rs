@@ -6,26 +6,33 @@ use rocket_okapi::{
 use super::connection;
 use super::option_config::query_options::QueryOptions;
 
-use super::schema::article_version::{ArticleVersionCreateBody, ArticleVersionPatchBody};
+use super::schema::article_version::{
+    ArticleVersionCreateBody, ArticleVersionPatchBody, LanguageSearchDto,
+};
 
 use super::service::article_version::ArticleVersionService;
 
 use super::aggregation::article_version::ArticleVersionAggregation;
 
 #[openapi]
-#[get("/<article_id>/language/<language_code>/version/<id>")]
+#[get("/<article_id>/language/<language_code>/version/<version>")]
 pub async fn get_article_version(
     connection: connection::PgConnection,
     article_id: i32,
-    id: i32,
+    version: i32,
     language_code: String,
 ) -> Result<Json<ArticleVersionAggregation>, status::Custom<String>> {
     match ArticleVersionService::get_aggregation(
         &connection,
-        id,
-        article_id,
-        language_code,
-        QueryOptions { is_actual: true },
+        version,
+        LanguageSearchDto {
+            language_code: Some(language_code),
+            article_id: Some(article_id),
+
+            article_language: None,
+            article_languages_ids: None,
+        },
+        &QueryOptions { is_actual: true },
     )
     .await
     {
@@ -43,9 +50,14 @@ async fn get_article_versions(
 ) -> Result<Json<Vec<ArticleVersionAggregation>>, status::Custom<String>> {
     match ArticleVersionService::get_aggregations(
         &connection,
-        article_id,
-        language_code,
-        QueryOptions { is_actual: true },
+        LanguageSearchDto {
+            language_code: Some(language_code),
+            article_id: Some(article_id),
+
+            article_language: None,
+            article_languages_ids: None,
+        },
+        &QueryOptions { is_actual: true },
     )
     .await
     {
@@ -82,19 +94,19 @@ async fn create_article_version(
 
 #[openapi]
 #[patch(
-    "/<article_id>/language/<language_code>/version/<id>",
+    "/<article_id>/language/<language_code>/version/<version>",
     data = "<patch_body>"
 )]
 async fn patch_article_version(
     connection: connection::PgConnection,
     article_id: i32,
-    id: i32,
+    version: i32,
     language_code: String,
     patch_body: Json<ArticleVersionPatchBody>,
 ) -> Result<Json<ArticleVersionAggregation>, status::Custom<String>> {
     match ArticleVersionService::patch(
         &connection,
-        id,
+        version,
         article_id,
         language_code,
         ArticleVersionPatchBody {

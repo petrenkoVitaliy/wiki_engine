@@ -14,11 +14,13 @@ use super::service::article::ArticleService;
 
 #[openapi]
 #[get("/")]
-async fn get_articles(connection: connection::PgConnection) -> Json<Vec<ArticleAggregation>> {
-    let articles =
-        ArticleService::get_aggregations(&connection, &QueryOptions { is_actual: true }).await;
-
-    Json(articles)
+async fn get_articles(
+    connection: connection::PgConnection,
+) -> Result<Json<Vec<ArticleAggregation>>, status::Custom<String>> {
+    match ArticleService::get_aggregations(&connection, &QueryOptions { is_actual: true }).await {
+        Ok(article_aggregation) => Ok(Json(article_aggregation)),
+        Err(e) => Err(e.custom()),
+    }
 }
 
 #[openapi]

@@ -32,7 +32,8 @@ impl ArticleVersionRepository {
         return count as i32;
     }
 
-    pub async fn get_one(
+    // TODO rm?
+    pub async fn _get_one(
         connection: &connection::PgConnection,
         query_dto: ArticleVersionSearchDto,
         query_options: &QueryOptions,
@@ -74,8 +75,8 @@ impl ArticleVersionRepository {
                     .inner_join(db_schema::version_content::table)
                     .into_boxed();
 
-                if let Some(version_gt) = query_dto.version_gt {
-                    query = query.filter(db_schema::article_version::version.gt(version_gt));
+                if let Some(version_ge) = query_dto.version_ge {
+                    query = query.filter(db_schema::article_version::version.ge(version_ge));
                 }
 
                 if let Some(article_languages_ids) = query_dto.article_languages_ids {
@@ -140,11 +141,16 @@ impl ArticleVersionRepository {
 
     pub fn get_by_version_raw(
         connection: &mut diesel::PgConnection,
+        article_language_id: i32,
         version: i32,
     ) -> Result<Option<model::ArticleVersion>, diesel::result::Error> {
         let mut query = db_schema::article_version::table.into_boxed();
 
-        query = query.filter(db_schema::article_version::version.eq(version));
+        query = query.filter(
+            db_schema::article_version::version
+                .eq(version)
+                .and(db_schema::article_version::article_language_id.eq(article_language_id)),
+        );
 
         return query.first(connection).optional();
     }
@@ -170,14 +176,14 @@ impl ArticleVersionRepository {
 
     pub async fn patch(
         connection: &connection::PgConnection,
-        id: i32,
+        version: i32,
         article_language_id: i32,
         patch_dto: ArticleVersionPatchDto,
-    ) -> model::ArticleVersion {
+    ) -> usize {
         connection
             .run(move |connection| {
                 diesel::update(db_schema::article_version::table)
-                    .filter(db_schema::article_version::id.eq(id).and(
+                    .filter(db_schema::article_version::version.eq(version).and(
                         db_schema::article_version::article_language_id.eq(article_language_id),
                     ))
                     .set(model::ArticleVersionPatch {
@@ -190,7 +196,7 @@ impl ArticleVersionRepository {
                         updated_at: None,
                         created_at: None,
                     })
-                    .get_result::<model::ArticleVersion>(connection)
+                    .execute(connection)
             })
             .await
             .expect(FmtError::FailedToUpdate("article_version").fmt().as_str())

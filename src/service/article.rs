@@ -36,9 +36,16 @@ impl ArticleService {
             Some(article) => article,
         };
 
-        let article_language_aggregations =
-            ArticleLanguageService::get_aggregations(&connection, vec![article.id], query_options)
-                .await;
+        let article_language_aggregations = match ArticleLanguageService::get_aggregations(
+            &connection,
+            vec![article.id],
+            query_options,
+        )
+        .await
+        {
+            Ok(article_language_aggregations) => article_language_aggregations,
+            Err(e) => return Err(e),
+        };
 
         Ok(ArticleAggregation::from_model(
             &article,
@@ -49,16 +56,26 @@ impl ArticleService {
     pub async fn get_aggregations(
         connection: &connection::PgConnection,
         query_options: &QueryOptions,
-    ) -> Vec<ArticleAggregation> {
+    ) -> Result<Vec<ArticleAggregation>, ErrorWrapper> {
         let articles = ArticleRepository::get_many(connection, query_options).await;
 
         let articles_ids = articles.iter().map(|article| article.id).collect();
 
-        let article_language_aggregations_map =
-            ArticleLanguageService::get_aggregations_map(&connection, articles_ids, query_options)
-                .await;
+        let article_language_aggregations_map = match ArticleLanguageService::get_aggregations_map(
+            &connection,
+            articles_ids,
+            query_options,
+        )
+        .await
+        {
+            Ok(aggregations_map) => aggregations_map,
+            Err(e) => return Err(e),
+        };
 
-        ArticleAggregation::from_languages_map(articles, article_language_aggregations_map)
+        Ok(ArticleAggregation::from_languages_map(
+            articles,
+            article_language_aggregations_map,
+        ))
     }
 
     pub async fn insert(

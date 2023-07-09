@@ -21,6 +21,10 @@ impl ErrorWrapper {
                 status: Status::BadRequest,
                 message: fmt_error.fmt(),
             },
+            FmtError::FailedToProcess(_) => ErrorWrapper {
+                status: Status::BadRequest,
+                message: fmt_error.fmt(),
+            },
             _ => ErrorWrapper {
                 status: Status::ImATeapot,
                 message: String::from("I'm a teapot"),

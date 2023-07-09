@@ -28,9 +28,9 @@ pub struct ArticleVersionAggregation {
 impl ArticleVersionAggregation {
     pub fn from_model_list_with_content(
         article_versions: Vec<ArticleVersion>,
-        version_content: Vec<VersionContentAggregation>,
+        version_contents: Vec<VersionContentAggregation>,
     ) -> Vec<Self> {
-        let mut content_map = ValuesMapper::vector_to_hashmap(version_content, |ver| ver.id);
+        let mut content_map = ValuesMapper::vector_to_hashmap(version_contents, |ver| ver.id);
 
         article_versions
             .into_iter()
@@ -56,9 +56,9 @@ impl ArticleVersionAggregation {
 
     pub fn from_related_models(
         article_versions: Vec<ArticleVersion>,
-        version_content: Vec<VersionContent>,
+        version_contents: Vec<VersionContent>,
     ) -> Vec<Self> {
-        let mut content_map = ValuesMapper::vector_to_hashmap(version_content, |ver| ver.id);
+        let mut content_map = ValuesMapper::vector_to_hashmap(version_contents, |ver| ver.id);
 
         article_versions
             .into_iter()

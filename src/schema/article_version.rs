@@ -1,7 +1,9 @@
-use rocket::serde::Deserialize;
+use rocket::serde::{Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 
-#[derive(Deserialize, JsonSchema)]
+use super::ArticleLanguage;
+
+#[derive(Deserialize, JsonSchema, Serialize)]
 pub struct ArticleVersionCreateBody {
     pub content: String,
 }
@@ -14,7 +16,7 @@ pub struct ArticleVersionCreateDto {
     pub article_language_id: i32,
 }
 
-#[derive(Deserialize, JsonSchema)]
+#[derive(Deserialize, JsonSchema, Serialize)]
 pub struct ArticleVersionPatchBody {
     pub enabled: bool,
 }
@@ -30,10 +32,20 @@ pub struct ArticleVersionsSearchDto {
 
 pub struct ArticleVersionsJoinSearchDto {
     pub article_languages_ids: Option<Vec<i32>>,
-    pub version_gt: Option<i32>,
+    pub version_ge: Option<i32>,
 }
 
+// TODO unused?
 pub struct ArticleVersionSearchDto {
     pub id: Option<i32>,
     pub article_languages_ids: Option<Vec<i32>>,
+}
+
+pub struct LanguageSearchDto {
+    pub article_languages_ids: Option<Vec<i32>>,
+
+    pub article_language: Option<ArticleLanguage>,
+
+    pub article_id: Option<i32>,
+    pub language_code: Option<String>,
 }
