@@ -1,0 +1,35 @@
+TODOs
+
+#high:
+    - add auth + permissions
+
+#medium: 
+
+    - FE init
+
+    - add article version status (approved, pending, declined)
+
+    - add draft table + service + router (
+        get, 
+        get many, 
+        create, 
+        patch, (content)
+        delete [restricted?],
+        approve [restricted?], 
+        update status
+    )
+
+        status e (pending, declined, to_be_updated, to_be_deleted)
+        content e ?
+        id
+        article_language_id
+        updated at
+        created at
+
+    - add article versions compare get lang/:code/version/:id/compare/:id -> versions: {actual: ..., compared?: ...}
+    - add article version deletion (hard)
+
+#low:
+    - add categories table + layer
+    - add comments table (for drafts)
+    - pagination (article, article_version, draft)

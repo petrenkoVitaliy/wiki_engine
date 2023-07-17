@@ -24,7 +24,33 @@ pub async fn get_article_version(
 ) -> Result<Json<ArticleVersionAggregation>, status::Custom<String>> {
     match ArticleVersionService::get_aggregation(
         &connection,
-        version,
+        Some(version),
+        LanguageSearchDto {
+            language_code: Some(language_code),
+            article_id: Some(article_id),
+
+            article_language: None,
+            article_languages_ids: None,
+        },
+        &QueryOptions { is_actual: true },
+    )
+    .await
+    {
+        Ok(article_version_aggregation) => Ok(Json(article_version_aggregation)),
+        Err(e) => Err(e.custom()),
+    }
+}
+
+#[openapi]
+#[get("/<article_id>/language/<language_code>/version/actual", rank = 1)]
+pub async fn get_actual_article_version(
+    connection: connection::PgConnection,
+    article_id: i32,
+    language_code: String,
+) -> Result<Json<ArticleVersionAggregation>, status::Custom<String>> {
+    match ArticleVersionService::get_aggregation(
+        &connection,
+        None,
         LanguageSearchDto {
             language_code: Some(language_code),
             article_id: Some(article_id),
@@ -50,6 +76,7 @@ async fn get_article_versions(
 ) -> Result<Json<Vec<ArticleVersionAggregation>>, status::Custom<String>> {
     match ArticleVersionService::get_aggregations(
         &connection,
+        false,
         LanguageSearchDto {
             language_code: Some(language_code),
             article_id: Some(article_id),
@@ -131,6 +158,7 @@ pub fn routes() -> Vec<rocket::Route> {
         get_article_versions,
         get_article_version,
         create_article_version,
-        patch_article_version
+        patch_article_version,
+        get_actual_article_version
     ]
 }

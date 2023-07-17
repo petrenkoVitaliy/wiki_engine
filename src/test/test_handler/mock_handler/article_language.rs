@@ -45,13 +45,13 @@ impl ArticleLanguageMockHandler {
                 id: 0,
                 code: mock_options.language.clone(),
             },
-            versions: vec![ArticleVersionMockHandler::get_article_version_aggregation(
+            version: ArticleVersionMockHandler::get_article_version_aggregation(
                 &ArticleVersionMockOptions {
                     enabled: true,
                     version: 1,
                     content: mock_options.content.clone(),
                 },
-            )],
+            ),
         }
     }
 }

@@ -39,19 +39,35 @@ impl ArticleVersionRepository {
                     .inner_join(db_schema::version_content::table)
                     .into_boxed();
 
-                if let Some(version_ge) = query_dto.version_ge {
-                    query = query.filter(db_schema::article_version::version.ge(version_ge));
+                if let Some(article_languages_ids) = query_dto.article_languages_ids {
+                    if article_languages_ids.len() == 1 {
+                        query = query.filter(
+                            db_schema::article_version::article_language_id
+                                .eq(article_languages_ids[0]),
+                        );
+                    } else {
+                        query = query.filter(
+                            db_schema::article_version::article_language_id
+                                .eq_any(article_languages_ids),
+                        );
+                    }
                 }
 
-                if let Some(article_languages_ids) = query_dto.article_languages_ids {
+                if let Some(version_ge) = query_dto.version_ge {
+                    query = query.filter(db_schema::article_version::version.ge(version_ge));
+                } else {
                     query = query.filter(
-                        db_schema::article_version::article_language_id
-                            .eq_any(article_languages_ids),
+                        db_schema::article_version::version.ge(db_schema::article_version::table
+                            .order(db_schema::article_version::version.desc())
+                            .filter(db_schema::article_version::enabled.eq(true))
+                            .select(db_schema::article_version::version)
+                            .first::<i32>(connection)
+                            .unwrap_or(1)),
                     );
                 }
 
                 return query
-                    .order(db_schema::article_version::version.asc())
+                    .order(db_schema::article_version::version.desc())
                     .load::<(model::ArticleVersion, VersionContent)>(connection);
             })
             .await

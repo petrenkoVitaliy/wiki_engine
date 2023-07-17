@@ -3,8 +3,8 @@ CREATE TABLE article_language (
     
     name VARCHAR(255) NOT NULL,
 
-    enabled BOOLEAN DEFAULT true,
-    archived BOOLEAN DEFAULT false,
+    enabled BOOLEAN DEFAULT true NOT NULL,
+    archived BOOLEAN DEFAULT false NOT NULL,
     
     article_id INTEGER NOT NULL,
     FOREIGN KEY (article_id) REFERENCES article(id) ON DELETE CASCADE,
@@ -13,7 +13,21 @@ CREATE TABLE article_language (
     FOREIGN KEY (language_id) REFERENCES language(id) ON DELETE CASCADE,
 
     updated_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT NOW(),
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
 
     CONSTRAINT language_per_article UNIQUE (article_id, language_id)
 );
+
+CREATE  FUNCTION update_article_language_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER article_language_on_update
+    BEFORE UPDATE
+    ON article_language
+    FOR EACH ROW
+EXECUTE PROCEDURE update_article_language_updated_at();

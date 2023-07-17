@@ -44,7 +44,7 @@ impl VersionContentService {
         article_versions_with_contents: &Vec<(&ArticleVersion, &VersionContent)>,
     ) -> &'s HashMap<i32, String> {
         let full_content = article_versions_with_contents
-            .last()
+            .get(0)
             .expect(FmtError::NotFound("article_version").fmt().as_str());
 
         if !matches!(full_content.1.content_type, ContentType::Full) {
@@ -55,9 +55,8 @@ impl VersionContentService {
         }
 
         let (content_map, _) = article_versions_with_contents
-            [0..article_versions_with_contents.len() - 1]
+            [1..article_versions_with_contents.len()]
             .into_iter()
-            .rev()
             .map(|(_, version_content)| version_content)
             .fold(
                 (

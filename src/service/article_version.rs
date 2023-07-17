@@ -28,50 +28,46 @@ pub struct ArticleVersionService {}
 impl ArticleVersionService {
     pub async fn get_aggregation(
         connection: &connection::PgConnection,
-        version: i32,
+        version: Option<i32>,
         language_search_dto: LanguageSearchDto,
         query_options: &QueryOptions,
     ) -> Result<ArticleVersionAggregation, ErrorWrapper> {
-        let (article_versions_contents, content_map) = match Self::get_versions_with_content_map(
-            connection,
-            Some(version),
-            language_search_dto,
-        )
-        .await
-        {
-            Err(e) => return Err(e),
-            Ok(versions_with_content_map) => versions_with_content_map,
-        };
+        let (article_versions_contents, content_map) =
+            match Self::get_versions_with_content_map(connection, version, language_search_dto)
+                .await
+            {
+                Err(e) => return Err(e),
+                Ok(versions_with_content_map) => versions_with_content_map,
+            };
 
-        let requested_article_version_with_content = match article_versions_contents
-            .into_iter()
-            .find(|(article_version, _)| {
-                if !query_options.is_actual {
-                    return article_version.version == version;
-                }
-
-                return article_version.version == version && article_version.enabled;
-            }) {
-            Some(article_version_with_content) => article_version_with_content,
-            None => return FmtError::NotFound("article_version").error(),
-        };
+        let requested_article_version_with_content =
+            match Self::get_requested_article_version_with_content(
+                article_versions_contents,
+                version,
+                query_options,
+            ) {
+                Some(article_version_with_content) => article_version_with_content,
+                None => return FmtError::NotFound("article_version").error(),
+            };
 
         let mut article_versions_aggregations = ArticleVersionAggregation::from_content_map(
             vec![requested_article_version_with_content],
             content_map,
         );
 
-        return Ok(article_versions_aggregations.remove(0));
+        return Ok(article_versions_aggregations.swap_remove(0));
     }
 
     pub async fn get_aggregations(
         connection: &connection::PgConnection,
+        actual_only: bool,
         language_search_dto: LanguageSearchDto,
         query_options: &QueryOptions,
     ) -> Result<Vec<ArticleVersionAggregation>, ErrorWrapper> {
+        let version_ge_to_search = if actual_only { None } else { Some(1) };
         let (article_versions_contents, content_map) = match Self::get_versions_with_content_map(
             connection,
-            None,
+            version_ge_to_search,
             language_search_dto,
         )
         .await
@@ -130,7 +126,7 @@ impl ArticleVersionService {
 
         return Self::get_aggregation(
             connection,
-            version,
+            Some(version),
             LanguageSearchDto {
                 article_language: Some(article_language),
 
@@ -176,7 +172,7 @@ impl ArticleVersionService {
             vec![article_version],
             vec![version_content],
         )
-        .remove(0))
+        .swap_remove(0))
     }
 
     async fn create_relations_transaction(
@@ -267,6 +263,27 @@ impl ArticleVersionService {
 
         VersionContentRepository::patch_raw(connection, article_version.content_id, content_delta)
             .expect(FmtError::FailedToUpdate("version_content").fmt().as_str());
+    }
+
+    fn get_requested_article_version_with_content(
+        article_versions_contents: Vec<(ArticleVersion, VersionContent)>,
+        version: Option<i32>,
+        query_options: &QueryOptions,
+    ) -> Option<(ArticleVersion, VersionContent)> {
+        article_versions_contents
+            .into_iter()
+            .find(|(article_version, _)| {
+                if let Some(version) = version {
+                    if query_options.is_actual {
+                        return article_version.version == version && article_version.enabled;
+                    }
+
+                    return article_version.version == version;
+                }
+
+                return query_options.is_actual && article_version.enabled
+                    || !query_options.is_actual;
+            })
     }
 
     async fn get_versions_with_content_map(

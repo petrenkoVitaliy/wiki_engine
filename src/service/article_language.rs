@@ -72,6 +72,7 @@ impl ArticleLanguageService {
         let languages = LanguageService::get_aggregations(connection).await;
         let article_versions = match ArticleVersionService::get_aggregations(
             connection,
+            true,
             LanguageSearchDto {
                 article_languages_ids: Some(article_languages_ids),
 
@@ -159,7 +160,7 @@ impl ArticleLanguageService {
             article_version_aggregations,
             vec![language],
         )
-        .remove(0);
+        .swap_remove(0);
 
         Ok(article_language_aggregation)
     }
@@ -192,6 +193,7 @@ impl ArticleLanguageService {
         .await
     }
 
+    // TODO combine with get_aggregations
     pub async fn get_aggregations_map(
         connection: &connection::PgConnection,
         article_ids: Vec<i32>,
@@ -209,6 +211,7 @@ impl ArticleLanguageService {
 
         let article_versions = match ArticleVersionService::get_aggregations(
             connection,
+            true,
             LanguageSearchDto {
                 article_languages_ids: Some(article_languages_ids),
 
@@ -258,8 +261,9 @@ impl ArticleLanguageService {
             }
         };
 
-        let article_versions = match ArticleVersionService::get_aggregations(
+        let article_version = match ArticleVersionService::get_aggregation(
             connection,
+            None,
             LanguageSearchDto {
                 article_languages_ids: Some(vec![article_language.id]),
 
@@ -280,10 +284,10 @@ impl ArticleLanguageService {
 
         let article_language_aggregation = ArticleLanguageAggregation::from_related_models(
             vec![article_language],
-            article_versions,
+            vec![article_version],
             vec![language],
         )
-        .remove(0);
+        .swap_remove(0);
 
         Ok(article_language_aggregation)
     }

@@ -5,7 +5,7 @@ use super::error::formatted_error::FmtError;
 use super::setup::{SetupOptions, TestSetup};
 
 use super::test_handler::{
-    assert_handler::article::ArticleAssertHandler,
+    assert_handler::article::{ArticleAssertHandler, ArticleAssertOptions},
     mock_handler::article::{ArticleMockHandler, ArticleMockOptions},
     request_handler::article::{ArticleRequest, ArticleRequestHandler},
 };
@@ -32,6 +32,7 @@ mod create_article_tests {
             ArticleMockHandler::get_article_aggregation(ArticleMockOptions::from_creation_dto(
                 creation_body,
             )),
+            ArticleAssertOptions { is_updated: false },
         );
     }
 
@@ -82,6 +83,7 @@ mod create_article_tests {
             ArticleMockHandler::get_article_aggregation(ArticleMockOptions::from_creation_dto(
                 creation_body,
             )),
+            ArticleAssertOptions { is_updated: false },
         );
     }
 }
@@ -108,6 +110,7 @@ mod get_article_tests {
             ArticleMockHandler::get_article_aggregation(ArticleMockOptions::from_creation_dto(
                 creation_body,
             )),
+            ArticleAssertOptions { is_updated: false },
         );
     }
 
@@ -161,6 +164,7 @@ mod get_article_tests {
             ArticleMockHandler::get_article_aggregation(ArticleMockOptions::from_creation_dto(
                 creation_body,
             )),
+            ArticleAssertOptions { is_updated: true },
         );
     }
 
@@ -194,6 +198,7 @@ mod get_article_tests {
             ArticleMockHandler::get_article_aggregation(ArticleMockOptions::from_creation_dto(
                 creation_body,
             )),
+            ArticleAssertOptions { is_updated: true },
         );
     }
 }
@@ -227,6 +232,7 @@ mod get_articles_tests {
             ArticleMockHandler::get_article_aggregation(ArticleMockOptions::from_creation_dto(
                 creation_body,
             )),
+            ArticleAssertOptions { is_updated: false },
         );
     }
 
@@ -276,6 +282,7 @@ mod get_articles_tests {
             ArticleMockHandler::get_article_aggregation(ArticleMockOptions::from_creation_dto(
                 creation_body,
             )),
+            ArticleAssertOptions { is_updated: true },
         );
     }
 
@@ -317,6 +324,7 @@ mod get_articles_tests {
             ArticleMockHandler::get_article_aggregation(ArticleMockOptions::from_creation_dto(
                 creation_body,
             )),
+            ArticleAssertOptions { is_updated: true },
         );
     }
 }
@@ -352,6 +360,7 @@ mod patch_article_tests {
                 content: String::from(creation_body.content.clone()),
                 language: String::from(creation_body.language.clone()),
             }),
+            ArticleAssertOptions { is_updated: true },
         );
 
         let patched_article = ArticleRequestHandler::patch_article(
@@ -370,6 +379,7 @@ mod patch_article_tests {
                 content: String::from(creation_body.content.clone()),
                 language: String::from(creation_body.language.clone()),
             }),
+            ArticleAssertOptions { is_updated: true },
         );
     }
 
@@ -414,6 +424,7 @@ mod delete_restore_article_tests {
                 content: String::from(creation_body.content),
                 language: String::from(creation_body.language),
             }),
+            ArticleAssertOptions { is_updated: true },
         );
     }
 
@@ -453,6 +464,7 @@ mod delete_restore_article_tests {
                 content: String::from(creation_body.content.clone()),
                 language: String::from(creation_body.language.clone()),
             }),
+            ArticleAssertOptions { is_updated: true },
         );
 
         let restored_article = ArticleRequestHandler::restore_article(&setup, created_article.id);
@@ -467,6 +479,7 @@ mod delete_restore_article_tests {
                 content: String::from(creation_body.content),
                 language: String::from(creation_body.language),
             }),
+            ArticleAssertOptions { is_updated: true },
         );
     }
 
@@ -494,6 +507,7 @@ mod delete_restore_article_tests {
                 content: String::from(creation_body.content.clone()),
                 language: String::from(creation_body.language.clone()),
             }),
+            ArticleAssertOptions { is_updated: true },
         );
 
         let nonexisting_article_id = 0;

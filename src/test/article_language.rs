@@ -4,7 +4,9 @@ use super::error::formatted_error::FmtError;
 
 use super::setup::{SetupOptions, TestSetup};
 use super::test_handler::{
-    assert_handler::article_language::ArticleLanguageAssertHandler,
+    assert_handler::article_language::{
+        ArticleLanguageAssertHandler, ArticleLanguageAssertOptions,
+    },
     mock_handler::article_language::{ArticleLanguageMockHandler, ArticleLanguageMockOptions},
     request_handler::{
         article::ArticleRequestHandler,
@@ -51,6 +53,7 @@ mod create_article_language_tests {
             &ArticleLanguageMockHandler::get_article_language_aggregation(
                 &ArticleLanguageMockOptions::from_creation_dto(&creation_body, &language),
             ),
+            ArticleLanguageAssertOptions { is_updated: false },
         );
     }
 
@@ -155,6 +158,7 @@ mod get_article_language_tests {
                     &first_language,
                 ),
             ),
+            ArticleLanguageAssertOptions { is_updated: false },
         );
 
         let second_language = String::from("en");
@@ -181,6 +185,7 @@ mod get_article_language_tests {
             &ArticleLanguageMockHandler::get_article_language_aggregation(
                 &ArticleLanguageMockOptions::from_creation_dto(&creation_body, &second_language),
             ),
+            ArticleLanguageAssertOptions { is_updated: false },
         );
     }
 
@@ -245,6 +250,7 @@ mod get_article_language_tests {
                     &language,
                 ),
             ),
+            ArticleLanguageAssertOptions { is_updated: false },
         );
 
         ArticleLanguageRequestHandler::delete_article_language(&setup, article.id, &language);
@@ -285,6 +291,7 @@ mod get_article_language_tests {
                     &language,
                 ),
             ),
+            ArticleLanguageAssertOptions { is_updated: false },
         );
 
         ArticleLanguageRequestHandler::patch_article_language(
@@ -355,6 +362,7 @@ mod get_article_languages_tests {
                     &first_language,
                 ),
             ),
+            ArticleLanguageAssertOptions { is_updated: false },
         );
 
         ArticleLanguageAssertHandler::assert_article_languages_aggregation(
@@ -362,6 +370,7 @@ mod get_article_languages_tests {
             &ArticleLanguageMockHandler::get_article_language_aggregation(
                 &ArticleLanguageMockOptions::from_creation_dto(&creation_body, &second_language),
             ),
+            ArticleLanguageAssertOptions { is_updated: false },
         );
     }
 
@@ -410,6 +419,7 @@ mod get_article_languages_tests {
             &ArticleLanguageMockHandler::get_article_language_aggregation(
                 &ArticleLanguageMockOptions::from_creation_dto(&creation_body, &second_language),
             ),
+            ArticleLanguageAssertOptions { is_updated: false },
         );
 
         ArticleLanguageRequestHandler::patch_article_language(
@@ -448,6 +458,7 @@ mod get_article_languages_tests {
                     &first_language,
                 ),
             ),
+            ArticleLanguageAssertOptions { is_updated: true },
         );
     }
 }
@@ -492,6 +503,7 @@ mod patch_article_language_tests {
                     language,
                 },
             ),
+            ArticleLanguageAssertOptions { is_updated: true },
         );
     }
 
@@ -574,6 +586,7 @@ mod delete_restore_article_language_tests {
                     language,
                 },
             ),
+            ArticleLanguageAssertOptions { is_updated: true },
         );
     }
 
@@ -633,6 +646,7 @@ mod delete_restore_article_language_tests {
                     language,
                 },
             ),
+            ArticleLanguageAssertOptions { is_updated: true },
         );
     }
 

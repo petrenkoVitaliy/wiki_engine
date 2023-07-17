@@ -4,7 +4,7 @@ use super::error::formatted_error::FmtError;
 
 use super::setup::{SetupOptions, TestSetup};
 use super::test_handler::{
-    assert_handler::article_version::ArticleVersionAssertHandler,
+    assert_handler::article_version::{ArticleVersionAssertHandler, ArticleVersionAssertOptions},
     mock_handler::article_version::{ArticleVersionMockHandler, ArticleVersionMockOptions},
     request_handler::{
         article::ArticleRequestHandler,
@@ -48,7 +48,7 @@ mod get_article_versions_tests {
             ArticleVersionRequestHandler::get_article_versions(&setup, article.id, &language);
 
         let (first_article_version, second_article_version) =
-            (&article_versions[0], &article_versions[1]);
+            (&article_versions[1], &article_versions[0]);
 
         ArticleVersionAssertHandler::assert_article_version_aggregation(
             &first_article_version,
@@ -60,6 +60,7 @@ mod get_article_versions_tests {
                     1,
                 ),
             ),
+            ArticleVersionAssertOptions { is_updated: false },
         );
 
         ArticleVersionAssertHandler::assert_article_version_aggregation(
@@ -67,6 +68,7 @@ mod get_article_versions_tests {
             &ArticleVersionMockHandler::get_article_version_aggregation(
                 &ArticleVersionMockOptions::from_creation_dto(&creation_body, 2),
             ),
+            ArticleVersionAssertOptions { is_updated: false },
         );
     }
 
@@ -134,6 +136,7 @@ mod get_article_versions_tests {
             &ArticleVersionMockHandler::get_article_version_aggregation(
                 &ArticleVersionMockOptions::from_creation_dto(&creation_body, 2),
             ),
+            ArticleVersionAssertOptions { is_updated: false },
         );
 
         ArticleVersionRequestHandler::patch_article_language(
@@ -167,6 +170,7 @@ mod get_article_versions_tests {
                     1,
                 ),
             ),
+            ArticleVersionAssertOptions { is_updated: true },
         );
     }
 }
@@ -204,6 +208,7 @@ mod patch_article_version_tests {
                     enabled: false,
                 },
             ),
+            ArticleVersionAssertOptions { is_updated: true },
         );
 
         let patched_article_version = ArticleVersionRequestHandler::patch_article_language(
@@ -223,6 +228,7 @@ mod patch_article_version_tests {
                     enabled: true,
                 },
             ),
+            ArticleVersionAssertOptions { is_updated: true },
         );
     }
 
@@ -311,6 +317,7 @@ mod get_article_version_tests {
                     1,
                 ),
             ),
+            ArticleVersionAssertOptions { is_updated: false },
         );
 
         ArticleVersionAssertHandler::assert_article_version_aggregation(
@@ -318,6 +325,7 @@ mod get_article_version_tests {
             &ArticleVersionMockHandler::get_article_version_aggregation(
                 &ArticleVersionMockOptions::from_creation_dto(&creation_body, 2),
             ),
+            ArticleVersionAssertOptions { is_updated: false },
         );
     }
 
@@ -429,6 +437,7 @@ mod create_article_version_tests {
             &ArticleVersionMockHandler::get_article_version_aggregation(
                 &ArticleVersionMockOptions::from_creation_dto(&first_creation_body, 2),
             ),
+            ArticleVersionAssertOptions { is_updated: false },
         );
 
         let second_creation_body = ArticleVersionCreateBody {
@@ -447,6 +456,7 @@ mod create_article_version_tests {
             &ArticleVersionMockHandler::get_article_version_aggregation(
                 &ArticleVersionMockOptions::from_creation_dto(&second_creation_body, 3),
             ),
+            ArticleVersionAssertOptions { is_updated: false },
         );
     }
 

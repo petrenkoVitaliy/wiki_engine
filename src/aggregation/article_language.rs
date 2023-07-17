@@ -23,7 +23,7 @@ pub struct ArticleLanguageAggregation {
     pub created_at: NaiveDateTime,
 
     pub language: LanguageAggregation,
-    pub versions: Vec<ArticleVersionAggregation>,
+    pub version: ArticleVersionAggregation,
 }
 
 impl ArticleLanguageAggregation {
@@ -32,8 +32,10 @@ impl ArticleLanguageAggregation {
         article_versions: Vec<ArticleVersionAggregation>,
         languages: Vec<LanguageAggregation>,
     ) -> Vec<Self> {
-        let mut article_versions_map: HashMap<i32, Vec<ArticleVersionAggregation>> =
-            Self::get_article_versions_map(article_versions);
+        let mut article_versions_map =
+            ValuesMapper::vector_to_hashmap(article_versions, |version| {
+                version.article_language_id
+            });
 
         let languages_map = ValuesMapper::vector_to_hashmap(languages, |lang| lang.id);
 
@@ -50,7 +52,10 @@ impl ArticleLanguageAggregation {
         article_versions: Vec<ArticleVersionAggregation>,
         languages: Vec<LanguageAggregation>,
     ) -> HashMap<i32, Vec<Self>> {
-        let mut article_versions_map = Self::get_article_versions_map(article_versions);
+        let mut article_versions_map =
+            ValuesMapper::vector_to_hashmap(article_versions, |version| {
+                version.article_language_id
+            });
 
         let languages_map = ValuesMapper::vector_to_hashmap(languages, |lang| lang.id);
 
@@ -77,7 +82,7 @@ impl ArticleLanguageAggregation {
 
     fn from_model(
         article_language: ArticleLanguage,
-        article_versions_map: &mut HashMap<i32, Vec<ArticleVersionAggregation>>,
+        article_versions_map: &mut HashMap<i32, ArticleVersionAggregation>,
         languages_map: &HashMap<i32, LanguageAggregation>,
     ) -> Self {
         Self {
@@ -89,33 +94,14 @@ impl ArticleLanguageAggregation {
             updated_at: article_language.updated_at,
             created_at: article_language.created_at,
 
-            versions: article_versions_map
+            version: article_versions_map
                 .remove(&article_language.id)
-                .unwrap_or(vec![]),
+                .expect(FmtError::NotFound("article_version").fmt().as_str()),
 
             language: languages_map
                 .get(&article_language.language_id)
                 .expect(FmtError::NotFound("language").fmt().as_str())
                 .clone(),
         }
-    }
-
-    fn get_article_versions_map(
-        article_versions: Vec<ArticleVersionAggregation>,
-    ) -> HashMap<i32, Vec<ArticleVersionAggregation>> {
-        article_versions
-            .into_iter()
-            .fold(HashMap::new(), |mut acc, article_version| {
-                match acc.entry(article_version.article_language_id) {
-                    Entry::Vacant(acc) => {
-                        acc.insert(vec![article_version]);
-                    }
-                    Entry::Occupied(mut acc) => {
-                        acc.get_mut().push(article_version);
-                    }
-                };
-
-                acc
-            })
     }
 }
