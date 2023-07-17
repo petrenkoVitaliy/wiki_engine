@@ -1,4 +1,4 @@
-use diesel::{AsChangeset, Insertable, Queryable};
+use diesel::{AsChangeset, Insertable, Queryable, QueryableByName};
 use diesel_derive_enum;
 use rocket::serde::{Deserialize, Serialize};
 use rocket_sync_db_pools::diesel;
@@ -32,12 +32,14 @@ pub struct VersionContentPatch {
     pub content_length: Option<i32>,
 }
 
-#[derive(Queryable, Debug, Serialize, Deserialize)]
+#[derive(Queryable, Debug, Serialize, Deserialize, QueryableByName)]
 #[diesel(table_name = version_content)]
 pub struct VersionContent {
     pub id: i32,
 
     pub content: Vec<u8>,
+
     pub content_type: ContentType,
+
     pub content_length: i32,
 }

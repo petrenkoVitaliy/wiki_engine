@@ -61,8 +61,25 @@ impl ArticleLanguageService {
         article_id: i32,
         query_options: &QueryOptions,
     ) -> Vec<ArticleLanguageAggregation> {
+        match Self::get_aggregations_map(connection, vec![article_id], query_options)
+            .await
+            .remove(&article_id)
+        {
+            Some(article_languages) => article_languages,
+            None => panic!(
+                "{}",
+                FmtError::FailedToFetch("article_languages").fmt().as_str()
+            ),
+        }
+    }
+
+    pub async fn get_aggregations_map(
+        connection: &connection::PgConnection,
+        article_ids: Vec<i32>,
+        query_options: &QueryOptions,
+    ) -> HashMap<i32, Vec<ArticleLanguageAggregation>> {
         let article_languages =
-            ArticleLanguageRepository::get_many(connection, vec![article_id], query_options).await;
+            ArticleLanguageRepository::get_many(connection, article_ids, query_options).await;
 
         let article_languages_ids: Vec<i32> = article_languages
             .iter()
@@ -70,6 +87,7 @@ impl ArticleLanguageService {
             .collect();
 
         let languages = LanguageService::get_aggregations(connection).await;
+
         let article_versions = match ArticleVersionService::get_aggregations(
             connection,
             true,
@@ -91,7 +109,7 @@ impl ArticleLanguageService {
             ),
         };
 
-        ArticleLanguageAggregation::from_related_models(
+        ArticleLanguageAggregation::get_aggregations_map(
             article_languages,
             article_versions,
             languages,
@@ -191,50 +209,6 @@ impl ArticleLanguageService {
             None,
         )
         .await
-    }
-
-    // TODO combine with get_aggregations
-    pub async fn get_aggregations_map(
-        connection: &connection::PgConnection,
-        article_ids: Vec<i32>,
-        query_options: &QueryOptions,
-    ) -> HashMap<i32, Vec<ArticleLanguageAggregation>> {
-        let article_languages =
-            ArticleLanguageRepository::get_many(connection, article_ids, &query_options).await;
-
-        let languages = LanguageService::get_aggregations(connection).await;
-
-        let article_languages_ids: Vec<i32> = article_languages
-            .iter()
-            .map(|article_language| article_language.id)
-            .collect();
-
-        let article_versions = match ArticleVersionService::get_aggregations(
-            connection,
-            true,
-            LanguageSearchDto {
-                article_languages_ids: Some(article_languages_ids),
-
-                language_code: None,
-                article_id: None,
-                article_language: None,
-            },
-            query_options,
-        )
-        .await
-        {
-            Ok(article_versions) => article_versions,
-            Err(_) => panic!(
-                "{}",
-                FmtError::FailedToFetch("article_versions").fmt().as_str()
-            ),
-        };
-
-        ArticleLanguageAggregation::get_aggregations_map(
-            article_languages,
-            article_versions,
-            languages,
-        )
     }
 
     async fn get_aggregation_with_relations(

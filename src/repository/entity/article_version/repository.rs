@@ -1,4 +1,4 @@
-use diesel::prelude::*;
+use diesel::{prelude::*, sql_query};
 
 use super::connection;
 use super::db_schema;
@@ -29,6 +29,41 @@ impl ArticleVersionRepository {
         return count as i32;
     }
 
+    pub async fn get_many_actuals_with_content(
+        connection: &connection::PgConnection,
+        article_languages_ids: Vec<i32>,
+    ) -> Vec<(model::ArticleVersion, VersionContent)> {
+        connection
+            .run(move |connection| {
+                return sql_query(format!(r#"
+                    WITH max_versions AS (
+                        SELECT article_language_id, MAX(version) AS max_version
+                        FROM article_version
+                        WHERE article_language_id = ANY($1::integer[])
+                        and enabled = true
+                        GROUP BY article_language_id
+                    )
+                    SELECT article_version.*, version_content.*
+                    FROM article_version
+                    INNER JOIN max_versions mv ON article_version.article_language_id = mv.article_language_id
+                    INNER JOIN version_content ON article_version.content_id = version_content.id
+                    WHERE (
+                        article_version.version = mv.max_version
+                        OR (
+                        article_version.version > mv.max_version
+                          AND article_version.enabled = false
+                        )
+                      )
+                    ORDER BY article_version.version DESC
+                    ;"#,
+                ))
+                .bind::<diesel::sql_types::Array<diesel::sql_types::Integer>, _>(&article_languages_ids)
+                .load::<(model::ArticleVersion, VersionContent)>(connection);
+            })
+            .await
+            .expect(FmtError::FailedToFetch("article_versions").fmt().as_str())
+    }
+
     pub async fn get_many_with_content(
         connection: &connection::PgConnection,
         query_dto: ArticleVersionsJoinSearchDto,
@@ -39,34 +74,20 @@ impl ArticleVersionRepository {
                     .inner_join(db_schema::version_content::table)
                     .into_boxed();
 
-                if let Some(article_languages_ids) = query_dto.article_languages_ids {
-                    if article_languages_ids.len() == 1 {
-                        query = query.filter(
-                            db_schema::article_version::article_language_id
-                                .eq(article_languages_ids[0]),
-                        );
-                    } else {
-                        query = query.filter(
-                            db_schema::article_version::article_language_id
-                                .eq_any(article_languages_ids),
-                        );
-                    }
-                }
-
-                if let Some(version_ge) = query_dto.version_ge {
-                    query = query.filter(db_schema::article_version::version.ge(version_ge));
+                if query_dto.article_languages_ids.len() == 1 {
+                    query = query.filter(
+                        db_schema::article_version::article_language_id
+                            .eq(query_dto.article_languages_ids[0]),
+                    );
                 } else {
                     query = query.filter(
-                        db_schema::article_version::version.ge(db_schema::article_version::table
-                            .order(db_schema::article_version::version.desc())
-                            .filter(db_schema::article_version::enabled.eq(true))
-                            .select(db_schema::article_version::version)
-                            .first::<i32>(connection)
-                            .unwrap_or(1)),
+                        db_schema::article_version::article_language_id
+                            .eq_any(query_dto.article_languages_ids.clone()),
                     );
                 }
 
                 return query
+                    .filter(db_schema::article_version::version.ge(query_dto.version_ge))
                     .order(db_schema::article_version::version.desc())
                     .load::<(model::ArticleVersion, VersionContent)>(connection);
             })

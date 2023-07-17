@@ -328,14 +328,25 @@ impl ArticleVersionService {
             },
         };
 
-        let article_versions_contents = ArticleVersionRepository::get_many_with_content(
-            connection,
-            ArticleVersionsJoinSearchDto {
-                version_ge: version,
-                article_languages_ids: Some(article_languages_ids),
-            },
-        )
-        .await;
+        let article_versions_contents = match version {
+            Some(version) => {
+                ArticleVersionRepository::get_many_with_content(
+                    connection,
+                    ArticleVersionsJoinSearchDto {
+                        article_languages_ids,
+                        version_ge: version,
+                    },
+                )
+                .await
+            }
+            None => {
+                ArticleVersionRepository::get_many_actuals_with_content(
+                    connection,
+                    article_languages_ids,
+                )
+                .await
+            }
+        };
 
         let content_map =
             VersionContentService::get_contents_map_by_ids(&article_versions_contents);

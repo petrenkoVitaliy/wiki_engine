@@ -1,5 +1,5 @@
 use chrono::NaiveDateTime;
-use diesel::{AsChangeset, Insertable, Queryable};
+use diesel::{AsChangeset, Insertable, Queryable, QueryableByName};
 use rocket::serde::{Deserialize, Serialize};
 use rocket_sync_db_pools::diesel;
 
@@ -37,12 +37,12 @@ pub struct ArticleVersionPatch {
     pub created_at: Option<NaiveDateTime>,
 }
 
-#[derive(Queryable, Debug, Serialize, Deserialize)]
+#[derive(Queryable, Debug, Serialize, Deserialize, QueryableByName)]
 #[diesel(table_name = article_version)]
 pub struct ArticleVersion {
     pub id: i32,
-    pub version: i32,
 
+    pub version: i32,
     pub content_id: i32,
 
     pub enabled: bool,
@@ -51,4 +51,10 @@ pub struct ArticleVersion {
 
     pub updated_at: Option<NaiveDateTime>,
     pub created_at: NaiveDateTime,
+}
+
+#[derive(Queryable, Debug, Serialize, Deserialize, QueryableByName)]
+pub struct RawIdStruct {
+    #[diesel(sql_type = diesel::sql_types::Int4)]
+    pub id: i32,
 }
