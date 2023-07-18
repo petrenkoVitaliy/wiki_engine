@@ -5,5 +5,6 @@ pub mod article;
 pub mod article_language;
 pub mod article_version;
 pub mod auth;
-pub mod token;
+pub mod jwt;
+pub mod user_role;
 pub mod version_content;

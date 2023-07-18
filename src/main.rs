@@ -1,4 +1,5 @@
 mod aggregation;
+mod authorization;
 mod diff_handler;
 mod error;
 mod hasher;

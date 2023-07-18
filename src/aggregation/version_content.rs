@@ -2,7 +2,7 @@ use rocket::serde::{Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 use std::collections::HashMap;
 
-use super::diff_handler::diff_handler::DiffHandler;
+use super::diff_handler::DiffHandler;
 use super::error::formatted_error::FmtError;
 
 use super::repository::entity::version_content::VersionContent;
@@ -41,9 +41,7 @@ impl VersionContentAggregation {
 
                 panic!(
                     "{}",
-                    FmtError::FailedToProcess("version_content_diff")
-                        .fmt()
-                        .as_str()
+                    &FmtError::FailedToProcess("version_content_diff").fmt()
                 );
             }
             ContentType::Full => DiffHandler::get_string_from_bytes(&version_content.content),

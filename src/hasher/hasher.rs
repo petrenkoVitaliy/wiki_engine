@@ -14,7 +14,7 @@ impl Hasher {
     }
 
     pub fn hash_password(password: String) -> Result<String, ErrorWrapper> {
-        let salt = env::var("ARGON_SECRET").expect("ARGON_SECRET must be set");
+        let salt = env::var("ARGON_SECRET").expect(&FmtError::EmptyValue("ARGON_SECRET").fmt());
 
         let config = Config::default();
         match argon2::hash_encoded(password.as_bytes(), salt.as_bytes(), &config) {

@@ -66,10 +66,7 @@ impl ArticleLanguageService {
             .remove(&article_id)
         {
             Some(article_languages) => article_languages,
-            None => panic!(
-                "{}",
-                FmtError::FailedToFetch("article_languages").fmt().as_str()
-            ),
+            None => panic!("{}", &FmtError::FailedToFetch("article_languages").fmt()),
         }
     }
 
@@ -103,10 +100,7 @@ impl ArticleLanguageService {
         .await
         {
             Ok(article_versions) => article_versions,
-            Err(_) => panic!(
-                "{}",
-                FmtError::FailedToFetch("article_versions").fmt().as_str()
-            ),
+            Err(_) => panic!("{}", &FmtError::FailedToFetch("article_versions").fmt()),
         };
 
         ArticleLanguageAggregation::get_aggregations_map(
@@ -250,10 +244,7 @@ impl ArticleLanguageService {
         .await
         {
             Ok(article_versions) => article_versions,
-            Err(_) => panic!(
-                "{}",
-                FmtError::FailedToFetch("article_versions").fmt().as_str()
-            ),
+            Err(_) => panic!("{}", &FmtError::FailedToFetch("article_versions").fmt()),
         };
 
         let article_language_aggregation = ArticleLanguageAggregation::from_related_models(
@@ -284,7 +275,7 @@ impl ArticleLanguageService {
                 );
             })
             .await
-            .expect(FmtError::FailedToInsert("article_language_relations").fmt().as_str())
+            .expect(&FmtError::FailedToInsert("article_language_relations").fmt())
     }
 
     fn create_relations(
@@ -300,7 +291,7 @@ impl ArticleLanguageService {
                 language_id: language_id,
             },
         )
-        .expect(FmtError::FailedToInsert("article_language").fmt().as_str());
+        .expect(&FmtError::FailedToInsert("article_language").fmt());
 
         let version_content = VersionContentRepository::insert_raw(
             connection,
@@ -309,7 +300,7 @@ impl ArticleLanguageService {
                 content_type: ContentType::Full,
             },
         )
-        .expect(FmtError::FailedToInsert("version_content").fmt().as_str());
+        .expect(&FmtError::FailedToInsert("version_content").fmt());
 
         let article_version = ArticleVersionRepository::insert_raw(
             connection,
@@ -319,7 +310,7 @@ impl ArticleLanguageService {
                 content_id: version_content.id,
             },
         )
-        .expect(FmtError::FailedToInsert("article_version").fmt().as_str());
+        .expect(&FmtError::FailedToInsert("article_version").fmt());
 
         (article_language, version_content, article_version)
     }

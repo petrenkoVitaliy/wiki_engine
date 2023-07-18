@@ -24,7 +24,7 @@ impl ArticleVersionRepository {
                     .get_result::<i64>(connection);
             })
             .await
-            .expect(FmtError::FailedToFetch("article_versions").fmt().as_str());
+            .expect(&FmtError::FailedToFetch("article_versions").fmt());
 
         return count as i32;
     }
@@ -61,7 +61,7 @@ impl ArticleVersionRepository {
                 .load::<(model::ArticleVersion, VersionContent)>(connection);
             })
             .await
-            .expect(FmtError::FailedToFetch("article_versions").fmt().as_str())
+            .expect(&FmtError::FailedToFetch("article_versions").fmt())
     }
 
     pub async fn get_many_with_content(
@@ -92,7 +92,7 @@ impl ArticleVersionRepository {
                     .load::<(model::ArticleVersion, VersionContent)>(connection);
             })
             .await
-            .expect(FmtError::FailedToFetch("article_versions").fmt().as_str())
+            .expect(&FmtError::FailedToFetch("article_versions").fmt())
     }
 
     pub fn get_by_version_raw(
@@ -155,6 +155,6 @@ impl ArticleVersionRepository {
                     .execute(connection)
             })
             .await
-            .expect(FmtError::FailedToUpdate("article_version").fmt().as_str())
+            .expect(&FmtError::FailedToUpdate("article_version").fmt())
     }
 }

@@ -6,28 +6,26 @@ use super::formatted_error::FmtError;
 pub struct ErrorWrapper {
     pub status: Status,
     pub message: String,
+    pub extra_message: Option<String>,
 }
 
 impl ErrorWrapper {
-    pub fn new(fmt_error: &FmtError) -> Self {
-        match fmt_error {
-            FmtError::NotFound(_) => ErrorWrapper {
-                status: Status::NotFound,
-                message: fmt_error.fmt(),
-            },
-            FmtError::AlreadyExists(_) => ErrorWrapper {
-                status: Status::BadRequest,
-                message: fmt_error.fmt(),
-            },
-            FmtError::FailedToProcess(_) => ErrorWrapper {
-                status: Status::NotAcceptable,
-                message: fmt_error.fmt(),
-            },
-            _ => ErrorWrapper {
-                status: Status::ImATeapot,
-                message: String::from("I'm a teapot"),
-            },
-        }
+    pub fn new(fmt_error: &FmtError, extra_message: Option<String>) -> Self {
+        let status = match fmt_error {
+            FmtError::NotFound(_) => Status::NotFound,
+            FmtError::AlreadyExists(_) => Status::BadRequest,
+            FmtError::FailedToProcess(_) => Status::NotAcceptable,
+            FmtError::EmptyValue(_) => Status::NotAcceptable,
+            FmtError::Unauthorized(_) => Status::Unauthorized,
+            FmtError::PermissionDenied(_) => Status::Forbidden,
+            _ => Status::ImATeapot,
+        };
+
+        return ErrorWrapper {
+            status,
+            message: fmt_error.fmt(),
+            extra_message,
+        };
     }
 
     pub fn custom(&self) -> status::Custom<String> {

@@ -11,26 +11,23 @@ impl DiffHandler {
         let mut cursor = Vec::new();
 
         diff::diff(new_version.as_bytes(), &old_version, &mut cursor)
-            .expect(FmtError::FailedToProcess("delta").fmt().as_str());
+            .expect(&FmtError::FailedToProcess("delta").fmt());
 
         let compressed_delta = Self::compress_bytes(cursor)
-            .expect(FmtError::FailedToProcess("compressed_delta").fmt().as_str());
+            .expect(&FmtError::FailedToProcess("compressed_delta").fmt());
 
         compressed_delta
     }
 
     pub fn get_patch(delta: &Vec<u8>, length: i32, full_version: String) -> String {
-        let delta = Self::decompress_bytes(delta.to_vec()).expect(
-            FmtError::FailedToProcess("decompressed_delta")
-                .fmt()
-                .as_str(),
-        );
+        let delta = Self::decompress_bytes(delta.to_vec())
+            .expect(&FmtError::FailedToProcess("decompressed_delta").fmt());
 
         let mut cursor = Cursor::new(delta);
 
         let mut patched = vec![0; length as usize];
         patch::patch(full_version.as_bytes(), &mut cursor, &mut patched)
-            .expect(FmtError::FailedToProcess("patch").fmt().as_str());
+            .expect(&FmtError::FailedToProcess("patch").fmt());
 
         let patched_string = Self::get_string_from_bytes(&patched);
 
@@ -39,7 +36,7 @@ impl DiffHandler {
 
     pub fn get_string_from_bytes(input: &Vec<u8>) -> String {
         String::from_utf8(input.to_vec())
-            .expect(FmtError::FailedToProcess("parse from utf8").fmt().as_str())
+            .expect(&FmtError::FailedToProcess("parse from utf8").fmt())
     }
 
     fn compress_bytes(input: Vec<u8>) -> Result<Vec<u8>, std::io::Error> {

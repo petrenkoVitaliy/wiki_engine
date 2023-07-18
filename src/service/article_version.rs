@@ -7,7 +7,7 @@ use super::repository::entity::version_content::{
     ContentType, VersionContent, VersionContentRepository,
 };
 
-use super::diff_handler::diff_handler::DiffHandler;
+use super::diff_handler::DiffHandler;
 use super::error::error_wrapper::ErrorWrapper;
 use super::error::formatted_error::FmtError;
 use super::option_config::query_options::QueryOptions;
@@ -196,11 +196,7 @@ impl ArticleVersionService {
                     );
             })
             .await
-            .expect(
-                FmtError::FailedToInsert("article_version_relations")
-                    .fmt()
-                    .as_str(),
-            )
+            .expect(&FmtError::FailedToInsert("article_version_relations").fmt())
     }
 
     fn create_relations(
@@ -225,7 +221,7 @@ impl ArticleVersionService {
                 content_type: ContentType::Full,
             },
         )
-        .expect(FmtError::FailedToInsert("version_content").fmt().as_str());
+        .expect(&FmtError::FailedToInsert("version_content").fmt());
 
         let article_version = ArticleVersionRepository::insert_raw(
             connection,
@@ -235,7 +231,7 @@ impl ArticleVersionService {
                 content_id: version_content.id,
             },
         )
-        .expect(FmtError::FailedToInsert("article_version").fmt().as_str());
+        .expect(&FmtError::FailedToInsert("article_version").fmt());
 
         (article_version, version_content)
     }
@@ -251,18 +247,18 @@ impl ArticleVersionService {
             article_language_id,
             article_versions_count,
         )
-        .expect(FmtError::FailedToFetch("article_version").fmt().as_str())
-        .expect(FmtError::NotFound("article_version").fmt().as_str());
+        .expect(&FmtError::FailedToFetch("article_version").fmt())
+        .expect(&FmtError::NotFound("article_version").fmt());
 
         let version_content =
             VersionContentRepository::get_one_raw(connection, article_version.content_id)
-                .expect(FmtError::FailedToFetch("version_content").fmt().as_str())
-                .expect(FmtError::NotFound("version_content").fmt().as_str());
+                .expect(&FmtError::FailedToFetch("version_content").fmt())
+                .expect(&FmtError::NotFound("version_content").fmt());
 
         let content_delta = DiffHandler::get_delta(&creation_body.content, version_content.content);
 
         VersionContentRepository::patch_raw(connection, article_version.content_id, content_delta)
-            .expect(FmtError::FailedToUpdate("version_content").fmt().as_str());
+            .expect(&FmtError::FailedToUpdate("version_content").fmt());
     }
 
     fn get_requested_article_version_with_content(
@@ -307,10 +303,7 @@ impl ArticleVersionService {
                         language_search_dto.article_id,
                     ) {
                         (Some(language_code), Some(article_id)) => (language_code, article_id),
-                        _ => panic!(
-                            "{}",
-                            FmtError::FailedToProcess("language_code").fmt().as_str()
-                        ),
+                        _ => panic!("{}", &FmtError::FailedToProcess("language_code").fmt()),
                     };
 
                     match ArticleLanguageService::get_one_with_language(

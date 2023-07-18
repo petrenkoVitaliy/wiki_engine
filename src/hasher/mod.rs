@@ -1,3 +1,5 @@
 use super::error;
 
-pub mod hasher;
+mod hasher;
+
+pub use hasher::Hasher;

@@ -7,6 +7,7 @@ use super::model;
 use super::error::formatted_error::FmtError;
 
 use super::schema::auth::{UserAccountCreateDto, UserPasswordCreateDto};
+use super::schema::user_role::UserRoleId;
 
 pub struct AuthRepository;
 
@@ -24,11 +25,7 @@ impl AuthRepository {
                     .optional()
             })
             .await
-            .expect(
-                FmtError::FailedToFetch("user_account__user_password")
-                    .fmt()
-                    .as_str(),
-            )
+            .expect(&FmtError::FailedToFetch("user_account__user_password").fmt())
     }
 
     pub fn insert_user_account_raw(
@@ -42,7 +39,7 @@ impl AuthRepository {
                 email: creation_dto.email,
                 name: creation_dto.name,
 
-                role_id: 1, // TODO default role
+                role_id: UserRoleId::Common as i32,
 
                 updated_at: None,
                 created_at: None,

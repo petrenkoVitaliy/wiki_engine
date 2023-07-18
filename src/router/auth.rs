@@ -3,15 +3,14 @@ use rocket_okapi::{
     okapi::schemars::gen::SchemaSettings, openapi, openapi_get_routes, settings::OpenApiSettings,
 };
 
+use super::authorization::Authorization;
 use super::connection;
-
-use super::error::error_wrapper::ErrorWrapper;
-use super::jwt_handler::jwt::JWT;
 
 use super::aggregation::user_account::UserAccountAggregation;
 
 use super::schema::auth::{UserLoginBody, UserSignupBody};
-use super::schema::token::TokenResponse;
+use super::schema::jwt::TokenResponse;
+use super::schema::user_role::UserRoleId;
 
 use super::service::auth::AuthService;
 
@@ -42,14 +41,8 @@ async fn login(
 // TODO rm
 #[openapi]
 #[post("/test")]
-async fn test_jwt(key: Result<JWT, ErrorWrapper>) -> Result<Json<String>, status::Custom<String>> {
-    // let key = key?; TODO
-    let key = match key {
-        Ok(key) => key,
-        Err(e) => return Err(e.custom()),
-    };
-
-    print!("{:#?}\n\n", key);
+async fn test_jwt(authorization: Authorization) -> Result<Json<String>, status::Custom<String>> {
+    authorization.verify(vec![UserRoleId::Admin, UserRoleId::Common])?;
 
     Ok(Json(String::from("ok")))
 }

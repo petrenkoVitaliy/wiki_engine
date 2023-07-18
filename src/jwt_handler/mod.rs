@@ -1,4 +1,6 @@
 use super::error;
+use super::schema;
 
-pub mod jwt;
-pub mod jwt_handler;
+mod jwt_handler;
+
+pub use jwt_handler::JwtHandler;

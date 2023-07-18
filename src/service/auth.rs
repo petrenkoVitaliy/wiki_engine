@@ -1,8 +1,8 @@
 use diesel::Connection;
 
 use super::error::{error_wrapper::ErrorWrapper, formatted_error::FmtError};
-use super::hasher::hasher::Hasher;
-use super::jwt_handler::jwt_handler::JwtHandler;
+use super::hasher::Hasher;
+use super::jwt_handler::JwtHandler;
 
 use super::aggregation::user_account::UserAccountAggregation;
 
@@ -10,7 +10,7 @@ use super::schema::auth::{
     UserAccountCreateDto, UserCreateRelationsDto, UserLoginBody, UserPasswordCreateDto,
     UserSignupBody,
 };
-use super::schema::token::TokenResponse;
+use super::schema::jwt::TokenResponse;
 
 use super::repository::connection;
 use super::repository::entity::auth::{AuthRepository, UserAccount, UserPassword};
@@ -22,8 +22,6 @@ impl AuthService {
         connection: &connection::PgConnection,
         user_signup_body: UserLoginBody,
     ) -> Result<TokenResponse, ErrorWrapper> {
-        // TODO String TMP
-
         let (user_password, user_account) =
             match AuthRepository::get_one_user_with_password(connection, user_signup_body.email)
                 .await
@@ -34,13 +32,13 @@ impl AuthService {
 
         match Hasher::verify_encoded(user_signup_body.password, user_password.password) {
             Ok(is_correct) => match is_correct {
-                false => return FmtError::FailedToProcess("password").error(), // TODO add normal error
+                false => return FmtError::Unauthorized("invalid password").error(),
                 _ => (),
             },
             Err(e) => return Err(e),
         };
 
-        match JwtHandler::encode_jwt(user_account.id) {
+        match JwtHandler::encode_jwt(user_account.id, user_account.role_id) {
             Ok(jwt_string) => Ok(TokenResponse { token: jwt_string }),
             Err(e) => return Err(e),
         }
@@ -100,7 +98,7 @@ impl AuthService {
                 name: creation_dto.name,
             },
         )
-        .expect(FmtError::FailedToInsert("user_account").fmt().as_str());
+        .expect(&FmtError::FailedToInsert("user_account").fmt());
 
         let user_password = AuthRepository::insert_user_password_raw(
             connection,
@@ -109,7 +107,7 @@ impl AuthService {
                 user_id: user_account.id,
             },
         )
-        .expect(FmtError::FailedToInsert("user_password").fmt().as_str());
+        .expect(&FmtError::FailedToInsert("user_password").fmt());
 
         (user_account, user_password)
     }

@@ -96,11 +96,11 @@ impl ArticleLanguageAggregation {
 
             version: article_versions_map
                 .remove(&article_language.id)
-                .expect(FmtError::NotFound("article_version").fmt().as_str()),
+                .expect(&FmtError::NotFound("article_version").fmt()),
 
             language: languages_map
                 .get(&article_language.language_id)
-                .expect(FmtError::NotFound("language").fmt().as_str())
+                .expect(&FmtError::NotFound("language").fmt())
                 .clone(),
         }
     }

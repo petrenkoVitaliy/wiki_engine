@@ -1,3 +1,5 @@
 use super::error;
 
-pub mod diff_handler;
+mod diff_handler;
+
+pub use diff_handler::DiffHandler;

@@ -5,7 +5,7 @@ use super::repository::entity::version_content::VersionContent;
 
 use super::schema::version_content::ContentType;
 
-use super::diff_handler::diff_handler::DiffHandler;
+use super::diff_handler::DiffHandler;
 use super::error::formatted_error::FmtError;
 
 pub struct VersionContentService {}
@@ -45,13 +45,10 @@ impl VersionContentService {
     ) -> &'s HashMap<i32, String> {
         let full_content = article_versions_with_contents
             .get(0)
-            .expect(FmtError::NotFound("article_version").fmt().as_str());
+            .expect(&FmtError::NotFound("article_version").fmt());
 
         if !matches!(full_content.1.content_type, ContentType::Full) {
-            panic!(
-                "{}",
-                FmtError::FailedToProcess("version_content").fmt().as_str()
-            );
+            panic!("{}", &FmtError::FailedToProcess("version_content").fmt());
         }
 
         let (content_map, _) = article_versions_with_contents

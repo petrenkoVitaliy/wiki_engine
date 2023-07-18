@@ -34,7 +34,7 @@ impl ArticleRepository {
                 query.first(connection).optional()
             })
             .await
-            .expect(FmtError::FailedToFetch("article").fmt().as_str())
+            .expect(&FmtError::FailedToFetch("article").fmt())
     }
 
     pub async fn get_many(
@@ -59,7 +59,7 @@ impl ArticleRepository {
                     .load(connection)
             })
             .await
-            .expect(FmtError::FailedToFetch("articles").fmt().as_str())
+            .expect(&FmtError::FailedToFetch("articles").fmt())
     }
 
     pub async fn patch(connection: &connection::PgConnection, patch_dto: ArticlePatchDto) -> usize {
@@ -77,7 +77,7 @@ impl ArticleRepository {
                     .execute(connection)
             })
             .await
-            .expect(FmtError::FailedToUpdate("article").fmt().as_str())
+            .expect(&FmtError::FailedToUpdate("article").fmt())
     }
 
     pub fn insert_raw(

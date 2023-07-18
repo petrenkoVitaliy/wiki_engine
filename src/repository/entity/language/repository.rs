@@ -21,13 +21,13 @@ impl LanguageRepository {
                     .optional()
             })
             .await
-            .expect(FmtError::FailedToFetch("language").fmt().as_str())
+            .expect(&FmtError::FailedToFetch("language").fmt())
     }
 
     pub async fn get_many(connection: &connection::PgConnection) -> Vec<model::Language> {
         connection
             .run(|connection| db_schema::language::table.load(connection))
             .await
-            .expect(FmtError::FailedToFetch("languages").fmt().as_str())
+            .expect(&FmtError::FailedToFetch("languages").fmt())
     }
 }

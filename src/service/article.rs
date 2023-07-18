@@ -123,7 +123,7 @@ impl ArticleService {
                 );
             })
             .await
-            .expect(FmtError::FailedToInsert("article_relations").fmt().as_str())
+            .expect(&FmtError::FailedToInsert("article_relations").fmt())
     }
 
     fn create_relations(
@@ -132,7 +132,7 @@ impl ArticleService {
         language_id: i32,
     ) -> (Article, ArticleLanguage, VersionContent, ArticleVersion) {
         let article = ArticleRepository::insert_raw(connection, ())
-            .expect(FmtError::FailedToInsert("article").fmt().as_str());
+            .expect(&FmtError::FailedToInsert("article").fmt());
 
         let article_language = ArticleLanguageRepository::insert_raw(
             connection,
@@ -142,7 +142,7 @@ impl ArticleService {
                 language_id: language_id,
             },
         )
-        .expect(FmtError::FailedToInsert("article_language").fmt().as_str());
+        .expect(&FmtError::FailedToInsert("article_language").fmt());
 
         let version_content = VersionContentRepository::insert_raw(
             connection,
@@ -151,7 +151,7 @@ impl ArticleService {
                 content_type: ContentType::Full,
             },
         )
-        .expect(FmtError::FailedToInsert("version_content").fmt().as_str());
+        .expect(&FmtError::FailedToInsert("version_content").fmt());
 
         let article_version = ArticleVersionRepository::insert_raw(
             connection,
@@ -161,7 +161,7 @@ impl ArticleService {
                 content_id: version_content.id,
             },
         )
-        .expect(FmtError::FailedToInsert("article_version").fmt().as_str());
+        .expect(&FmtError::FailedToInsert("article_version").fmt());
 
         (article, article_language, version_content, article_version)
     }

@@ -11,5 +11,5 @@ pub async fn _wrap_db<T: Send + 'static, U: Send + 'static>(
     connection
         .run(move |connection| cb(connection, dto))
         .await
-        .expect(error.fmt().as_str())
+        .expect(&error.fmt())
 }

@@ -43,7 +43,7 @@ impl ArticleLanguageRepository {
                     .optional()
             })
             .await
-            .expect(FmtError::FailedToFetch("article_language").fmt().as_str())
+            .expect(&FmtError::FailedToFetch("article_language").fmt())
     }
 
     pub async fn get_many(
@@ -76,7 +76,7 @@ impl ArticleLanguageRepository {
                     .load(connection);
             })
             .await
-            .expect(FmtError::FailedToFetch("article_languages").fmt().as_str())
+            .expect(&FmtError::FailedToFetch("article_languages").fmt())
     }
 
     pub fn insert_raw(
@@ -127,6 +127,6 @@ impl ArticleLanguageRepository {
                     .execute(connection)
             })
             .await
-            .expect(FmtError::FailedToUpdate("article_language").fmt().as_str())
+            .expect(&FmtError::FailedToUpdate("article_language").fmt())
     }
 }
