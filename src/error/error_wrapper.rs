@@ -2,6 +2,7 @@ use rocket::{http::Status, response::status};
 
 use super::formatted_error::FmtError;
 
+#[derive(Debug)]
 pub struct ErrorWrapper {
     pub status: Status,
     pub message: String,
@@ -16,6 +17,10 @@ impl ErrorWrapper {
             },
             FmtError::AlreadyExists(_) => ErrorWrapper {
                 status: Status::BadRequest,
+                message: fmt_error.fmt(),
+            },
+            FmtError::FailedToProcess(_) => ErrorWrapper {
+                status: Status::NotAcceptable,
                 message: fmt_error.fmt(),
             },
             _ => ErrorWrapper {

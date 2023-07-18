@@ -24,4 +24,8 @@ impl<'input> FmtError<'input> {
     pub fn error<T>(&self) -> Result<T, ErrorWrapper> {
         Err(ErrorWrapper::new(self))
     }
+
+    pub fn error_wrapper(&self) -> ErrorWrapper {
+        ErrorWrapper::new(self)
+    }
 }

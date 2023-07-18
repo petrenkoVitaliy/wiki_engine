@@ -20,7 +20,7 @@ pub struct ArticleCreateRelationsDto {
 }
 
 impl ArticleCreateRelationsDto {
-    pub fn from_json(json_dto: Json<ArticleCreateRelationsDto>) -> ArticleCreateRelationsDto {
+    pub fn from_json(json_dto: Json<ArticleCreateRelationsDto>) -> Self {
         ArticleCreateRelationsDto {
             content: json_dto.content.to_string(),
             language: json_dto.language.to_string(),

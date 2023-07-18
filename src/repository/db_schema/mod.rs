@@ -40,6 +40,34 @@ diesel::table! {
 }
 
 diesel::table! {
+    user_password (id) {
+        id -> Int4,
+        password -> Varchar,
+        user_id -> Int4,
+        updated_at -> Nullable<Timestamp>,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    user_account (id) {
+        id -> Int4,
+        email -> Varchar,
+        name -> Varchar,
+        role_id -> Int4,
+        updated_at -> Nullable<Timestamp>,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    user_role (id) {
+        id -> Int4,
+        role -> Varchar,
+    }
+}
+
+diesel::table! {
     language (id) {
         id -> Int4,
         code -> Varchar,
@@ -62,6 +90,8 @@ diesel::joinable!(article_language -> article (article_id));
 diesel::joinable!(article_language -> language (language_id));
 diesel::joinable!(article_version -> article_language (article_language_id));
 diesel::joinable!(article_version -> version_content (content_id));
+diesel::joinable!(user_password -> user_account (user_id));
+diesel::joinable!(user_account -> user_role (role_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     article,
@@ -69,4 +99,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     article_version,
     version_content,
     language,
+    user_password,
+    user_account
 );

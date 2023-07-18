@@ -2,7 +2,7 @@ TODOs
 
 #high:
     - add auth + permissions
-
+    
 #medium: 
 
     - FE init
@@ -28,6 +28,8 @@ TODOs
 
     - add article versions compare get lang/:code/version/:id/compare/:id -> versions: {actual: ..., compared?: ...}
     - add article version deletion (hard)
+
+    - mailgun + pass recover
 
 #low:
     - add categories table + layer

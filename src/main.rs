@@ -1,6 +1,8 @@
 mod aggregation;
 mod diff_handler;
 mod error;
+mod hasher;
+mod jwt_handler;
 mod mapper;
 mod option_config;
 mod repository;
@@ -33,6 +35,10 @@ fn get_docs() -> SwaggerUIConfig {
                 name: "article".to_string(),
                 url: "/articles/article.json".to_string(),
             },
+            UrlObject {
+                name: "auth".to_string(),
+                url: "/auth/auth.json".to_string(),
+            },
         ],
 
         display_operation_id: true,
@@ -55,6 +61,7 @@ fn rocket() -> _ {
         .mount("/articles", router::article::routes())
         .mount("/articles", router::article_language::routes())
         .mount("/articles", router::article_version::routes())
+        .mount("/auth", router::auth::routes())
         .register("/", router::catchers::catchers())
         .mount("/swagger", make_swagger_ui(&get_docs()))
 }

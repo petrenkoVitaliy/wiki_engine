@@ -21,3 +21,5 @@ diesel-derive-enum = { version = "2.1.0", features = ["postgres"] }
 bsdiff = "0.1.6"
 flate2 = "1.0.26"
 parking_lot = "0.12.1"
+jsonwebtoken = "8.3.0"
+rust-argon2 = "1.0.0"

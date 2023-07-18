@@ -12,7 +12,7 @@ use super::schema::article_version::{
 
 use super::version_content::VersionContent;
 
-pub struct ArticleVersionRepository {}
+pub struct ArticleVersionRepository;
 
 impl ArticleVersionRepository {
     pub async fn get_count(connection: &connection::PgConnection, article_language_id: i32) -> i32 {
