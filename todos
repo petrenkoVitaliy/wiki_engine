@@ -1,10 +1,8 @@
 TODOs
 
 #high:
-    - add auth + permissions
     
 #medium: 
-
     - FE init
 
     - add article version status (approved, pending, declined)
@@ -33,5 +31,5 @@ TODOs
 
 #low:
     - add categories table + layer
-    - add comments table (for drafts)
+    - add permissions
     - pagination (article, article_version, draft)
