@@ -7,5 +7,5 @@ use super::schema;
 mod model;
 mod repository;
 
-pub use self::model::Article;
+pub use self::model::{Article, ArticleType};
 pub use self::repository::ArticleRepository;

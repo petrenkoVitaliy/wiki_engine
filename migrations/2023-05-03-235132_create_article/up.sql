@@ -1,8 +1,11 @@
+CREATE TYPE ARTICLE_TYPE AS ENUM ('private', 'public', 'protected', 'restricted');
+
 CREATE TABLE article (
     id SERIAL PRIMARY KEY,
 
     enabled BOOLEAN DEFAULT true NOT NULL,
     archived BOOLEAN DEFAULT false NOT NULL,
+    article_type ARTICLE_TYPE NOT NULL,
     
     updated_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW() NOT NULL

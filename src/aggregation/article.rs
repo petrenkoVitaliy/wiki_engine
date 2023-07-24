@@ -4,8 +4,11 @@ use rocket_okapi::okapi::schemars::JsonSchema;
 use std::collections::HashMap;
 
 use super::repository::entity::{
-    article::Article, article_language::ArticleLanguage, article_version::ArticleVersion,
-    language::Language, version_content::VersionContent,
+    article::{Article, ArticleType},
+    article_language::ArticleLanguage,
+    article_version::ArticleVersion,
+    language::Language,
+    version_content::VersionContent,
 };
 
 use super::article_language::ArticleLanguageAggregation;
@@ -17,6 +20,7 @@ pub struct ArticleAggregation {
     pub id: i32,
     pub enabled: bool,
     pub archived: bool,
+    pub article_type: ArticleType,
 
     pub updated_at: Option<NaiveDateTime>,
     pub created_at: NaiveDateTime,
@@ -26,12 +30,13 @@ pub struct ArticleAggregation {
 
 impl ArticleAggregation {
     pub fn from_model(
-        article: &Article,
+        article: Article,
         article_language_aggregations: Vec<ArticleLanguageAggregation>,
     ) -> Self {
         Self {
             id: article.id,
             enabled: article.enabled,
+            article_type: article.article_type,
             archived: article.archived,
             updated_at: article.updated_at,
             created_at: article.created_at,
@@ -45,7 +50,7 @@ impl ArticleAggregation {
         mut languages_aggregations_map: HashMap<i32, Vec<ArticleLanguageAggregation>>,
     ) -> Vec<Self> {
         articles
-            .iter()
+            .into_iter()
             .map(|article| {
                 let article_languages_aggregations = languages_aggregations_map
                     .remove(&article.id)
@@ -75,6 +80,6 @@ impl ArticleAggregation {
             vec![languages_aggregation],
         );
 
-        Self::from_model(&article, article_language_aggregations)
+        Self::from_model(article, article_language_aggregations)
     }
 }

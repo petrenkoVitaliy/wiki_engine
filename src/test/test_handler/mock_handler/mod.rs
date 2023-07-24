@@ -1,4 +1,5 @@
 use super::aggregation;
+use super::repository::entity::article::ArticleType;
 use super::schema;
 
 pub mod article;

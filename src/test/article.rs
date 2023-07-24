@@ -11,6 +11,7 @@ use super::test_handler::{
 };
 
 use super::schema::article::{ArticleCreateRelationsDto, ArticlePatchBody};
+use super::ArticleType;
 
 mod create_article_tests {
     use super::*;
@@ -23,6 +24,7 @@ mod create_article_tests {
             name: String::from("test create article"),
             content: String::from("test create article content"),
             language: String::from("ua"),
+            article_type: ArticleType::Public,
         };
 
         let response_body = ArticleRequestHandler::create_article(&setup, &creation_body);
@@ -44,6 +46,7 @@ mod create_article_tests {
             name: String::from("test create wrong article"),
             content: String::from("test content"),
             language: String::from("incorrect"),
+            article_type: ArticleType::Public,
         };
 
         let response = ArticleRequest::create_article(&setup, &creation_body);
@@ -74,6 +77,7 @@ mod create_article_tests {
             name: String::from("test name 1"),
             content: String::from(content),
             language: String::from("ua"),
+            article_type: ArticleType::Public,
         };
 
         let response_body = ArticleRequestHandler::create_article(&setup, &creation_body);
@@ -99,6 +103,7 @@ mod get_article_tests {
             name: String::from("test get article"),
             content: String::from("test content"),
             language: String::from("ua"),
+            article_type: ArticleType::Public,
         };
 
         let created_article = ArticleRequestHandler::create_article(&setup, &creation_body);
@@ -134,6 +139,7 @@ mod get_article_tests {
             name: String::from("test get disabled article"),
             content: String::from("test content"),
             language: String::from("ua"),
+            article_type: ArticleType::Public,
         };
 
         let created_article = ArticleRequestHandler::create_article(&setup, &creation_body);
@@ -176,6 +182,7 @@ mod get_article_tests {
             name: String::from("test deleted article"),
             content: String::from("test content"),
             language: String::from("ua"),
+            article_type: ArticleType::Public,
         };
 
         let created_article = ArticleRequestHandler::create_article(&setup, &creation_body);
@@ -214,6 +221,7 @@ mod get_articles_tests {
             name: String::from("test get articles"),
             content: String::from("test content"),
             language: String::from("ua"),
+            article_type: ArticleType::Public,
         };
 
         let created_article = ArticleRequestHandler::create_article(&setup, &creation_body);
@@ -244,6 +252,7 @@ mod get_articles_tests {
             name: String::from("test get disabled articles"),
             content: String::from("test content"),
             language: String::from("ua"),
+            article_type: ArticleType::Public,
         };
 
         let created_article = ArticleRequestHandler::create_article(&setup, &creation_body);
@@ -294,6 +303,7 @@ mod get_articles_tests {
             name: String::from("test get disabled articles"),
             content: String::from("test content"),
             language: String::from("ua"),
+            article_type: ArticleType::Public,
         };
 
         let created_article = ArticleRequestHandler::create_article(&setup, &creation_body);
@@ -340,6 +350,7 @@ mod patch_article_tests {
             name: String::from("test patch article"),
             content: String::from("test content"),
             language: String::from("ua"),
+            article_type: ArticleType::Public,
         };
 
         let created_article = ArticleRequestHandler::create_article(&setup, &creation_body);
@@ -359,6 +370,7 @@ mod patch_article_tests {
                 name: String::from(creation_body.name.clone()),
                 content: String::from(creation_body.content.clone()),
                 language: String::from(creation_body.language.clone()),
+                article_type: ArticleType::Public,
             }),
             ArticleAssertOptions { is_updated: true },
         );
@@ -378,6 +390,7 @@ mod patch_article_tests {
                 name: String::from(creation_body.name.clone()),
                 content: String::from(creation_body.content.clone()),
                 language: String::from(creation_body.language.clone()),
+                article_type: ArticleType::Public,
             }),
             ArticleAssertOptions { is_updated: true },
         );
@@ -408,6 +421,7 @@ mod delete_restore_article_tests {
             name: String::from("test delete article"),
             content: String::from("test content"),
             language: String::from("ua"),
+            article_type: ArticleType::Public,
         };
 
         let created_article = ArticleRequestHandler::create_article(&setup, &creation_body);
@@ -423,6 +437,7 @@ mod delete_restore_article_tests {
                 name: String::from(creation_body.name),
                 content: String::from(creation_body.content),
                 language: String::from(creation_body.language),
+                article_type: ArticleType::Public,
             }),
             ArticleAssertOptions { is_updated: true },
         );
@@ -448,6 +463,7 @@ mod delete_restore_article_tests {
             name: String::from("test restore article"),
             content: String::from("test content"),
             language: String::from("ua"),
+            article_type: ArticleType::Public,
         };
 
         let created_article = ArticleRequestHandler::create_article(&setup, &creation_body);
@@ -463,6 +479,7 @@ mod delete_restore_article_tests {
                 name: String::from(creation_body.name.clone()),
                 content: String::from(creation_body.content.clone()),
                 language: String::from(creation_body.language.clone()),
+                article_type: ArticleType::Public,
             }),
             ArticleAssertOptions { is_updated: true },
         );
@@ -478,6 +495,7 @@ mod delete_restore_article_tests {
                 name: String::from(creation_body.name),
                 content: String::from(creation_body.content),
                 language: String::from(creation_body.language),
+                article_type: ArticleType::Public,
             }),
             ArticleAssertOptions { is_updated: true },
         );
@@ -491,6 +509,7 @@ mod delete_restore_article_tests {
             name: String::from("test restore article"),
             content: String::from("test content"),
             language: String::from("ua"),
+            article_type: ArticleType::Public,
         };
 
         let created_article = ArticleRequestHandler::create_article(&setup, &creation_body);
@@ -506,6 +525,7 @@ mod delete_restore_article_tests {
                 name: String::from(creation_body.name.clone()),
                 content: String::from(creation_body.content.clone()),
                 language: String::from(creation_body.language.clone()),
+                article_type: ArticleType::Public,
             }),
             ArticleAssertOptions { is_updated: true },
         );

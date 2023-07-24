@@ -1,6 +1,8 @@
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 
+use super::ArticleType;
+
 #[derive(Deserialize, Serialize, JsonSchema)]
 pub struct ArticlePatchBody {
     pub enabled: bool,
@@ -17,6 +19,7 @@ pub struct ArticleCreateRelationsDto {
     pub content: String,
     pub language: String,
     pub name: String,
+    pub article_type: ArticleType,
 }
 
 impl ArticleCreateRelationsDto {
@@ -25,6 +28,7 @@ impl ArticleCreateRelationsDto {
             content: json_dto.content.to_string(),
             language: json_dto.language.to_string(),
             name: json_dto.name.to_string(),
+            article_type: json_dto.article_type,
         }
     }
 }

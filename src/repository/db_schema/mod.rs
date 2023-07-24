@@ -2,13 +2,21 @@ pub mod sql_types {
     #[derive(diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "content_type"))]
     pub struct ContentType;
+
+    #[derive(diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "article_type"))]
+    pub struct ArticleType;
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::ArticleType;
+
     article (id) {
         id -> Int4,
         enabled -> Bool,
         archived -> Bool,
+        article_type -> ArticleType,
         updated_at -> Nullable<Timestamp>,
         created_at -> Timestamp,
     }

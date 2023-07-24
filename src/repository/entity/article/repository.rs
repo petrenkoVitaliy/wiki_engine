@@ -71,6 +71,7 @@ impl ArticleRepository {
                         id: None,
                         enabled: patch_dto.enabled,
                         archived: patch_dto.archived,
+                        article_type: None,
                         updated_at: None,
                         created_at: None,
                     })
@@ -82,13 +83,14 @@ impl ArticleRepository {
 
     pub fn insert_raw(
         connection: &mut diesel::PgConnection,
-        _dto: (),
+        article_type: model::ArticleType,
     ) -> Result<model::Article, diesel::result::Error> {
         diesel::insert_into(db_schema::article::table)
             .values(model::ArticleInsertable {
                 id: None,
                 enabled: Some(true),
                 archived: Some(false),
+                article_type: Some(article_type),
                 updated_at: None,
                 created_at: None,
             })

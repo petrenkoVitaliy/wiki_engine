@@ -1,6 +1,7 @@
 use super::aggregation;
 use super::error;
 use super::repository;
+use super::repository::entity::article::ArticleType;
 use super::router;
 use super::schema;
 

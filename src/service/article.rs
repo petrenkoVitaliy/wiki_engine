@@ -40,7 +40,7 @@ impl ArticleService {
             ArticleLanguageService::get_aggregations(&connection, article.id, query_options).await;
 
         Ok(ArticleAggregation::from_model(
-            &article,
+            article,
             article_language_aggregations,
         ))
     }
@@ -131,7 +131,7 @@ impl ArticleService {
         creation_dto: ArticleCreateRelationsDto,
         language_id: i32,
     ) -> (Article, ArticleLanguage, VersionContent, ArticleVersion) {
-        let article = ArticleRepository::insert_raw(connection, ())
+        let article = ArticleRepository::insert_raw(connection, creation_dto.article_type)
             .expect(&FmtError::FailedToInsert("article").fmt());
 
         let article_language = ArticleLanguageRepository::insert_raw(

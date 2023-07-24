@@ -18,6 +18,7 @@ use super::schema::{
     article::ArticleCreateRelationsDto,
     article_language::{ArticleLanguageCreateBody, ArticleLanguagePatchBody},
 };
+use super::ArticleType;
 
 mod create_article_language_tests {
     use super::*;
@@ -32,6 +33,7 @@ mod create_article_language_tests {
                 name: String::from("test create article language"),
                 content: String::from("test content"),
                 language: String::from("ua"),
+                article_type: ArticleType::Public,
             },
         );
 
@@ -67,6 +69,7 @@ mod create_article_language_tests {
                 name: String::from("test create article language with nonexisting language"),
                 content: String::from("test content"),
                 language: String::from("ua"),
+                article_type: ArticleType::Public,
             },
         );
 
@@ -99,6 +102,7 @@ mod create_article_language_tests {
                 name: String::from("test create article language with already existing language"),
                 content: String::from("test content"),
                 language: String::from("ua"),
+                article_type: ArticleType::Public,
             },
         );
 
@@ -137,6 +141,7 @@ mod get_article_language_tests {
             name: String::from("test get article language"),
             content: String::from("test content"),
             language: first_language.clone(),
+            article_type: ArticleType::Public,
         };
 
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
@@ -198,6 +203,7 @@ mod get_article_language_tests {
             name: String::from("test get article language wrong params"),
             content: String::from("test content"),
             language: language.clone(),
+            article_type: ArticleType::Public,
         };
 
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
@@ -232,6 +238,7 @@ mod get_article_language_tests {
             name: String::from("test get article language deleted"),
             content: String::from("test content"),
             language: language.clone(),
+            article_type: ArticleType::Public,
         };
 
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
@@ -273,6 +280,7 @@ mod get_article_language_tests {
             name: String::from("test get article language disabled"),
             content: String::from("test content"),
             language: language.clone(),
+            article_type: ArticleType::Public,
         };
 
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
@@ -326,6 +334,7 @@ mod get_article_languages_tests {
             name: String::from("test get article language"),
             content: String::from("test content"),
             language: first_language.clone(),
+            article_type: ArticleType::Public,
         };
 
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
@@ -383,6 +392,7 @@ mod get_article_languages_tests {
             name: String::from("test get article language"),
             content: String::from("test content"),
             language: first_language.clone(),
+            article_type: ArticleType::Public,
         };
 
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
@@ -475,6 +485,7 @@ mod patch_article_language_tests {
             name: String::from("test patch article language"),
             content: String::from("test content"),
             language: language.clone(),
+            article_type: ArticleType::Public,
         };
 
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
@@ -516,6 +527,7 @@ mod patch_article_language_tests {
             name: String::from("test patch article language wrong params"),
             content: String::from("test content"),
             language: language.clone(),
+            article_type: ArticleType::Public,
         };
 
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
@@ -567,6 +579,7 @@ mod delete_restore_article_language_tests {
             name: String::from("delete article language"),
             content: String::from("test content"),
             language: language.clone(),
+            article_type: ArticleType::Public,
         };
 
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
@@ -599,6 +612,7 @@ mod delete_restore_article_language_tests {
             name: String::from("delete article language"),
             content: String::from("test content"),
             language: language.clone(),
+            article_type: ArticleType::Public,
         };
 
         ArticleRequestHandler::create_article(&setup, &article_creation_body);
@@ -625,6 +639,7 @@ mod delete_restore_article_language_tests {
             name: String::from("restore article language"),
             content: String::from("test content"),
             language: language.clone(),
+            article_type: ArticleType::Public,
         };
 
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
@@ -659,6 +674,7 @@ mod delete_restore_article_language_tests {
             name: String::from("restore article language"),
             content: String::from("test content"),
             language: language.clone(),
+            article_type: ArticleType::Public,
         };
 
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);

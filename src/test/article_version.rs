@@ -16,6 +16,7 @@ use super::schema::{
     article::ArticleCreateRelationsDto,
     article_version::{ArticleVersionCreateBody, ArticleVersionPatchBody},
 };
+use super::ArticleType;
 
 mod get_article_versions_tests {
     use super::*;
@@ -29,6 +30,7 @@ mod get_article_versions_tests {
             name: String::from("test get article versions"),
             content: String::from("first version content"),
             language: language.clone(),
+            article_type: ArticleType::Public,
         };
 
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
@@ -81,6 +83,7 @@ mod get_article_versions_tests {
             name: String::from("test get article versions wrong params"),
             content: String::from("first version content"),
             language: language.clone(),
+            article_type: ArticleType::Public,
         };
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
 
@@ -104,6 +107,7 @@ mod get_article_versions_tests {
             name: String::from("test get article versions disabled"),
             content: String::from("first version content"),
             language: language.clone(),
+            article_type: ArticleType::Public,
         };
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
 
@@ -187,6 +191,7 @@ mod patch_article_version_tests {
             name: String::from("test get article versions"),
             content: String::from("first version content"),
             language: language.clone(),
+            article_type: ArticleType::Public,
         };
 
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
@@ -241,6 +246,7 @@ mod patch_article_version_tests {
             name: String::from("test patch article version wrong params"),
             content: String::from("first version content"),
             language: language.clone(),
+            article_type: ArticleType::Public,
         };
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
 
@@ -286,6 +292,7 @@ mod get_article_version_tests {
             name: String::from("test get article version"),
             content: String::from("first version content"),
             language: language.clone(),
+            article_type: ArticleType::Public,
         };
 
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
@@ -338,6 +345,7 @@ mod get_article_version_tests {
             name: String::from("test get article version wrong params"),
             content: String::from("first version content"),
             language: language.clone(),
+            article_type: ArticleType::Public,
         };
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
 
@@ -369,6 +377,7 @@ mod get_article_version_tests {
             name: String::from("test get article versions disabled"),
             content: String::from("first version content"),
             language: language.clone(),
+            article_type: ArticleType::Public,
         };
 
         let article = ArticleRequestHandler::create_article(&setup, &article_creation_body);
@@ -418,6 +427,7 @@ mod create_article_version_tests {
                 name: String::from("test create article version"),
                 content: String::from("first version content"),
                 language: language.clone(),
+                article_type: ArticleType::Public,
             },
         );
 
@@ -471,6 +481,7 @@ mod create_article_version_tests {
                 name: String::from("test create article version wrong params"),
                 content: String::from("first version content"),
                 language: language.clone(),
+                article_type: ArticleType::Public,
             },
         );
 

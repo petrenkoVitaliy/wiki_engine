@@ -17,6 +17,11 @@ impl ArticleAssertHandler {
         assert_eq!(received_aggregation.archived, expected_aggregation.archived);
         assert_eq!(received_aggregation.enabled, expected_aggregation.enabled);
 
+        assert_eq!(
+            received_aggregation.article_type,
+            expected_aggregation.article_type
+        );
+
         if assert_options.is_updated {
             assert_eq!(received_aggregation.updated_at.is_some(), true);
         } else {
