@@ -287,8 +287,9 @@ impl ArticleLanguageService {
             connection,
             ArticleLanguageCreateDto {
                 name: creation_dto.name,
-                article_id: creation_dto.article_id,
                 language_id: language_id,
+                article_id: creation_dto.article_id,
+                user_id: creation_dto.user_id,
             },
         )
         .expect(&FmtError::FailedToInsert("article_language").fmt());
@@ -308,6 +309,7 @@ impl ArticleLanguageService {
                 version: 1,
                 article_language_id: article_language.id,
                 content_id: version_content.id,
+                user_id: creation_dto.user_id,
             },
         )
         .expect(&FmtError::FailedToInsert("article_version").fmt());

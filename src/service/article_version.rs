@@ -16,8 +16,8 @@ use super::article_language::ArticleLanguageService;
 use super::version_content::VersionContentService;
 
 use super::schema::article_version::{
-    ArticleVersionCreateBody, ArticleVersionCreateDto, ArticleVersionPatchBody,
-    ArticleVersionPatchDto, ArticleVersionsJoinSearchDto, LanguageSearchDto,
+    ArticleVersionCreateDto, ArticleVersionCreateRelationsDto, ArticleVersionPatchDto,
+    ArticleVersionsJoinSearchDto, LanguageSearchDto,
 };
 use super::schema::version_content::VersionContentDto;
 
@@ -96,7 +96,7 @@ impl ArticleVersionService {
         version: i32,
         article_id: i32,
         language_code: String,
-        patch_body: ArticleVersionPatchBody,
+        patch_dto: ArticleVersionPatchDto,
     ) -> Result<ArticleVersionAggregation, ErrorWrapper> {
         let article_language = match ArticleLanguageService::get_one_with_language(
             connection,
@@ -110,15 +110,9 @@ impl ArticleVersionService {
             Ok((article_language, _)) => article_language,
         };
 
-        let updated_count = ArticleVersionRepository::patch(
-            connection,
-            version,
-            article_language.id,
-            ArticleVersionPatchDto {
-                enabled: patch_body.enabled,
-            },
-        )
-        .await;
+        let updated_count =
+            ArticleVersionRepository::patch(connection, version, article_language.id, patch_dto)
+                .await;
 
         if updated_count == 0 {
             return FmtError::NotFound("article_version").error();
@@ -143,7 +137,7 @@ impl ArticleVersionService {
         connection: &connection::PgConnection,
         article_id: i32,
         language_code: String,
-        creation_body: ArticleVersionCreateBody,
+        creation_body: ArticleVersionCreateRelationsDto,
     ) -> Result<ArticleVersionAggregation, ErrorWrapper> {
         let article_language = match ArticleLanguageService::get_one_with_language(
             connection,
@@ -177,7 +171,7 @@ impl ArticleVersionService {
 
     async fn create_relations_transaction(
         connection: &connection::PgConnection,
-        creation_body: ArticleVersionCreateBody,
+        creation_body: ArticleVersionCreateRelationsDto,
         article_language_id: i32,
         article_versions_count: i32,
     ) -> (ArticleVersion, VersionContent) {
@@ -201,7 +195,7 @@ impl ArticleVersionService {
 
     fn create_relations(
         connection: &mut diesel::PgConnection,
-        creation_body: ArticleVersionCreateBody,
+        creation_body: ArticleVersionCreateRelationsDto,
         article_language_id: i32,
         article_versions_count: i32,
     ) -> (ArticleVersion, VersionContent) {
@@ -229,6 +223,7 @@ impl ArticleVersionService {
                 article_language_id,
                 version: article_versions_count + 1,
                 content_id: version_content.id,
+                user_id: creation_body.user_id,
             },
         )
         .expect(&FmtError::FailedToInsert("article_version").fmt());
@@ -240,7 +235,7 @@ impl ArticleVersionService {
         connection: &mut diesel::PgConnection,
         article_language_id: i32,
         article_versions_count: i32,
-        creation_body: &ArticleVersionCreateBody,
+        creation_body: &ArticleVersionCreateRelationsDto,
     ) {
         let article_version = ArticleVersionRepository::get_by_version_raw(
             connection,

@@ -19,6 +19,8 @@ diesel::table! {
         article_type -> ArticleType,
         updated_at -> Nullable<Timestamp>,
         created_at -> Timestamp,
+        updated_by -> Nullable<Int4>,
+        created_by -> Int4,
     }
 }
 
@@ -32,6 +34,8 @@ diesel::table! {
         language_id -> Int4,
         updated_at -> Nullable<Timestamp>,
         created_at -> Timestamp,
+        updated_by -> Nullable<Int4>,
+        created_by -> Int4,
     }
 }
 
@@ -44,6 +48,8 @@ diesel::table! {
         article_language_id -> Int4,
         updated_at -> Nullable<Timestamp>,
         created_at -> Timestamp,
+        updated_by -> Nullable<Int4>,
+        created_by -> Int4,
     }
 }
 
@@ -62,6 +68,7 @@ diesel::table! {
         id -> Int4,
         email -> Varchar,
         name -> Varchar,
+        active -> Bool,
         role_id -> Int4,
         updated_at -> Nullable<Timestamp>,
         created_at -> Timestamp,
@@ -96,9 +103,12 @@ diesel::table! {
 
 diesel::joinable!(article_language -> article (article_id));
 diesel::joinable!(article_language -> language (language_id));
+
 diesel::joinable!(article_version -> article_language (article_language_id));
 diesel::joinable!(article_version -> version_content (content_id));
+
 diesel::joinable!(user_password -> user_account (user_id));
+
 diesel::joinable!(user_account -> user_role (role_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
@@ -108,5 +118,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     version_content,
     language,
     user_password,
-    user_account
+    user_account,
+    user_role,
 );

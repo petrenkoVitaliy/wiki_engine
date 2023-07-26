@@ -5,10 +5,11 @@ use rocket_okapi::{
     request::{OpenApiFromRequest, RequestHeaderInput},
 };
 
+use super::aggregation::user_account::UserAccountAggregation;
 use super::error::{error_wrapper::ErrorWrapper, formatted_error::FmtError};
 use super::jwt_handler::JwtHandler;
-use super::schema::jwt::Claims;
-use super::schema::user_role::UserRoleId;
+use super::repository::{connection, entity::auth::AuthRepository};
+use super::schema::{jwt::Claims, user_role::UserRoleId};
 
 #[derive(Debug)]
 pub struct Authorization {
@@ -16,23 +17,47 @@ pub struct Authorization {
 }
 
 impl Authorization {
-    pub fn verify(self, allowed_roles: Vec<UserRoleId>) -> Result<Claims, status::Custom<String>> {
+    async fn get_user(
+        connection: &connection::PgConnection,
+        user_id: i32,
+    ) -> Result<UserAccountAggregation, status::Custom<String>> {
+        match AuthRepository::get_one_user(connection, user_id).await {
+            Some(user_account) => Ok(UserAccountAggregation::from_model(user_account)),
+            None => Err(FmtError::PermissionDenied("not enough rights")
+                .error_wrapper()
+                .custom()),
+        }
+    }
+
+    pub async fn verify(
+        self,
+        allowed_roles: Vec<UserRoleId>,
+        connection: &connection::PgConnection,
+    ) -> Result<UserAccountAggregation, status::Custom<String>> {
         let claims = match Self::get_claims(self) {
             Err(e) => return Err(e.custom()),
             Ok(claims) => claims,
         };
 
+        let user = Self::get_user(connection, claims.user_id).await?;
+
+        if !user.active {
+            return Err(FmtError::PermissionDenied("not enough rights")
+                .error_wrapper()
+                .custom());
+        }
+
         if allowed_roles.len() == 0 {
-            return Ok(claims);
+            return Ok(user);
         }
 
         match allowed_roles
             .iter()
-            .find(|role_id| match UserRoleId::from_i32(claims.role_id) {
+            .find(|role_id| match UserRoleId::from_i32(user.role_id) {
                 Some(current_user_role_id) => current_user_role_id == **role_id,
                 _ => false,
             }) {
-            Some(_) => Ok(claims),
+            Some(_) => Ok(user),
             _ => Err(FmtError::PermissionDenied("not enough rights")
                 .error_wrapper()
                 .custom()),

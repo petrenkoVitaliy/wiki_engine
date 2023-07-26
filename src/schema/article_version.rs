@@ -8,11 +8,16 @@ pub struct ArticleVersionCreateBody {
     pub content: String,
 }
 
+pub struct ArticleVersionCreateRelationsDto {
+    pub content: String,
+    pub user_id: i32,
+}
+
 pub struct ArticleVersionCreateDto {
     pub version: i32,
     pub content_id: i32,
-
     pub article_language_id: i32,
+    pub user_id: i32,
 }
 
 #[derive(Deserialize, JsonSchema, Serialize)]
@@ -22,6 +27,7 @@ pub struct ArticleVersionPatchBody {
 
 pub struct ArticleVersionPatchDto {
     pub enabled: bool,
+    pub user_id: i32,
 }
 
 pub struct ArticleVersionsJoinSearchDto {

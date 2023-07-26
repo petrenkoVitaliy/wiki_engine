@@ -8,7 +8,12 @@ CREATE TABLE article (
     article_type ARTICLE_TYPE NOT NULL,
     
     updated_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT NOW() NOT NULL
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    
+    updated_by INT,
+    FOREIGN KEY (updated_by) REFERENCES user_account(id),
+    created_by INT NOT NULL,
+    FOREIGN KEY (created_by) REFERENCES user_account(id)
 );
 
 CREATE  FUNCTION update_article_updated_at()

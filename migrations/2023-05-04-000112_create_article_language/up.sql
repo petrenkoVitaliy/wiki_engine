@@ -15,6 +15,11 @@ CREATE TABLE article_language (
     updated_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW() NOT NULL,
 
+    updated_by INT,
+    FOREIGN KEY (updated_by) REFERENCES user_account(id),
+    created_by INT NOT NULL,
+    FOREIGN KEY (created_by) REFERENCES user_account(id),
+
     CONSTRAINT language_per_article UNIQUE (article_id, language_id)
 );
 

@@ -2,6 +2,17 @@ use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 
 #[derive(Deserialize, Serialize, JsonSchema)]
+pub struct UserPatchBody {
+    pub active: bool,
+}
+
+pub struct UserPatchDto {
+    pub active: bool,
+    pub user_id: i32,
+    pub updated_by: i32,
+}
+
+#[derive(Deserialize, Serialize, JsonSchema)]
 pub struct UserSignupBody {
     pub email: String,
     pub name: String,

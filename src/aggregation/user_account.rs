@@ -10,6 +10,7 @@ pub struct UserAccountAggregation {
 
     pub email: String,
     pub name: String,
+    pub active: bool,
 
     pub role_id: i32,
 
@@ -22,6 +23,7 @@ impl UserAccountAggregation {
         Self {
             id: user_account.id,
             email: user_account.email,
+            active: user_account.active,
             name: user_account.name,
             role_id: user_account.role_id,
 

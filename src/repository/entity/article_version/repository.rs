@@ -122,10 +122,13 @@ impl ArticleVersionRepository {
                 content_id: creation_dto.content_id,
                 version: creation_dto.version,
                 article_language_id: creation_dto.article_language_id,
-                enabled: Some(true),
+                enabled: true,
 
                 updated_at: None,
                 created_at: None,
+
+                updated_by: None,
+                created_by: creation_dto.user_id,
             })
             .get_result::<model::ArticleVersion>(connection)
     }
@@ -143,7 +146,8 @@ impl ArticleVersionRepository {
                         db_schema::article_version::article_language_id.eq(article_language_id),
                     ))
                     .set(model::ArticleVersionPatch {
-                        enabled: Some(patch_dto.enabled),
+                        enabled: patch_dto.enabled,
+                        updated_by: patch_dto.user_id,
 
                         id: None,
                         content_id: None,
@@ -151,6 +155,7 @@ impl ArticleVersionRepository {
                         article_language_id: None,
                         updated_at: None,
                         created_at: None,
+                        created_by: None,
                     })
                     .execute(connection)
             })

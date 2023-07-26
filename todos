@@ -4,17 +4,21 @@ TODOs
     
 #medium: 
     [DONE] - add article type (private, public, protected, restricted)
-    - add createdBy to article, article_language, article_version
-    - add user is active
+    [DONE] - add createdBy to article, article_language, article_version
+    [DONE] - add user is active
+
+    - add updatedBy to user_account
+    - align tests
+    - align imports & dtos
 
     - FE init
 
     - add article version deletion (hard)
-    - add article versions compare get lang/:code/version/:id/compare/:id -> versions: {actual: ..., compared?: ...}
     - mailgun + pass recover
 
 #low:
     - add categories table + layer
-    - add permissions
+    - add article versions compare get lang/:code/version/:id/compare/:id -> versions: {actual: ..., compared?: ...}
     
+    - add permissions?
     - pagination (article, article_version, draft)

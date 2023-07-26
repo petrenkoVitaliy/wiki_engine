@@ -26,13 +26,12 @@ impl JwtHandler {
             .timestamp()
     }
 
-    pub fn encode_jwt(user_id: i32, role_id: i32) -> Result<String, ErrorWrapper> {
+    pub fn encode_jwt(user_id: i32) -> Result<String, ErrorWrapper> {
         let secret = Self::get_secret();
         let expiration = Self::get_expiration();
 
         let claims = Claims {
             user_id,
-            role_id,
             exp: expiration as usize,
         };
 

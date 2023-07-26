@@ -3,12 +3,16 @@ use rocket_okapi::{
     okapi::schemars::gen::SchemaSettings, openapi, openapi_get_routes, settings::OpenApiSettings,
 };
 
+use super::authorization::Authorization;
 use super::connection;
 use super::option_config::query_options::QueryOptions;
 
-use super::schema::article_language::{
-    ArticleLanguageCreateBody, ArticleLanguageCreateRelationsDto, ArticleLanguagePatchBody,
-    ArticleLanguagePatchDto,
+use super::schema::{
+    article_language::{
+        ArticleLanguageCreateBody, ArticleLanguageCreateRelationsDto, ArticleLanguagePatchBody,
+        ArticleLanguagePatchDto,
+    },
+    user_role::UserRoleId,
 };
 
 use super::service::article_language::ArticleLanguageService;
@@ -55,10 +59,14 @@ async fn get_article_languages(
 #[post("/<article_id>/language/<language_code>", data = "<creation_body>")]
 async fn create_article_language(
     connection: connection::PgConnection,
+    authorization: Authorization,
+
     creation_body: Json<ArticleLanguageCreateBody>,
     article_id: i32,
     language_code: String,
 ) -> Result<Json<ArticleLanguageAggregation>, status::Custom<String>> {
+    let user_aggregation = authorization.verify(vec![], &connection).await?;
+
     match ArticleLanguageService::insert(
         &connection,
         ArticleLanguageCreateRelationsDto {
@@ -66,6 +74,7 @@ async fn create_article_language(
             language_code,
             content: creation_body.content.to_string(),
             name: creation_body.name.to_string(),
+            user_id: user_aggregation.id,
         },
     )
     .await
@@ -79,10 +88,14 @@ async fn create_article_language(
 #[patch("/<article_id>/language/<language_code>", data = "<patch_body>")]
 async fn patch_article_language(
     connection: connection::PgConnection,
+    authorization: Authorization,
     patch_body: Json<ArticleLanguagePatchBody>,
     article_id: i32,
     language_code: String,
 ) -> Result<Json<ArticleLanguageAggregation>, status::Custom<String>> {
+    // TODO enabled -> admin + moder only
+    let user_aggregation = authorization.verify(vec![], &connection).await?;
+
     match ArticleLanguageService::patch(
         &connection,
         language_code,
@@ -91,6 +104,7 @@ async fn patch_article_language(
             enabled: patch_body.enabled,
             name: patch_body.name.clone(),
             archived: None,
+            user_id: user_aggregation.id,
         },
     )
     .await
@@ -104,9 +118,12 @@ async fn patch_article_language(
 #[delete("/<article_id>/language/<language_code>")]
 async fn delete_article_language(
     connection: connection::PgConnection,
+    authorization: Authorization,
     article_id: i32,
     language_code: String,
 ) -> Result<Json<ArticleLanguageAggregation>, status::Custom<String>> {
+    let user_aggregation = authorization.verify(vec![], &connection).await?;
+
     match ArticleLanguageService::patch(
         &connection,
         language_code,
@@ -115,6 +132,7 @@ async fn delete_article_language(
             archived: Some(true),
             enabled: None,
             name: None,
+            user_id: user_aggregation.id,
         },
     )
     .await
@@ -128,9 +146,14 @@ async fn delete_article_language(
 #[post("/<article_id>/language/<language_code>/restore")]
 async fn restore_article_language(
     connection: connection::PgConnection,
+    authorization: Authorization,
     article_id: i32,
     language_code: String,
 ) -> Result<Json<ArticleLanguageAggregation>, status::Custom<String>> {
+    let user_aggregation = authorization
+        .verify(vec![UserRoleId::Admin, UserRoleId::Moderator], &connection)
+        .await?;
+
     match ArticleLanguageService::patch(
         &connection,
         language_code,
@@ -139,6 +162,7 @@ async fn restore_article_language(
             archived: Some(false),
             enabled: None,
             name: None,
+            user_id: user_aggregation.id,
         },
     )
     .await

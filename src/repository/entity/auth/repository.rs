@@ -6,12 +6,27 @@ use super::model;
 
 use super::error::formatted_error::FmtError;
 
-use super::schema::auth::{UserAccountCreateDto, UserPasswordCreateDto};
+use super::schema::auth::{UserAccountCreateDto, UserPasswordCreateDto, UserPatchDto};
 use super::schema::user_role::UserRoleId;
 
 pub struct AuthRepository;
 
 impl AuthRepository {
+    pub async fn get_one_user(
+        connection: &connection::PgConnection,
+        id: i32,
+    ) -> Option<model::UserAccount> {
+        connection
+            .run(move |connection| {
+                db_schema::user_account::table
+                    .filter(db_schema::user_account::id.eq(id))
+                    .first(connection)
+                    .optional()
+            })
+            .await
+            .expect(&FmtError::FailedToFetch("user_account__user_password").fmt())
+    }
+
     pub async fn get_one_user_with_password(
         connection: &connection::PgConnection,
         email: String,
@@ -35,9 +50,10 @@ impl AuthRepository {
         diesel::insert_into(db_schema::user_account::table)
             .values(model::UserAccountInsertable {
                 id: None,
+                active: true,
 
                 email: creation_dto.email,
-                name: creation_dto.name,
+                name: creation_dto.name, // TODO throw valid unique error
 
                 role_id: UserRoleId::Common as i32,
 
@@ -61,5 +77,26 @@ impl AuthRepository {
                 created_at: None,
             })
             .get_result::<model::UserPassword>(connection)
+    }
+
+    pub async fn patch(connection: &connection::PgConnection, patch_dto: UserPatchDto) -> usize {
+        connection
+            .run(move |connection| {
+                diesel::update(db_schema::user_account::table)
+                    .filter(db_schema::user_account::id.eq(patch_dto.user_id))
+                    .set(model::UserAccountPatch {
+                        id: None,
+                        active: patch_dto.active,
+
+                        email: None,
+                        name: None,
+                        role_id: None,
+                        created_at: None,
+                        updated_at: None, // TODO updated by
+                    })
+                    .execute(connection)
+            })
+            .await
+            .expect(&FmtError::FailedToUpdate("user_account").fmt())
     }
 }

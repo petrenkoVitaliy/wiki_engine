@@ -91,10 +91,14 @@ impl ArticleLanguageRepository {
                 article_id: creation_dto.article_id,
                 language_id: creation_dto.language_id,
 
-                enabled: Some(true),
-                archived: Some(false),
+                enabled: true,
+                archived: false,
+
                 updated_at: None,
                 created_at: None,
+
+                updated_by: None,
+                created_by: creation_dto.user_id,
             })
             .get_result::<model::ArticleLanguage>(connection)
     }
@@ -117,12 +121,14 @@ impl ArticleLanguageRepository {
                         name: patch_dto.name,
                         enabled: patch_dto.enabled,
                         archived: patch_dto.archived,
+                        updated_by: patch_dto.user_id,
 
                         id: None,
                         article_id: None,
                         language_id: None,
                         updated_at: None,
                         created_at: None,
+                        created_by: None,
                     })
                     .execute(connection)
             })

@@ -8,7 +8,7 @@ use super::option_config::query_options::QueryOptions;
 use super::article_language::ArticleLanguageService;
 use super::language::LanguageService;
 
-use super::schema::article::{ArticleCreateRelationsDto, ArticlePatchDto};
+use super::schema::article::{ArticleCreateDto, ArticleCreateRelationsDto, ArticlePatchDto};
 use super::schema::article_language::ArticleLanguageCreateDto;
 use super::schema::article_version::ArticleVersionCreateDto;
 use super::schema::version_content::VersionContentDto;
@@ -131,8 +131,14 @@ impl ArticleService {
         creation_dto: ArticleCreateRelationsDto,
         language_id: i32,
     ) -> (Article, ArticleLanguage, VersionContent, ArticleVersion) {
-        let article = ArticleRepository::insert_raw(connection, creation_dto.article_type)
-            .expect(&FmtError::FailedToInsert("article").fmt());
+        let article = ArticleRepository::insert_raw(
+            connection,
+            ArticleCreateDto {
+                article_type: creation_dto.article_type,
+                user_id: creation_dto.user_id,
+            },
+        )
+        .expect(&FmtError::FailedToInsert("article").fmt());
 
         let article_language = ArticleLanguageRepository::insert_raw(
             connection,
@@ -140,6 +146,7 @@ impl ArticleService {
                 name: creation_dto.name,
                 article_id: article.id,
                 language_id: language_id,
+                user_id: creation_dto.user_id,
             },
         )
         .expect(&FmtError::FailedToInsert("article_language").fmt());
@@ -159,6 +166,7 @@ impl ArticleService {
                 version: 1,
                 article_language_id: article_language.id,
                 content_id: version_content.id,
+                user_id: creation_dto.user_id,
             },
         )
         .expect(&FmtError::FailedToInsert("article_version").fmt());

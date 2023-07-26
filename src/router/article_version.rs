@@ -3,11 +3,16 @@ use rocket_okapi::{
     okapi::schemars::gen::SchemaSettings, openapi, openapi_get_routes, settings::OpenApiSettings,
 };
 
+use super::authorization::Authorization;
 use super::connection;
 use super::option_config::query_options::QueryOptions;
 
-use super::schema::article_version::{
-    ArticleVersionCreateBody, ArticleVersionPatchBody, LanguageSearchDto,
+use super::schema::{
+    article_version::{
+        ArticleVersionCreateBody, ArticleVersionCreateRelationsDto, ArticleVersionPatchBody,
+        ArticleVersionPatchDto, LanguageSearchDto,
+    },
+    user_role::UserRoleId,
 };
 
 use super::service::article_version::ArticleVersionService;
@@ -100,16 +105,20 @@ async fn get_article_versions(
 )]
 async fn create_article_version(
     connection: connection::PgConnection,
+    authorization: Authorization,
     creation_body: Json<ArticleVersionCreateBody>,
     article_id: i32,
     language_code: String,
 ) -> Result<Json<ArticleVersionAggregation>, status::Custom<String>> {
+    let user_aggregation = authorization.verify(vec![], &connection).await?;
+
     match ArticleVersionService::insert(
         &connection,
         article_id,
         language_code,
-        ArticleVersionCreateBody {
+        ArticleVersionCreateRelationsDto {
             content: creation_body.content.to_string(),
+            user_id: user_aggregation.id,
         },
     )
     .await
@@ -126,18 +135,24 @@ async fn create_article_version(
 )]
 async fn patch_article_version(
     connection: connection::PgConnection,
+    authorization: Authorization,
     article_id: i32,
     version: i32,
     language_code: String,
     patch_body: Json<ArticleVersionPatchBody>,
 ) -> Result<Json<ArticleVersionAggregation>, status::Custom<String>> {
+    let user_aggregation = authorization
+        .verify(vec![UserRoleId::Admin, UserRoleId::Moderator], &connection)
+        .await?;
+
     match ArticleVersionService::patch(
         &connection,
         version,
         article_id,
         language_code,
-        ArticleVersionPatchBody {
+        ArticleVersionPatchDto {
             enabled: patch_body.enabled,
+            user_id: user_aggregation.id,
         },
     )
     .await

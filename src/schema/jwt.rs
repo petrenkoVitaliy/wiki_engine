@@ -10,6 +10,5 @@ pub struct TokenResponse {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Claims {
     pub user_id: i32,
-    pub role_id: i32,
     pub exp: usize,
 }

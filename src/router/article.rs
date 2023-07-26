@@ -3,12 +3,16 @@ use rocket_okapi::{
     okapi::schemars::gen::SchemaSettings, openapi, openapi_get_routes, settings::OpenApiSettings,
 };
 
+use super::authorization::Authorization;
 use super::connection;
 use super::option_config::query_options::QueryOptions;
 
 use super::aggregation::article::ArticleAggregation;
 
-use super::schema::article::{ArticleCreateRelationsDto, ArticlePatchBody, ArticlePatchDto};
+use super::schema::{
+    article::{ArticleCreateRelationsBody, ArticlePatchBody, ArticlePatchDto},
+    user_role::UserRoleId,
+};
 
 use super::service::article::ArticleService;
 
@@ -37,14 +41,17 @@ async fn get_article(
 }
 
 #[openapi]
-#[post("/", data = "<creation_dto>")]
+#[post("/", data = "<creation_body>")]
 async fn create_article(
     connection: connection::PgConnection,
-    creation_dto: Json<ArticleCreateRelationsDto>,
+    authorization: Authorization,
+    creation_body: Json<ArticleCreateRelationsBody>,
 ) -> Result<Json<ArticleAggregation>, status::Custom<String>> {
+    let user_aggregation = authorization.verify(vec![], &connection).await?;
+
     match ArticleService::insert(
         &connection,
-        ArticleCreateRelationsDto::from_json(creation_dto),
+        ArticleCreateRelationsBody::to_dto(creation_body, user_aggregation.id),
     )
     .await
     {
@@ -57,15 +64,21 @@ async fn create_article(
 #[patch("/<id>", data = "<patch_body>")]
 async fn patch_article(
     connection: connection::PgConnection,
+    authorization: Authorization,
     id: i32,
     patch_body: Json<ArticlePatchBody>,
 ) -> Result<Json<ArticleAggregation>, status::Custom<String>> {
+    let user_aggregation = authorization
+        .verify(vec![UserRoleId::Moderator, UserRoleId::Admin], &connection)
+        .await?;
+
     match ArticleService::patch(
         &connection,
         ArticlePatchDto {
             id,
             enabled: Some(patch_body.enabled),
             archived: None,
+            user_id: user_aggregation.id,
         },
     )
     .await
@@ -79,14 +92,18 @@ async fn patch_article(
 #[delete("/<id>")]
 async fn delete_article(
     connection: connection::PgConnection,
+    authorization: Authorization,
     id: i32,
 ) -> Result<Json<ArticleAggregation>, status::Custom<String>> {
+    let user_aggregation = authorization.verify(vec![], &connection).await?;
+
     match ArticleService::patch(
         &connection,
         ArticlePatchDto {
             id,
             enabled: None,
             archived: Some(true),
+            user_id: user_aggregation.id,
         },
     )
     .await
@@ -100,14 +117,20 @@ async fn delete_article(
 #[post("/<id>/restore")]
 async fn restore_article(
     connection: connection::PgConnection,
+    authorization: Authorization,
     id: i32,
 ) -> Result<Json<ArticleAggregation>, status::Custom<String>> {
+    let user_aggregation = authorization
+        .verify(vec![UserRoleId::Moderator, UserRoleId::Admin], &connection)
+        .await?;
+
     match ArticleService::patch(
         &connection,
         ArticlePatchDto {
             id,
             enabled: None,
             archived: Some(false),
+            user_id: user_aggregation.id,
         },
     )
     .await

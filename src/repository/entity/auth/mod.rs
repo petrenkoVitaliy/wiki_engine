@@ -6,5 +6,5 @@ use super::schema;
 mod model;
 mod repository;
 
-pub use self::model::{UserAccount, UserPassword};
+pub use self::model::{UserAccount, UserPassword, UserRole};
 pub use self::repository::AuthRepository;

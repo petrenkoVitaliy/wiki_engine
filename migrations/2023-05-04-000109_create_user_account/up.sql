@@ -3,6 +3,7 @@ CREATE TABLE user_account(
     
     email VARCHAR(255) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL UNIQUE,
+    active BOOLEAN DEFAULT true NOT NULL,
 
     role_id INT NOT NULL,
     FOREIGN KEY (role_id) REFERENCES user_role(id),

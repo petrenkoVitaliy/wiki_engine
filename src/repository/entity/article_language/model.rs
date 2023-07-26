@@ -19,6 +19,9 @@ pub struct ArticleLanguagePatch {
 
     pub updated_at: Option<NaiveDateTime>,
     pub created_at: Option<NaiveDateTime>,
+
+    pub updated_by: i32,
+    pub created_by: Option<i32>,
 }
 
 #[derive(Queryable, Debug, Insertable, Serialize, Deserialize)]
@@ -27,14 +30,17 @@ pub struct ArticleLanguageInsertable {
     pub id: Option<i32>,
     pub name: String,
 
-    pub enabled: Option<bool>,
-    pub archived: Option<bool>,
+    pub enabled: bool,
+    pub archived: bool,
 
     pub article_id: i32,
     pub language_id: i32,
 
     pub updated_at: Option<NaiveDateTime>,
     pub created_at: Option<NaiveDateTime>,
+
+    pub updated_by: Option<i32>,
+    pub created_by: i32,
 }
 
 #[derive(Queryable, Debug, Serialize, Deserialize, Selectable)]
@@ -51,4 +57,7 @@ pub struct ArticleLanguage {
 
     pub updated_at: Option<NaiveDateTime>,
     pub created_at: NaiveDateTime,
+
+    pub updated_by: Option<i32>,
+    pub created_by: i32,
 }

@@ -7,7 +7,7 @@ use super::connection;
 use super::db_schema;
 use super::model;
 
-use super::schema::article::ArticlePatchDto;
+use super::schema::article::{ArticleCreateDto, ArticlePatchDto};
 
 pub struct ArticleRepository {}
 
@@ -67,13 +67,16 @@ impl ArticleRepository {
             .run(move |connection| {
                 diesel::update(db_schema::article::table)
                     .filter(db_schema::article::id.eq(patch_dto.id))
-                    .set(model::ArticleInsertable {
-                        id: None,
+                    .set(model::ArticlePatch {
                         enabled: patch_dto.enabled,
                         archived: patch_dto.archived,
+                        updated_by: patch_dto.user_id,
+
+                        id: None,
                         article_type: None,
                         updated_at: None,
                         created_at: None,
+                        created_by: None,
                     })
                     .execute(connection)
             })
@@ -83,16 +86,18 @@ impl ArticleRepository {
 
     pub fn insert_raw(
         connection: &mut diesel::PgConnection,
-        article_type: model::ArticleType,
+        creation_dto: ArticleCreateDto,
     ) -> Result<model::Article, diesel::result::Error> {
         diesel::insert_into(db_schema::article::table)
             .values(model::ArticleInsertable {
                 id: None,
-                enabled: Some(true),
-                archived: Some(false),
-                article_type: Some(article_type),
+                enabled: true,
+                archived: false,
+                article_type: creation_dto.article_type,
                 updated_at: None,
                 created_at: None,
+                updated_by: None,
+                created_by: creation_dto.user_id,
             })
             .get_result::<model::Article>(connection)
     }

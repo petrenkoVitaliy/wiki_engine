@@ -1,4 +1,4 @@
-use rocket::{post, response::status, serde::json::Json};
+use rocket::{patch, post, response::status, serde::json::Json};
 use rocket_okapi::{
     okapi::schemars::gen::SchemaSettings, openapi, openapi_get_routes, settings::OpenApiSettings,
 };
@@ -8,7 +8,7 @@ use super::connection;
 
 use super::aggregation::user_account::UserAccountAggregation;
 
-use super::schema::auth::{UserLoginBody, UserSignupBody};
+use super::schema::auth::{UserLoginBody, UserPatchBody, UserPatchDto, UserSignupBody};
 use super::schema::jwt::TokenResponse;
 use super::schema::user_role::UserRoleId;
 
@@ -38,13 +38,44 @@ async fn login(
     }
 }
 
-// TODO rm
 #[openapi]
-#[post("/test")]
-async fn test_jwt(authorization: Authorization) -> Result<Json<String>, status::Custom<String>> {
-    authorization.verify(vec![UserRoleId::Admin, UserRoleId::Common])?;
+#[post("/check")]
+async fn test_jwt(
+    connection: connection::PgConnection,
+    authorization: Authorization,
+) -> Result<Json<String>, status::Custom<String>> {
+    authorization
+        .verify(vec![UserRoleId::Admin, UserRoleId::Common], &connection)
+        .await?;
 
     Ok(Json(String::from("ok")))
+}
+
+#[openapi]
+#[patch("/user/<user_id>", data = "<patch_body>")]
+async fn patch_user(
+    connection: connection::PgConnection,
+    authorization: Authorization,
+    user_id: i32,
+    patch_body: Json<UserPatchBody>,
+) -> Result<Json<UserAccountAggregation>, status::Custom<String>> {
+    let user_aggregation = authorization
+        .verify(vec![UserRoleId::Admin, UserRoleId::Moderator], &connection)
+        .await?;
+
+    match AuthService::patch(
+        &connection,
+        UserPatchDto {
+            user_id,
+            updated_by: user_aggregation.id,
+            active: patch_body.active,
+        },
+    )
+    .await
+    {
+        Ok(user_account_aggregation) => Ok(Json(user_account_aggregation)),
+        Err(e) => Err(e.custom()),
+    }
 }
 
 pub fn routes() -> Vec<rocket::Route> {
@@ -58,5 +89,6 @@ pub fn routes() -> Vec<rocket::Route> {
         signup,
         login,
         test_jwt,
+        patch_user,
     ]
 }

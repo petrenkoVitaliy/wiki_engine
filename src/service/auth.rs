@@ -8,7 +8,7 @@ use super::aggregation::user_account::UserAccountAggregation;
 
 use super::schema::auth::{
     UserAccountCreateDto, UserCreateRelationsDto, UserLoginBody, UserPasswordCreateDto,
-    UserSignupBody,
+    UserPatchDto, UserSignupBody,
 };
 use super::schema::jwt::TokenResponse;
 
@@ -18,6 +18,18 @@ use super::repository::entity::auth::{AuthRepository, UserAccount, UserPassword}
 pub struct AuthService;
 
 impl AuthService {
+    pub async fn get_aggregation(
+        connection: &connection::PgConnection,
+        user_id: i32,
+    ) -> Result<UserAccountAggregation, ErrorWrapper> {
+        let user_account = match AuthRepository::get_one_user(connection, user_id).await {
+            None => return FmtError::NotFound("user_account").error(),
+            Some(user_account) => user_account,
+        };
+
+        Ok(UserAccountAggregation::from_model(user_account))
+    }
+
     pub async fn login(
         connection: &connection::PgConnection,
         user_signup_body: UserLoginBody,
@@ -27,18 +39,22 @@ impl AuthService {
                 .await
             {
                 Some((user_password, user_account)) => (user_password, user_account),
-                None => return FmtError::NotFound("user_account").error(),
+                None => return FmtError::Unauthorized("invalid credentials").error(),
             };
+
+        if !user_account.active {
+            return FmtError::PermissionDenied("not enough rights").error();
+        }
 
         match Hasher::verify_encoded(user_signup_body.password, user_password.password) {
             Ok(is_correct) => match is_correct {
-                false => return FmtError::Unauthorized("invalid password").error(),
+                false => return FmtError::Unauthorized("invalid credentials").error(),
                 _ => (),
             },
             Err(e) => return Err(e),
         };
 
-        match JwtHandler::encode_jwt(user_account.id, user_account.role_id) {
+        match JwtHandler::encode_jwt(user_account.id) {
             Ok(jwt_string) => Ok(TokenResponse { token: jwt_string }),
             Err(e) => return Err(e),
         }
@@ -69,6 +85,20 @@ impl AuthService {
         };
 
         Ok(UserAccountAggregation::from_model(user_account))
+    }
+
+    pub async fn patch(
+        connection: &connection::PgConnection,
+        patch_dto: UserPatchDto,
+    ) -> Result<UserAccountAggregation, ErrorWrapper> {
+        let user_id = patch_dto.user_id;
+        let updated_count = AuthRepository::patch(connection, patch_dto).await;
+
+        if updated_count == 0 {
+            return FmtError::NotFound("user_account").error();
+        }
+
+        Self::get_aggregation(connection, user_id).await
     }
 
     async fn create_relations_transaction(

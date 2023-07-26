@@ -13,6 +13,11 @@ CREATE TABLE article_version (
     updated_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW() NOT NULL,
 
+    updated_by INT,
+    FOREIGN KEY (updated_by) REFERENCES user_account(id),
+    created_by INT NOT NULL,
+    FOREIGN KEY (created_by) REFERENCES user_account(id),
+
     CONSTRAINT version_per_article_language UNIQUE (version, article_language_id)
 );
 

@@ -13,12 +13,15 @@ pub struct ArticleVersionInsertable {
     pub version: i32,
     pub content_id: i32,
 
-    pub enabled: Option<bool>,
+    pub enabled: bool,
 
     pub article_language_id: i32,
 
     pub updated_at: Option<NaiveDateTime>,
     pub created_at: Option<NaiveDateTime>,
+
+    pub updated_by: Option<i32>,
+    pub created_by: i32,
 }
 
 #[derive(Queryable, Debug, Insertable, Serialize, Deserialize, AsChangeset)]
@@ -29,12 +32,15 @@ pub struct ArticleVersionPatch {
     pub version: Option<i32>,
     pub content_id: Option<i32>,
 
-    pub enabled: Option<bool>,
+    pub enabled: bool,
 
     pub article_language_id: Option<i32>,
 
     pub updated_at: Option<NaiveDateTime>,
     pub created_at: Option<NaiveDateTime>,
+
+    pub updated_by: i32,
+    pub created_by: Option<i32>,
 }
 
 #[derive(Queryable, Debug, Serialize, Deserialize, QueryableByName)]
@@ -51,10 +57,7 @@ pub struct ArticleVersion {
 
     pub updated_at: Option<NaiveDateTime>,
     pub created_at: NaiveDateTime,
-}
 
-#[derive(Queryable, Debug, Serialize, Deserialize, QueryableByName)]
-pub struct RawIdStruct {
-    #[diesel(sql_type = diesel::sql_types::Int4)]
-    pub id: i32,
+    pub updated_by: Option<i32>,
+    pub created_by: i32,
 }

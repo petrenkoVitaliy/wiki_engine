@@ -7,12 +7,20 @@ use super::db_schema::user_account;
 use super::db_schema::user_password;
 
 #[derive(Queryable, Debug, Serialize, Deserialize)]
+#[diesel(table_name = user_role)]
+pub struct UserRole {
+    pub id: i32,
+    pub role: String,
+}
+
+#[derive(Queryable, Debug, Serialize, Deserialize)]
 #[diesel(table_name = user_account)]
 pub struct UserAccount {
     pub id: i32,
 
     pub email: String,
     pub name: String,
+    pub active: bool,
 
     pub role_id: i32,
 
@@ -27,8 +35,25 @@ pub struct UserAccountInsertable {
 
     pub email: String,
     pub name: String,
+    pub active: bool,
 
     pub role_id: i32,
+
+    pub updated_at: Option<Option<NaiveDateTime>>,
+    pub created_at: Option<NaiveDateTime>,
+}
+
+#[derive(Queryable, Debug, Insertable, Serialize, Deserialize, AsChangeset)]
+#[diesel(table_name = user_account)]
+pub struct UserAccountPatch {
+    pub id: Option<i32>,
+
+    pub email: Option<String>,
+    pub name: Option<String>,
+
+    pub active: bool,
+
+    pub role_id: Option<i32>,
 
     pub updated_at: Option<Option<NaiveDateTime>>,
     pub created_at: Option<NaiveDateTime>,
