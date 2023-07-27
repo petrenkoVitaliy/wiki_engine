@@ -93,8 +93,17 @@ async fn patch_article_language(
     article_id: i32,
     language_code: String,
 ) -> Result<Json<ArticleLanguageAggregation>, status::Custom<String>> {
-    // TODO enabled -> admin + moder only
-    let user_aggregation = authorization.verify(vec![], &connection).await?;
+    let get_allowed_roles = || {
+        if patch_body.enabled.is_some() {
+            return vec![UserRoleId::Admin, UserRoleId::Moderator];
+        }
+
+        vec![]
+    };
+
+    let user_aggregation = authorization
+        .verify(get_allowed_roles(), &connection)
+        .await?;
 
     match ArticleLanguageService::patch(
         &connection,

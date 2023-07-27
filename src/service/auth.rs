@@ -64,13 +64,12 @@ impl AuthService {
         connection: &connection::PgConnection,
         user_signup_body: UserSignupBody,
     ) -> Result<UserAccountAggregation, ErrorWrapper> {
-        // TODO if exists??
         let password_hash = match Hasher::hash_password(user_signup_body.password) {
             Ok(password_hash) => password_hash,
             Err(e) => return Err(e),
         };
 
-        let user_account = match Self::create_relations_transaction(
+        let (user_account, _) = Self::create_relations_transaction(
             connection,
             UserCreateRelationsDto {
                 password_hash,
@@ -78,11 +77,7 @@ impl AuthService {
                 name: user_signup_body.name,
             },
         )
-        .await
-        {
-            Ok((user_account, _)) => user_account,
-            Err(_) => return FmtError::FailedToInsert("user_account").error(),
-        };
+        .await?;
 
         Ok(UserAccountAggregation::from_model(user_account))
     }
@@ -104,15 +99,14 @@ impl AuthService {
     async fn create_relations_transaction(
         connection: &connection::PgConnection,
         creation_dto: UserCreateRelationsDto,
-    ) -> Result<(UserAccount, UserPassword), diesel::result::Error> {
+    ) -> Result<(UserAccount, UserPassword), ErrorWrapper> {
         connection
             .run(move |connection| {
-                return connection
-                    .transaction::<(UserAccount, UserPassword), diesel::result::Error, _>(
-                        |transaction_connection| {
-                            Ok(Self::create_relations(transaction_connection, creation_dto))
-                        },
-                    );
+                return connection.transaction::<(UserAccount, UserPassword), ErrorWrapper, _>(
+                    |transaction_connection| {
+                        Self::create_relations(transaction_connection, creation_dto)
+                    },
+                );
             })
             .await
     }
@@ -120,15 +114,22 @@ impl AuthService {
     fn create_relations(
         connection: &mut diesel::PgConnection,
         creation_dto: UserCreateRelationsDto,
-    ) -> (UserAccount, UserPassword) {
-        let user_account = AuthRepository::insert_user_account_raw(
+    ) -> Result<(UserAccount, UserPassword), ErrorWrapper> {
+        let user_account = match AuthRepository::insert_user_account_raw(
             connection,
             UserAccountCreateDto {
                 email: creation_dto.email,
                 name: creation_dto.name,
             },
-        )
-        .expect(&FmtError::FailedToInsert("user_account").fmt());
+        ) {
+            Ok(user_account) => user_account,
+            Err(e) => {
+                return Err(ErrorWrapper::from_duplicated_key(
+                    e,
+                    FmtError::FailedToInsert("user_account").error_wrapper(),
+                ));
+            }
+        };
 
         let user_password = AuthRepository::insert_user_password_raw(
             connection,
@@ -139,6 +140,6 @@ impl AuthService {
         )
         .expect(&FmtError::FailedToInsert("user_password").fmt());
 
-        (user_account, user_password)
+        Ok((user_account, user_password))
     }
 }

@@ -16,6 +16,8 @@ pub struct UserAccountAggregation {
 
     pub updated_at: Option<NaiveDateTime>,
     pub created_at: NaiveDateTime,
+
+    pub updated_by: Option<i32>,
 }
 
 impl UserAccountAggregation {
@@ -29,6 +31,8 @@ impl UserAccountAggregation {
 
             updated_at: user_account.updated_at,
             created_at: user_account.created_at,
+
+            updated_by: user_account.updated_by,
         }
     }
 }

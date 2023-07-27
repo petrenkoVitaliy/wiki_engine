@@ -6,8 +6,8 @@ TODOs
     [DONE] - add article type (private, public, protected, restricted)
     [DONE] - add createdBy to article, article_language, article_version
     [DONE] - add user is active
-
-    - add updatedBy to user_account
+    [DONE] - add updatedBy to user_account
+    
     - align tests
     - align imports & dtos
 

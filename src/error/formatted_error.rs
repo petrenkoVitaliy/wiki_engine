@@ -4,26 +4,34 @@ pub enum FmtError<'input> {
     FailedToProcess(&'input str),
     EmptyValue(&'input str),
     NotFound(&'input str),
+    AlreadyExists(&'input str),
+
     FailedToFetch(&'input str),
     FailedToInsert(&'input str),
     FailedToUpdate(&'input str),
-    AlreadyExists(&'input str),
+
     Unauthorized(&'input str),
     PermissionDenied(&'input str),
+
+    DatabaseError(&'input str),
 }
 
 impl<'input> FmtError<'input> {
     pub fn fmt(&self) -> String {
         match self {
+            FmtError::FailedToProcess(s) => format!("Failed to process entity: {}", s),
+            FmtError::EmptyValue(s) => format!("Empty: {}", s),
             FmtError::NotFound(s) => format!("Entity not found: {}", s),
+            FmtError::AlreadyExists(s) => format!("Entity already exists: {}", s),
+
             FmtError::FailedToFetch(s) => format!("Failed to fetch: {}", s),
             FmtError::FailedToInsert(s) => format!("Failed to insert: {}", s),
             FmtError::FailedToUpdate(s) => format!("Failed to update: {}", s),
-            FmtError::AlreadyExists(s) => format!("Entity already exists: {}", s),
-            FmtError::FailedToProcess(s) => format!("Failed to process entity: {}", s),
+
             FmtError::Unauthorized(s) => format!("Not authorized: {}", s),
             FmtError::PermissionDenied(s) => format!("Permission denied: {}", s),
-            FmtError::EmptyValue(s) => format!("Empty: {}", s),
+
+            FmtError::DatabaseError(s) => format!("Database error: {}", s),
         }
     }
 

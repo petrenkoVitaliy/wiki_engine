@@ -26,6 +26,8 @@ pub struct UserAccount {
 
     pub updated_at: Option<NaiveDateTime>,
     pub created_at: NaiveDateTime,
+
+    pub updated_by: Option<i32>,
 }
 
 #[derive(Queryable, Debug, Insertable, Serialize, Deserialize, AsChangeset)]
@@ -41,6 +43,8 @@ pub struct UserAccountInsertable {
 
     pub updated_at: Option<Option<NaiveDateTime>>,
     pub created_at: Option<NaiveDateTime>,
+
+    pub updated_by: Option<i32>,
 }
 
 #[derive(Queryable, Debug, Insertable, Serialize, Deserialize, AsChangeset)]
@@ -57,6 +61,8 @@ pub struct UserAccountPatch {
 
     pub updated_at: Option<Option<NaiveDateTime>>,
     pub created_at: Option<NaiveDateTime>,
+
+    pub updated_by: i32,
 }
 
 #[derive(Queryable, Debug, Serialize, Deserialize, Selectable)]

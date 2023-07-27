@@ -9,7 +9,10 @@ CREATE TABLE user_account(
     FOREIGN KEY (role_id) REFERENCES user_role(id),
 
     updated_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT NOW() NOT NULL
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+
+    updated_by INT,
+    FOREIGN KEY (updated_by) REFERENCES user_account(id)
 );
 
 CREATE  FUNCTION update_user_account_updated_at()

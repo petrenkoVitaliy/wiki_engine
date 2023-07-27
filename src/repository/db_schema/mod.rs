@@ -72,6 +72,7 @@ diesel::table! {
         role_id -> Int4,
         updated_at -> Nullable<Timestamp>,
         created_at -> Timestamp,
+        updated_by -> Nullable<Int4>,
     }
 }
 

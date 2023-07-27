@@ -53,12 +53,13 @@ impl AuthRepository {
                 active: true,
 
                 email: creation_dto.email,
-                name: creation_dto.name, // TODO throw valid unique error
+                name: creation_dto.name,
 
                 role_id: UserRoleId::Common as i32,
 
                 updated_at: None,
                 created_at: None,
+                updated_by: None,
             })
             .get_result::<model::UserAccount>(connection)
     }
@@ -87,12 +88,13 @@ impl AuthRepository {
                     .set(model::UserAccountPatch {
                         id: None,
                         active: patch_dto.active,
+                        updated_by: patch_dto.updated_by,
 
                         email: None,
                         name: None,
                         role_id: None,
                         created_at: None,
-                        updated_at: None, // TODO updated by
+                        updated_at: None,
                     })
                     .execute(connection)
             })
