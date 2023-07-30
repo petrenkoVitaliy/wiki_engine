@@ -29,7 +29,7 @@ impl UserSignupBody {
     }
 }
 
-#[derive(Deserialize, Serialize, JsonSchema)]
+#[derive(Deserialize, Serialize, JsonSchema, Debug)]
 pub struct UserLoginBody {
     pub email: String,
     pub password: String,
@@ -44,10 +44,10 @@ impl UserLoginBody {
     }
 }
 
-#[derive(Deserialize, JsonSchema, Serialize)]
 pub struct UserAccountCreateDto {
     pub email: String,
     pub name: String,
+    pub role_id: i32,
 }
 
 #[derive(Deserialize, JsonSchema, Serialize)]
@@ -61,4 +61,5 @@ pub struct UserCreateRelationsDto {
     pub email: String,
     pub name: String,
     pub password_hash: String,
+    pub role_id: i32,
 }

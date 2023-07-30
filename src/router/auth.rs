@@ -27,6 +27,26 @@ async fn signup(
 }
 
 #[openapi]
+#[post("/signup/role/<role_id>", data = "<user_signup_body>")]
+#[allow(dead_code)] // for tests
+async fn signup_with_role(
+    connection: connection::PgConnection,
+    user_signup_body: Json<UserSignupBody>,
+    role_id: i32,
+) -> Result<Json<TokenResponse>, status::Custom<String>> {
+    match AuthService::create_user_with_role(
+        &connection,
+        UserSignupBody::from_json(user_signup_body),
+        role_id,
+    )
+    .await
+    {
+        Ok(token_response) => Ok(Json(token_response)),
+        Err(e) => Err(e.custom()),
+    }
+}
+
+#[openapi]
 #[post("/login", data = "<user_login_body>")]
 async fn login(
     connection: connection::PgConnection,
@@ -90,5 +110,21 @@ pub fn routes() -> Vec<rocket::Route> {
         login,
         test_jwt,
         patch_user,
+    ]
+}
+
+pub fn _test_routes() -> Vec<rocket::Route> {
+    let settings = OpenApiSettings {
+        json_path: "/auth.json".to_owned(),
+        schema_settings: SchemaSettings::openapi3(),
+    };
+
+    openapi_get_routes![
+        settings:
+        signup,
+        login,
+        test_jwt,
+        patch_user,
+        signup_with_role,
     ]
 }

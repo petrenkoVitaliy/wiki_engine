@@ -11,6 +11,7 @@ use super::schema::auth::{
     UserPatchDto, UserSignupBody,
 };
 use super::schema::jwt::TokenResponse;
+use super::schema::user_role::UserRoleId;
 
 use super::repository::connection;
 use super::repository::entity::auth::{AuthRepository, UserAccount, UserPassword};
@@ -75,11 +76,39 @@ impl AuthService {
                 password_hash,
                 email: user_signup_body.email,
                 name: user_signup_body.name,
+                role_id: UserRoleId::Common as i32,
             },
         )
         .await?;
 
         Ok(UserAccountAggregation::from_model(user_account))
+    }
+
+    pub async fn create_user_with_role(
+        connection: &connection::PgConnection,
+        user_signup_body: UserSignupBody,
+        role_id: i32,
+    ) -> Result<TokenResponse, ErrorWrapper> {
+        let password_hash = match Hasher::hash_password(user_signup_body.password) {
+            Ok(password_hash) => password_hash,
+            Err(e) => return Err(e),
+        };
+
+        let (user_account, _) = Self::create_relations_transaction(
+            connection,
+            UserCreateRelationsDto {
+                role_id,
+                password_hash,
+                email: user_signup_body.email,
+                name: user_signup_body.name,
+            },
+        )
+        .await?;
+
+        match JwtHandler::encode_jwt(user_account.id) {
+            Ok(jwt_string) => Ok(TokenResponse { token: jwt_string }),
+            Err(e) => return Err(e),
+        }
     }
 
     pub async fn patch(
@@ -120,6 +149,7 @@ impl AuthService {
             UserAccountCreateDto {
                 email: creation_dto.email,
                 name: creation_dto.name,
+                role_id: creation_dto.role_id,
             },
         ) {
             Ok(user_account) => user_account,

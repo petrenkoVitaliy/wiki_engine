@@ -1,8 +1,7 @@
-use rocket::serde::Deserialize;
-use rocket::serde::Serialize;
+use rocket::serde::{Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 
-#[derive(Serialize, JsonSchema)]
+#[derive(Serialize, JsonSchema, Deserialize)]
 pub struct TokenResponse {
     pub token: String,
 }

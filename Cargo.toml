@@ -11,6 +11,7 @@ rocket_sync_db_pools = { version = "0.1.0-rc.3", features = ["diesel_postgres_po
 dotenv = { version = "0.15.0"}
 rocket_okapi = { version = "0.8.0-rc.3", features = ["swagger"] }
 schemars = { features = ["chrono"] }
+tokio = "1.29.1"
 
 serde = { version = "1.0", features = ["derive"] }
 chrono = { version = "0.4.24", features = ["serde"]}
@@ -23,3 +24,4 @@ flate2 = "1.0.26"
 parking_lot = "0.12.1"
 jsonwebtoken = "8.3.0"
 rust-argon2 = "1.0.0"
+lazy_static = "1.4"

@@ -3,7 +3,7 @@ use chrono::Utc;
 use super::aggregation::article::ArticleAggregation;
 use super::ArticleType;
 
-use super::schema::article::ArticleCreateRelationsDto;
+use super::schema::article::ArticleCreateRelationsBody;
 
 use super::article_language::{ArticleLanguageMockHandler, ArticleLanguageMockOptions};
 
@@ -17,21 +17,20 @@ pub struct ArticleMockOptions {
 }
 
 impl ArticleMockOptions {
-    pub fn from_creation_dto(creation_dto: ArticleCreateRelationsDto) -> Self {
+    pub fn from_creation_body(creation_body: ArticleCreateRelationsBody) -> Self {
         Self {
             enabled: true,
             archived: false,
 
-            content: String::from(creation_dto.content),
-            language: String::from(creation_dto.language),
-            name: String::from(creation_dto.name),
-            article_type: creation_dto.article_type,
+            content: String::from(creation_body.content),
+            language: String::from(creation_body.language),
+            name: String::from(creation_body.name),
+            article_type: creation_body.article_type,
         }
     }
 }
 
-pub struct ArticleMockHandler {}
-
+pub struct ArticleMockHandler;
 impl ArticleMockHandler {
     pub fn get_article_aggregation(create_dto: ArticleMockOptions) -> ArticleAggregation {
         ArticleAggregation {

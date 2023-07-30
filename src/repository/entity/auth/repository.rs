@@ -7,7 +7,6 @@ use super::model;
 use super::error::formatted_error::FmtError;
 
 use super::schema::auth::{UserAccountCreateDto, UserPasswordCreateDto, UserPatchDto};
-use super::schema::user_role::UserRoleId;
 
 pub struct AuthRepository;
 
@@ -54,8 +53,7 @@ impl AuthRepository {
 
                 email: creation_dto.email,
                 name: creation_dto.name,
-
-                role_id: UserRoleId::Common as i32,
+                role_id: creation_dto.role_id,
 
                 updated_at: None,
                 created_at: None,

@@ -1,4 +1,4 @@
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum UserRoleId {
     Common = 1,
     Moderator = 2,

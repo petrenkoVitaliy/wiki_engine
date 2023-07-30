@@ -7,9 +7,10 @@ TODOs
     [DONE] - add createdBy to article, article_language, article_version
     [DONE] - add user is active
     [DONE] - add updatedBy to user_account
-    
-    - align tests
+    [DONE] - align tests
+
     - align imports & dtos
+    - add tests coverage
 
     - FE init
 
