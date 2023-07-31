@@ -19,18 +19,6 @@ pub struct Authorization {
 }
 
 impl Authorization {
-    async fn get_user(
-        connection: &PgConnection,
-        user_id: i32,
-    ) -> Result<UserAccountAggregation, status::Custom<String>> {
-        match AuthRepository::get_one_user(connection, user_id).await {
-            Some(user_account) => Ok(UserAccountAggregation::from_model(user_account)),
-            None => Err(FmtError::PermissionDenied("not enough rights")
-                .error_wrapper()
-                .custom()),
-        }
-    }
-
     pub async fn verify(
         self,
         allowed_roles: Vec<UserRoleId>,
@@ -61,6 +49,18 @@ impl Authorization {
             }) {
             Some(_) => Ok(user),
             _ => Err(FmtError::PermissionDenied("not enough rights")
+                .error_wrapper()
+                .custom()),
+        }
+    }
+
+    async fn get_user(
+        connection: &PgConnection,
+        user_id: i32,
+    ) -> Result<UserAccountAggregation, status::Custom<String>> {
+        match AuthRepository::get_one_user(connection, user_id).await {
+            Some(user_account) => Ok(UserAccountAggregation::from_model(user_account)),
+            None => Err(FmtError::PermissionDenied("not enough rights")
                 .error_wrapper()
                 .custom()),
         }

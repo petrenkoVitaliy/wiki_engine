@@ -3,6 +3,8 @@ use std::env;
 
 use super::error::{ErrorWrapper, FmtError};
 
+const ARGON_SECRET_ENV: &str = "ARGON_SECRET";
+
 pub struct Hasher;
 
 impl Hasher {
@@ -14,7 +16,7 @@ impl Hasher {
     }
 
     pub fn hash_password(password: String) -> Result<String, ErrorWrapper> {
-        let salt = env::var("ARGON_SECRET").expect(&FmtError::EmptyValue("ARGON_SECRET").fmt());
+        let salt = env::var(ARGON_SECRET_ENV).expect(&FmtError::EmptyValue(ARGON_SECRET_ENV).fmt());
 
         let config = Config::default();
         match argon2::hash_encoded(password.as_bytes(), salt.as_bytes(), &config) {

@@ -8,17 +8,17 @@ edition = "2021"
 [dependencies]
 rocket = { version = "=0.5.0-rc.3", features = ["json"] }
 rocket_sync_db_pools = { version = "0.1.0-rc.3", features = ["diesel_postgres_pool"]}
-dotenv = { version = "0.15.0"}
 rocket_okapi = { version = "0.8.0-rc.3", features = ["swagger"] }
 schemars = { features = ["chrono"] }
-tokio = "1.29.1"
 
 serde = { version = "1.0", features = ["derive"] }
 chrono = { version = "0.4.24", features = ["serde"]}
 diesel = { version = "2.0.4", features = ["postgres", "chrono"] }
-diesel_cli = { version = "1.4.1", default-features = false, features = ["postgres"] }
+diesel_cli = { version = "2.1.0", default-features = false, features = ["postgres"] }
 diesel-derive-enum = { version = "2.1.0", features = ["postgres"] }
 
+tokio = "1.29.1"
+dotenv = { version = "0.15.0"}
 bsdiff = "0.1.6"
 flate2 = "1.0.26"
 parking_lot = "0.12.1"
