@@ -4,14 +4,14 @@ use rocket_okapi::{
 };
 
 use super::authorization::Authorization;
-use super::connection;
-use super::option_config::query_options::QueryOptions;
+use super::dtm_common::{QueryOptions, UserRoleId};
+use super::repository::PgConnection;
+use super::trait_common::DtoConvert;
 
 use super::aggregation::article::ArticleAggregation;
-
-use super::schema::{
-    article::{ArticleCreateRelationsBody, ArticlePatchBody, ArticlePatchDto},
-    user_role::UserRoleId,
+use super::dtm::article::{
+    dto::ArticlePatchDto,
+    request_body::{ArticleCreateRelationsBody, ArticlePatchBody},
 };
 
 use super::service::article::ArticleService;
@@ -19,7 +19,7 @@ use super::service::article::ArticleService;
 #[openapi]
 #[get("/")]
 async fn get_articles(
-    connection: connection::PgConnection,
+    connection: PgConnection,
 ) -> Result<Json<Vec<ArticleAggregation>>, status::Custom<String>> {
     let article_aggregation =
         ArticleService::get_aggregations(&connection, &QueryOptions { is_actual: true }).await;
@@ -30,7 +30,7 @@ async fn get_articles(
 #[openapi]
 #[get("/<id>")]
 async fn get_article(
-    connection: connection::PgConnection,
+    connection: PgConnection,
     id: i32,
 ) -> Result<Json<ArticleAggregation>, status::Custom<String>> {
     match ArticleService::get_aggregation(&connection, id, &QueryOptions { is_actual: true }).await
@@ -43,18 +43,13 @@ async fn get_article(
 #[openapi]
 #[post("/", data = "<creation_body>")]
 async fn create_article(
-    connection: connection::PgConnection,
+    connection: PgConnection,
     authorization: Authorization,
     creation_body: Json<ArticleCreateRelationsBody>,
 ) -> Result<Json<ArticleAggregation>, status::Custom<String>> {
     let user_aggregation = authorization.verify(vec![], &connection).await?;
 
-    match ArticleService::insert(
-        &connection,
-        ArticleCreateRelationsBody::to_dto(creation_body, user_aggregation.id),
-    )
-    .await
-    {
+    match ArticleService::insert(&connection, creation_body.0.into_dto(user_aggregation.id)).await {
         Ok(article_aggregation) => Ok(Json(article_aggregation)),
         Err(e) => Err(e.custom()),
     }
@@ -63,7 +58,7 @@ async fn create_article(
 #[openapi]
 #[patch("/<id>", data = "<patch_body>")]
 async fn patch_article(
-    connection: connection::PgConnection,
+    connection: PgConnection,
     authorization: Authorization,
     id: i32,
     patch_body: Json<ArticlePatchBody>,
@@ -74,12 +69,7 @@ async fn patch_article(
 
     match ArticleService::patch(
         &connection,
-        ArticlePatchDto {
-            id,
-            enabled: Some(patch_body.enabled),
-            archived: None,
-            user_id: user_aggregation.id,
-        },
+        patch_body.0.into_dto((id, user_aggregation.id)),
     )
     .await
     {
@@ -91,7 +81,7 @@ async fn patch_article(
 #[openapi]
 #[delete("/<id>")]
 async fn delete_article(
-    connection: connection::PgConnection,
+    connection: PgConnection,
     authorization: Authorization,
     id: i32,
 ) -> Result<Json<ArticleAggregation>, status::Custom<String>> {
@@ -116,7 +106,7 @@ async fn delete_article(
 #[openapi]
 #[post("/<id>/restore")]
 async fn restore_article(
-    connection: connection::PgConnection,
+    connection: PgConnection,
     authorization: Authorization,
     id: i32,
 ) -> Result<Json<ArticleAggregation>, status::Custom<String>> {

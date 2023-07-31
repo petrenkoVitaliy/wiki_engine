@@ -1,8 +1,9 @@
 use super::aggregation;
+use super::dtm;
+use super::dtm_common;
 use super::error;
 use super::repository;
 use super::router;
-use super::schema;
 
 mod setup;
 mod test_handler;

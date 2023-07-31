@@ -3,8 +3,7 @@ use diesel::{AsChangeset, Insertable, Queryable, Selectable};
 use rocket::serde::{Deserialize, Serialize};
 use rocket_sync_db_pools::diesel;
 
-use super::db_schema::user_account;
-use super::db_schema::user_password;
+use super::db_schema::{user_account, user_password};
 
 #[derive(Queryable, Debug, Serialize, Deserialize)]
 #[diesel(table_name = user_role)]

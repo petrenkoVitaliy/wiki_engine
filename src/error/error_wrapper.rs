@@ -1,6 +1,7 @@
-use super::formatted_error::FmtError;
 use diesel::result;
 use rocket::{http::Status, response::status};
+
+use super::formatted_error::FmtError;
 
 #[derive(Debug)]
 pub struct ErrorWrapper {

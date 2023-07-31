@@ -1,6 +1,7 @@
 use super::aggregation;
+use super::dtm;
+use super::dtm_common;
 use super::router;
-use super::schema;
 use super::setup;
 
 pub mod article;

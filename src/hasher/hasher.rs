@@ -1,7 +1,7 @@
 use argon2::{self, Config};
 use std::env;
 
-use super::error::{error_wrapper::ErrorWrapper, formatted_error::FmtError};
+use super::error::{ErrorWrapper, FmtError};
 
 pub struct Hasher;
 

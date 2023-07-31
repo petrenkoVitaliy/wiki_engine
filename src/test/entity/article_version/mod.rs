@@ -1,6 +1,6 @@
+use super::dtm;
 use super::error;
 use super::repository;
-use super::schema;
 use super::setup;
 use super::test_handler;
 

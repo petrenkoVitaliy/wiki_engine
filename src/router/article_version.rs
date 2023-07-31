@@ -4,25 +4,22 @@ use rocket_okapi::{
 };
 
 use super::authorization::Authorization;
-use super::connection;
-use super::option_config::query_options::QueryOptions;
+use super::dtm_common::{QueryOptions, UserRoleId};
+use super::repository::PgConnection;
+use super::trait_common::DtoConvert;
 
-use super::schema::{
-    article_version::{
-        ArticleVersionCreateBody, ArticleVersionCreateRelationsDto, ArticleVersionPatchBody,
-        ArticleVersionPatchDto, LanguageSearchDto,
-    },
-    user_role::UserRoleId,
+use super::aggregation::article_version::ArticleVersionAggregation;
+use super::dtm::article_version::{
+    dto::LanguageSearchDto,
+    request_body::{ArticleVersionCreateRelationsBody, ArticleVersionPatchBody},
 };
 
 use super::service::article_version::ArticleVersionService;
 
-use super::aggregation::article_version::ArticleVersionAggregation;
-
 #[openapi]
 #[get("/<article_id>/language/<language_code>/version/<version>")]
 pub async fn get_article_version(
-    connection: connection::PgConnection,
+    connection: PgConnection,
     article_id: i32,
     version: i32,
     language_code: String,
@@ -49,7 +46,7 @@ pub async fn get_article_version(
 #[openapi]
 #[get("/<article_id>/language/<language_code>/version/actual", rank = 1)]
 pub async fn get_actual_article_version(
-    connection: connection::PgConnection,
+    connection: PgConnection,
     article_id: i32,
     language_code: String,
 ) -> Result<Json<ArticleVersionAggregation>, status::Custom<String>> {
@@ -75,7 +72,7 @@ pub async fn get_actual_article_version(
 #[openapi]
 #[get("/<article_id>/language/<language_code>/version")]
 async fn get_article_versions(
-    connection: connection::PgConnection,
+    connection: PgConnection,
     article_id: i32,
     language_code: String,
 ) -> Result<Json<Vec<ArticleVersionAggregation>>, status::Custom<String>> {
@@ -104,9 +101,9 @@ async fn get_article_versions(
     data = "<creation_body>"
 )]
 async fn create_article_version(
-    connection: connection::PgConnection,
+    connection: PgConnection,
     authorization: Authorization,
-    creation_body: Json<ArticleVersionCreateBody>,
+    creation_body: Json<ArticleVersionCreateRelationsBody>,
     article_id: i32,
     language_code: String,
 ) -> Result<Json<ArticleVersionAggregation>, status::Custom<String>> {
@@ -116,10 +113,7 @@ async fn create_article_version(
         &connection,
         article_id,
         language_code,
-        ArticleVersionCreateRelationsDto {
-            content: creation_body.content.to_string(),
-            user_id: user_aggregation.id,
-        },
+        creation_body.0.into_dto(user_aggregation.id),
     )
     .await
     {
@@ -134,7 +128,7 @@ async fn create_article_version(
     data = "<patch_body>"
 )]
 async fn patch_article_version(
-    connection: connection::PgConnection,
+    connection: PgConnection,
     authorization: Authorization,
     article_id: i32,
     version: i32,
@@ -150,10 +144,7 @@ async fn patch_article_version(
         version,
         article_id,
         language_code,
-        ArticleVersionPatchDto {
-            enabled: patch_body.enabled,
-            user_id: user_aggregation.id,
-        },
+        patch_body.0.into_dto(user_aggregation.id),
     )
     .await
     {

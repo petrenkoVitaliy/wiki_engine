@@ -4,7 +4,7 @@ use super::aggregation::{
     article_language::ArticleLanguageAggregation, language::LanguageAggregation,
 };
 
-use super::schema::article_language::ArticleLanguageCreateBody;
+use super::dtm::article_language::request_body::ArticleLanguageCreateRelationsBody;
 
 use super::article_version::{ArticleVersionMockHandler, ArticleVersionMockOptions};
 
@@ -17,7 +17,10 @@ pub struct ArticleLanguageMockOptions {
 }
 
 impl ArticleLanguageMockOptions {
-    pub fn from_creation_dto(creation_dto: &ArticleLanguageCreateBody, language: &String) -> Self {
+    pub fn from_creation_dto(
+        creation_dto: &ArticleLanguageCreateRelationsBody,
+        language: &String,
+    ) -> Self {
         Self {
             enabled: true,
             archived: false,

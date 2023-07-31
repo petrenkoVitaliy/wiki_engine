@@ -1,6 +1,6 @@
 use rocket::http::Status;
 
-use super::error::formatted_error::FmtError;
+use super::error::FmtError;
 
 use super::setup::{SetupOptions, TestSetup, TestUser};
 use super::test_handler::{
@@ -14,11 +14,13 @@ use super::test_handler::{
     },
 };
 
-use super::repository::entity::article::ArticleType;
-use super::schema::{
-    article::ArticleCreateRelationsBody,
-    article_language::{ArticleLanguageCreateBody, ArticleLanguagePatchBody},
+use super::dtm::{
+    article::request_body::ArticleCreateRelationsBody,
+    article_language::request_body::{
+        ArticleLanguageCreateRelationsBody, ArticleLanguagePatchBody,
+    },
 };
+use super::repository::entity::article::ArticleType;
 
 #[tokio::test]
 async fn get_article_language() {
@@ -45,7 +47,7 @@ async fn get_article_language() {
         &first_article_language,
         &ArticleLanguageMockHandler::get_article_language_aggregation(
             &ArticleLanguageMockOptions::from_creation_dto(
-                &ArticleLanguageCreateBody {
+                &ArticleLanguageCreateRelationsBody {
                     name: article_creation_body.name,
                     content: article_creation_body.content,
                 },
@@ -56,7 +58,7 @@ async fn get_article_language() {
     );
 
     let second_language = String::from("en");
-    let creation_body = ArticleLanguageCreateBody {
+    let creation_body = ArticleLanguageCreateRelationsBody {
         name: String::from("test get article language"),
         content: String::from("test content"),
     };
@@ -145,7 +147,7 @@ async fn get_article_language_deleted() {
         &article_language_response,
         &ArticleLanguageMockHandler::get_article_language_aggregation(
             &ArticleLanguageMockOptions::from_creation_dto(
-                &ArticleLanguageCreateBody {
+                &ArticleLanguageCreateRelationsBody {
                     name: article_creation_body.name,
                     content: article_creation_body.content,
                 },
@@ -196,7 +198,7 @@ async fn get_article_language_disabled() {
         &article_language_response,
         &ArticleLanguageMockHandler::get_article_language_aggregation(
             &ArticleLanguageMockOptions::from_creation_dto(
-                &ArticleLanguageCreateBody {
+                &ArticleLanguageCreateRelationsBody {
                     name: article_creation_body.name,
                     content: article_creation_body.content,
                 },

@@ -3,9 +3,9 @@ use diesel::prelude::*;
 use super::db_schema;
 use super::model;
 
-use super::schema::version_content::VersionContentDto;
+use super::dtm::version_content::dto::VersionContentDto;
 
-pub struct VersionContentRepository {}
+pub struct VersionContentRepository;
 
 impl VersionContentRepository {
     pub fn get_one_raw(

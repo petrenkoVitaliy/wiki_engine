@@ -1,33 +1,35 @@
 use diesel::Connection;
 
-use super::error::error_wrapper::ErrorWrapper;
+use super::dtm_common::QueryOptions;
+use super::error::{ErrorWrapper, FmtError};
 
-use super::error::formatted_error::FmtError;
-use super::option_config::query_options::QueryOptions;
-
-use super::article_language::ArticleLanguageService;
-use super::language::LanguageService;
-
-use super::schema::article::{ArticleCreateDto, ArticleCreateRelationsDto, ArticlePatchDto};
-use super::schema::article_language::ArticleLanguageCreateDto;
-use super::schema::article_version::ArticleVersionCreateDto;
-use super::schema::version_content::VersionContentDto;
-
-use super::repository::connection;
-use super::repository::entity::{
-    article::{Article, ArticleRepository},
-    article_language::{ArticleLanguage, ArticleLanguageRepository},
-    article_version::{ArticleVersion, ArticleVersionRepository},
-    version_content::{ContentType, VersionContent, VersionContentRepository},
+use super::dtm::{
+    article::dto::{ArticleCreateDto, ArticleCreateRelationsDto, ArticlePatchDto},
+    article_language::dto::ArticleLanguageCreateDto,
+    article_version::dto::ArticleVersionCreateDto,
+    version_content::dto::VersionContentDto,
 };
 
 use super::aggregation::article::ArticleAggregation;
 
-pub struct ArticleService {}
+use super::repository::{
+    entity::{
+        article::{Article, ArticleRepository},
+        article_language::{ArticleLanguage, ArticleLanguageRepository},
+        article_version::{ArticleVersion, ArticleVersionRepository},
+        version_content::{ContentType, VersionContent, VersionContentRepository},
+    },
+    PgConnection,
+};
+
+use super::article_language::ArticleLanguageService;
+use super::language::LanguageService;
+
+pub struct ArticleService;
 
 impl ArticleService {
     pub async fn get_aggregation(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         id: i32,
         query_options: &QueryOptions,
     ) -> Result<ArticleAggregation, ErrorWrapper> {
@@ -46,7 +48,7 @@ impl ArticleService {
     }
 
     pub async fn get_aggregations(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         query_options: &QueryOptions,
     ) -> Vec<ArticleAggregation> {
         let articles = ArticleRepository::get_many(connection, query_options).await;
@@ -61,7 +63,7 @@ impl ArticleService {
     }
 
     pub async fn insert(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         creation_dto: ArticleCreateRelationsDto,
     ) -> Result<ArticleAggregation, ErrorWrapper> {
         let language_code = String::from(&creation_dto.language);
@@ -86,7 +88,7 @@ impl ArticleService {
     }
 
     pub async fn patch(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         patch_dto: ArticlePatchDto,
     ) -> Result<ArticleAggregation, ErrorWrapper> {
         let article_id = patch_dto.id;
@@ -101,7 +103,7 @@ impl ArticleService {
     }
 
     async fn create_relations_transaction(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         creation_dto: ArticleCreateRelationsDto,
         language_id: i32,
     ) -> (Article, ArticleLanguage, VersionContent, ArticleVersion) {

@@ -5,17 +5,13 @@ use serde::Serialize;
 
 use super::router::auth::*;
 
-use super::schema::jwt::TokenResponse;
+use super::dtm_common::TokenDto;
 
 use super::setup::TestSetup;
 
 pub struct AuthRequestHandler;
 impl AuthRequestHandler {
-    pub async fn signup_with_role<T>(
-        client: &Client,
-        creation_body: &T,
-        role_id: i32,
-    ) -> TokenResponse
+    pub async fn signup_with_role<T>(client: &Client, creation_body: &T, role_id: i32) -> TokenDto
     where
         T: Serialize,
     {
@@ -23,10 +19,10 @@ impl AuthRequestHandler {
 
         assert_eq!(response.status(), Status::Ok);
 
-        response.into_json::<TokenResponse>().await.unwrap()
+        response.into_json::<TokenDto>().await.unwrap()
     }
 
-    pub async fn _login<T>(setup: &TestSetup, login_body: &T) -> TokenResponse
+    pub async fn _login<T>(setup: &TestSetup, login_body: &T) -> TokenDto
     where
         T: Serialize,
     {
@@ -34,7 +30,7 @@ impl AuthRequestHandler {
 
         assert_eq!(response.status(), Status::Ok);
 
-        response.into_json::<TokenResponse>().await.unwrap()
+        response.into_json::<TokenDto>().await.unwrap()
     }
 }
 

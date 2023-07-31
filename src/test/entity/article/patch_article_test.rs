@@ -1,6 +1,6 @@
 use rocket::http::Status;
 
-use super::error::formatted_error::FmtError;
+use super::error::FmtError;
 use super::setup::{SetupOptions, TestSetup, TestUser};
 
 use super::test_handler::{
@@ -9,8 +9,8 @@ use super::test_handler::{
     request_handler::article::{ArticleRequest, ArticleRequestHandler},
 };
 
+use super::dtm::article::request_body::{ArticleCreateRelationsBody, ArticlePatchBody};
 use super::repository::entity::article::ArticleType;
-use super::schema::article::{ArticleCreateRelationsBody, ArticlePatchBody};
 
 #[tokio::test]
 async fn patch_article() {

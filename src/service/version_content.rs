@@ -1,14 +1,14 @@
 use std::collections::{hash_map::Entry, HashMap};
 
-use super::repository::entity::article_version::ArticleVersion;
-use super::repository::entity::version_content::VersionContent;
-
-use super::schema::version_content::ContentType;
-
 use super::diff_handler::DiffHandler;
-use super::error::formatted_error::FmtError;
+use super::error::FmtError;
 
-pub struct VersionContentService {}
+use super::repository::entity::{
+    article_version::ArticleVersion,
+    version_content::{ContentType, VersionContent},
+};
+
+pub struct VersionContentService;
 
 impl VersionContentService {
     pub fn get_contents_map_by_ids(

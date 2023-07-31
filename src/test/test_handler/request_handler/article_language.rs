@@ -7,7 +7,9 @@ use super::aggregation::article_language::ArticleLanguageAggregation;
 
 use super::request_handler::RequestHandler;
 
-use super::schema::article_language::{ArticleLanguageCreateBody, ArticleLanguagePatchBody};
+use super::dtm::article_language::request_body::{
+    ArticleLanguageCreateRelationsBody, ArticleLanguagePatchBody,
+};
 
 use super::setup::TestSetup;
 
@@ -15,7 +17,7 @@ pub struct ArticleLanguageRequestHandler;
 impl ArticleLanguageRequestHandler {
     pub async fn create_article_language<'s>(
         setup: &'s TestSetup,
-        creation_body: &ArticleLanguageCreateBody,
+        creation_body: &ArticleLanguageCreateRelationsBody,
         article_id: i32,
         language_code: &String,
         jwt_token: String,
@@ -166,7 +168,7 @@ impl ArticleLanguageRequest {
 
     pub async fn create_article_language<'s>(
         setup: &'s TestSetup,
-        creation_body: &ArticleLanguageCreateBody,
+        creation_body: &ArticleLanguageCreateRelationsBody,
         article_id: i32,
         language_code: &String,
         jwt_token: String,
@@ -177,7 +179,7 @@ impl ArticleLanguageRequest {
                 "/articles",
                 create_article_language(article_id, language_code)
             ))
-            .json::<ArticleLanguageCreateBody>(creation_body)
+            .json::<ArticleLanguageCreateRelationsBody>(creation_body)
             .header(RequestHandler::get_auth_header(jwt_token))
             .dispatch()
             .await

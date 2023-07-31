@@ -9,11 +9,13 @@ use super::test_handler::{
     },
 };
 
-use super::repository::entity::article::ArticleType;
-use super::schema::{
-    article::ArticleCreateRelationsBody,
-    article_language::{ArticleLanguageCreateBody, ArticleLanguagePatchBody},
+use super::dtm::{
+    article::request_body::ArticleCreateRelationsBody,
+    article_language::request_body::{
+        ArticleLanguageCreateRelationsBody, ArticleLanguagePatchBody,
+    },
 };
+use super::repository::entity::article::ArticleType;
 
 #[tokio::test]
 async fn get_article_languages() {
@@ -34,7 +36,7 @@ async fn get_article_languages() {
     let first_article_language = &article.languages[0];
 
     let second_language = String::from("en");
-    let creation_body = ArticleLanguageCreateBody {
+    let creation_body = ArticleLanguageCreateRelationsBody {
         name: String::from("test get article language"),
         content: String::from("test content"),
     };
@@ -59,7 +61,7 @@ async fn get_article_languages() {
         first,
         &ArticleLanguageMockHandler::get_article_language_aggregation(
             &ArticleLanguageMockOptions::from_creation_dto(
-                &ArticleLanguageCreateBody {
+                &ArticleLanguageCreateRelationsBody {
                     name: article_creation_body.name,
                     content: article_creation_body.content,
                 },
@@ -96,7 +98,7 @@ async fn get_article_languages_disabled() {
             .await;
 
     let second_language = String::from("en");
-    let creation_body = ArticleLanguageCreateBody {
+    let creation_body = ArticleLanguageCreateRelationsBody {
         name: String::from("test get article language"),
         content: String::from("test content"),
     };
@@ -167,7 +169,7 @@ async fn get_article_languages_disabled() {
         &response_body[0],
         &ArticleLanguageMockHandler::get_article_language_aggregation(
             &ArticleLanguageMockOptions::from_creation_dto(
-                &ArticleLanguageCreateBody {
+                &ArticleLanguageCreateRelationsBody {
                     name: article_creation_body.name,
                     content: article_creation_body.content,
                 },

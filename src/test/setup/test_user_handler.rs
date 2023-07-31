@@ -1,11 +1,10 @@
 use rocket::local::asynchronous::Client;
 use std::collections::HashMap;
 
-use super::schema::{
-    auth::{UserLoginBody, UserSignupBody},
-    user_role::UserRoleId,
-};
+use super::dtm::auth::request_body::{UserLoginBody, UserSignupBody};
+use super::dtm_common::UserRoleId;
 use super::test_handler::request_handler::auth::AuthRequestHandler;
+
 #[derive(std::cmp::Eq, PartialEq, Hash, Copy, Clone)]
 pub enum TestUser {
     Admin1,

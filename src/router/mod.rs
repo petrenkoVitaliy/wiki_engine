@@ -1,9 +1,10 @@
 use super::aggregation;
 use super::authorization;
-use super::option_config;
-use super::repository::connection;
-use super::schema;
+use super::dtm;
+use super::dtm_common;
+use super::repository;
 use super::service;
+use super::trait_common;
 
 pub mod article;
 pub mod article_language;

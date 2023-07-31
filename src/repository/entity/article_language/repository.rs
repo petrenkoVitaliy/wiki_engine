@@ -1,19 +1,20 @@
 use diesel::prelude::*;
 
-use super::connection;
+use super::connection::PgConnection;
+use super::error::FmtError;
+
 use super::db_schema;
 use super::model;
 
-use super::error::formatted_error::FmtError;
-use super::option_config::query_options::QueryOptions;
+use super::dtm_common::QueryOptions;
 
-use super::schema::article_language::{ArticleLanguageCreateDto, ArticleLanguagePatchDto};
+use super::dtm::article_language::dto::{ArticleLanguageCreateDto, ArticleLanguagePatchDto};
 
-pub struct ArticleLanguageRepository {}
+pub struct ArticleLanguageRepository;
 
 impl ArticleLanguageRepository {
     pub async fn get_one(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         article_id: i32,
         language_id: i32,
         query_options: &QueryOptions,
@@ -47,7 +48,7 @@ impl ArticleLanguageRepository {
     }
 
     pub async fn get_many(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         article_ids: Vec<i32>,
         query_options: &QueryOptions,
     ) -> Vec<model::ArticleLanguage> {
@@ -104,7 +105,7 @@ impl ArticleLanguageRepository {
     }
 
     pub async fn patch(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         language_id: i32,
         article_id: i32,
         patch_dto: ArticleLanguagePatchDto,

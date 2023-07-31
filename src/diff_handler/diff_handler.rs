@@ -2,7 +2,7 @@ use bsdiff::{diff, patch};
 use flate2::{read::ZlibDecoder, write::ZlibEncoder, Compression};
 use std::io::{Cursor, Read, Write};
 
-use super::error::formatted_error::FmtError;
+use super::error::FmtError;
 
 pub struct DiffHandler;
 

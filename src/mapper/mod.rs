@@ -1,1 +1,3 @@
-pub mod values_mapper;
+mod values_mapper;
+
+pub use values_mapper::ValuesMapper;

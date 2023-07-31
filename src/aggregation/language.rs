@@ -3,7 +3,7 @@ use rocket_okapi::okapi::schemars::JsonSchema;
 
 use super::repository::entity::language::Language;
 
-#[derive(Clone, Serialize, JsonSchema, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema, Debug)]
 pub struct LanguageAggregation {
     pub id: i32,
     pub code: String,

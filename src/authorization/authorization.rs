@@ -5,11 +5,13 @@ use rocket_okapi::{
     request::{OpenApiFromRequest, RequestHeaderInput},
 };
 
-use super::aggregation::user_account::UserAccountAggregation;
-use super::error::{error_wrapper::ErrorWrapper, formatted_error::FmtError};
+use super::error::{ErrorWrapper, FmtError};
 use super::jwt_handler::JwtHandler;
-use super::repository::{connection, entity::auth::AuthRepository};
-use super::schema::{jwt::Claims, user_role::UserRoleId};
+
+use super::aggregation::user_account::UserAccountAggregation;
+use super::dtm_common::{JwtDto, UserRoleId};
+
+use super::repository::{entity::auth::AuthRepository, PgConnection};
 
 #[derive(Debug)]
 pub struct Authorization {
@@ -18,7 +20,7 @@ pub struct Authorization {
 
 impl Authorization {
     async fn get_user(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         user_id: i32,
     ) -> Result<UserAccountAggregation, status::Custom<String>> {
         match AuthRepository::get_one_user(connection, user_id).await {
@@ -32,7 +34,7 @@ impl Authorization {
     pub async fn verify(
         self,
         allowed_roles: Vec<UserRoleId>,
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
     ) -> Result<UserAccountAggregation, status::Custom<String>> {
         let claims = match Self::get_claims(self) {
             Err(e) => return Err(e.custom()),
@@ -64,7 +66,7 @@ impl Authorization {
         }
     }
 
-    fn get_claims(self) -> Result<Claims, ErrorWrapper> {
+    fn get_claims(self) -> Result<JwtDto, ErrorWrapper> {
         match self.token {
             None => FmtError::Unauthorized("empty authorization").error(),
             Some(token) => match JwtHandler::decode_jwt(token) {

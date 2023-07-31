@@ -3,13 +3,11 @@ use rocket_okapi::okapi::schemars::JsonSchema;
 use std::collections::HashMap;
 
 use super::diff_handler::DiffHandler;
-use super::error::formatted_error::FmtError;
+use super::error::FmtError;
 
-use super::repository::entity::version_content::VersionContent;
+use super::repository::entity::version_content::{ContentType, VersionContent};
 
-use super::schema::version_content::ContentType;
-
-#[derive(Serialize, JsonSchema, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
 pub struct VersionContentAggregation {
     pub id: i32,
     pub content: String,

@@ -6,7 +6,7 @@ use super::setup::TestSetup;
 
 use super::aggregation::article_version::ArticleVersionAggregation;
 
-use super::schema::article_version::ArticleVersionPatchBody;
+use super::dtm::article_version::request_body::ArticleVersionPatchBody;
 
 use super::request_handler::RequestHandler;
 

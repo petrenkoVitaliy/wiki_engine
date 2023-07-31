@@ -1,6 +1,6 @@
 use rocket::http::Status;
 
-use super::error::formatted_error::FmtError;
+use super::error::FmtError;
 
 use super::setup::{SetupOptions, TestSetup, TestUser};
 use super::test_handler::{
@@ -14,10 +14,11 @@ use super::test_handler::{
     },
 };
 
-use super::repository::entity::article::ArticleType;
-use super::schema::{
-    article::ArticleCreateRelationsBody, article_language::ArticleLanguageCreateBody,
+use super::dtm::{
+    article::request_body::ArticleCreateRelationsBody,
+    article_language::request_body::ArticleLanguageCreateRelationsBody,
 };
+use super::repository::entity::article::ArticleType;
 
 #[tokio::test]
 async fn create_article_language() {
@@ -37,7 +38,7 @@ async fn create_article_language() {
     .await;
 
     let language = String::from("en");
-    let creation_body = ArticleLanguageCreateBody {
+    let creation_body = ArticleLanguageCreateRelationsBody {
         name: String::from("test create article language"),
         content: String::from("test create article content"),
     };
@@ -78,7 +79,7 @@ async fn create_article_language_with_nonexisting_language() {
     .await;
 
     let language = String::from("nonexisting");
-    let creation_body = ArticleLanguageCreateBody {
+    let creation_body = ArticleLanguageCreateRelationsBody {
         name: String::from("test create article language with nonexisting language"),
         content: String::from("test create article content"),
     };
@@ -116,7 +117,7 @@ async fn create_article_language_with_already_existing_language() {
     .await;
 
     let existing_language = String::from("ua");
-    let creation_body = ArticleLanguageCreateBody {
+    let creation_body = ArticleLanguageCreateRelationsBody {
         name: String::from("test create article language with already existing language"),
         content: String::from("test create article content"),
     };

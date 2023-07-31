@@ -1,19 +1,19 @@
 use diesel::prelude::*;
 
-use super::error::formatted_error::FmtError;
-use super::option_config::query_options::QueryOptions;
+use super::dtm_common::QueryOptions;
+use super::error::FmtError;
 
-use super::connection;
+use super::connection::PgConnection;
 use super::db_schema;
 use super::model;
 
-use super::schema::article::{ArticleCreateDto, ArticlePatchDto};
+use super::dtm::article::dto::{ArticleCreateDto, ArticlePatchDto};
 
-pub struct ArticleRepository {}
+pub struct ArticleRepository;
 
 impl ArticleRepository {
     pub async fn get_one(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         id: i32,
         query_options: &QueryOptions,
     ) -> Option<model::Article> {
@@ -38,7 +38,7 @@ impl ArticleRepository {
     }
 
     pub async fn get_many(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         query_options: &QueryOptions,
     ) -> Vec<model::Article> {
         let is_actual = query_options.is_actual;
@@ -62,7 +62,7 @@ impl ArticleRepository {
             .expect(&FmtError::FailedToFetch("articles").fmt())
     }
 
-    pub async fn patch(connection: &connection::PgConnection, patch_dto: ArticlePatchDto) -> usize {
+    pub async fn patch(connection: &PgConnection, patch_dto: ArticlePatchDto) -> usize {
         connection
             .run(move |connection| {
                 diesel::update(db_schema::article::table)

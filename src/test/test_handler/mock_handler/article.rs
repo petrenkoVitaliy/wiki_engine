@@ -3,7 +3,7 @@ use chrono::Utc;
 use super::aggregation::article::ArticleAggregation;
 use super::ArticleType;
 
-use super::schema::article::ArticleCreateRelationsBody;
+use super::dtm::article::request_body::ArticleCreateRelationsBody;
 
 use super::article_language::{ArticleLanguageMockHandler, ArticleLanguageMockOptions};
 

@@ -1,9 +1,11 @@
+use super::dtm;
+use super::dtm_common;
 use super::error;
-use super::option_config;
-use super::schema;
 
-pub mod connection;
 pub mod entity;
 
+mod connection;
 mod db_schema;
 mod decorator;
+
+pub use connection::PgConnection;

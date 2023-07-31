@@ -1,6 +1,6 @@
 use rocket::http::Status;
 
-use super::error::formatted_error::FmtError;
+use super::error::FmtError;
 use super::setup::{SetupOptions, TestSetup, TestUser};
 use super::test_handler::{
     assert_handler::article_language::{
@@ -13,8 +13,8 @@ use super::test_handler::{
     },
 };
 
+use super::dtm::article::request_body::ArticleCreateRelationsBody;
 use super::repository::entity::article::ArticleType;
-use super::schema::article::ArticleCreateRelationsBody;
 
 #[tokio::test]
 async fn delete_article_language() {

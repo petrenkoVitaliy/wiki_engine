@@ -15,7 +15,7 @@ use super::article_language::ArticleLanguageAggregation;
 use super::article_version::ArticleVersionAggregation;
 use super::language::LanguageAggregation;
 
-#[derive(Serialize, JsonSchema, Debug, Deserialize)]
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
 pub struct ArticleAggregation {
     pub id: i32,
     pub enabled: bool,

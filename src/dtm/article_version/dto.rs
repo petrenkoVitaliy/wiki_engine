@@ -1,12 +1,4 @@
-use rocket::serde::{Deserialize, Serialize};
-use rocket_okapi::okapi::schemars::JsonSchema;
-
-use super::ArticleLanguage;
-
-#[derive(Deserialize, JsonSchema, Serialize)]
-pub struct ArticleVersionCreateBody {
-    pub content: String,
-}
+use super::repository::entity::article_language::ArticleLanguage;
 
 pub struct ArticleVersionCreateRelationsDto {
     pub content: String,
@@ -18,11 +10,6 @@ pub struct ArticleVersionCreateDto {
     pub content_id: i32,
     pub article_language_id: i32,
     pub user_id: i32,
-}
-
-#[derive(Deserialize, JsonSchema, Serialize)]
-pub struct ArticleVersionPatchBody {
-    pub enabled: bool,
 }
 
 pub struct ArticleVersionPatchDto {

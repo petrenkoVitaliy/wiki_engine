@@ -1,8 +1,8 @@
 use super::aggregation;
+use super::dtm_common;
 use super::error;
 use super::jwt_handler;
 use super::repository;
-use super::schema;
 
 mod authorization;
 

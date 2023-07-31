@@ -11,12 +11,6 @@ pub struct SetupOptions {
     pub is_lock: bool,
 }
 
-pub struct TestSetup {
-    pub lock: Option<MutexGuard<'static, ()>>,
-    pub client: &'static Client,
-    pub user_handler: &'static TestUsersHandler,
-}
-
 static DB_LOCK: parking_lot::Mutex<()> = parking_lot::const_mutex(());
 
 static mut TEST_USER_HANDLER: Option<TestUsersHandler> = None;
@@ -24,6 +18,12 @@ static TEST_USER_HANDLER_ONCE: Once = Once::new();
 
 static mut CLIENT: Option<Client> = None;
 static CLIENT_ONCE: Once = Once::new();
+
+pub struct TestSetup {
+    pub lock: Option<MutexGuard<'static, ()>>,
+    pub client: &'static Client,
+    pub user_handler: &'static TestUsersHandler,
+}
 
 impl TestSetup {
     pub async fn new(options: SetupOptions) -> Self {
@@ -77,11 +77,11 @@ impl TestSetup {
         dotenv().ok();
 
         rocket::build()
-            .attach(repository::connection::PgConnection::fairing())
+            .attach(repository::PgConnection::fairing())
             .mount("/articles", article::routes())
             .mount("/articles", article_language::routes())
             .mount("/articles", article_version::routes())
-            .mount("/auth", auth::_test_routes())
+            .mount("/auth", auth::test_routes())
             .register("/", catchers::catchers())
     }
 }

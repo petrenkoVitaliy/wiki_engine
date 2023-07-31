@@ -1,6 +1,6 @@
 use rocket::http::Status;
 
-use super::error::formatted_error::FmtError;
+use super::error::FmtError;
 
 use super::setup::{SetupOptions, TestSetup, TestUser};
 use super::test_handler::{
@@ -12,10 +12,11 @@ use super::test_handler::{
     },
 };
 
-use super::repository::entity::article::ArticleType;
-use super::schema::{
-    article::ArticleCreateRelationsBody, article_version::ArticleVersionCreateBody,
+use super::dtm::{
+    article::request_body::ArticleCreateRelationsBody,
+    article_version::request_body::ArticleVersionCreateRelationsBody,
 };
+use super::repository::entity::article::ArticleType;
 
 #[tokio::test]
 async fn create_article_version() {
@@ -35,7 +36,7 @@ async fn create_article_version() {
     )
     .await;
 
-    let first_creation_body = ArticleVersionCreateBody {
+    let first_creation_body = ArticleVersionCreateRelationsBody {
         content: String::from("second version content"),
     };
 
@@ -56,7 +57,7 @@ async fn create_article_version() {
         ArticleVersionAssertOptions { is_updated: false },
     );
 
-    let second_creation_body = ArticleVersionCreateBody {
+    let second_creation_body = ArticleVersionCreateRelationsBody {
         content: String::from("test create article version content"),
     };
 
@@ -96,7 +97,7 @@ async fn create_article_version_wrong_params() {
     )
     .await;
 
-    let first_creation_body = ArticleVersionCreateBody {
+    let first_creation_body = ArticleVersionCreateRelationsBody {
         content: String::from("second version content"),
     };
 

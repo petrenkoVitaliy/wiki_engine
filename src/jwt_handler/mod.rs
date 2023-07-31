@@ -1,5 +1,5 @@
+use super::dtm_common;
 use super::error;
-use super::schema;
 
 mod jwt_handler;
 

@@ -1,10 +1,10 @@
 use chrono::NaiveDateTime;
-use rocket::serde::{Deserialize, Serialize};
+use rocket::serde::Serialize;
 use rocket_okapi::okapi::schemars::JsonSchema;
 
 use super::repository::entity::auth::UserAccount;
 
-#[derive(Serialize, JsonSchema, Debug, Deserialize)]
+#[derive(Serialize, JsonSchema, Debug)]
 pub struct UserAccountAggregation {
     pub id: i32,
 

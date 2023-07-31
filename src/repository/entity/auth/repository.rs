@@ -1,20 +1,17 @@
 use diesel::prelude::*;
 
-use super::connection;
+use super::connection::PgConnection;
+use super::error::FmtError;
+
 use super::db_schema;
 use super::model;
 
-use super::error::formatted_error::FmtError;
-
-use super::schema::auth::{UserAccountCreateDto, UserPasswordCreateDto, UserPatchDto};
+use super::dtm::auth::dto::{UserAccountCreateDto, UserPasswordCreateDto, UserPatchDto};
 
 pub struct AuthRepository;
 
 impl AuthRepository {
-    pub async fn get_one_user(
-        connection: &connection::PgConnection,
-        id: i32,
-    ) -> Option<model::UserAccount> {
+    pub async fn get_one_user(connection: &PgConnection, id: i32) -> Option<model::UserAccount> {
         connection
             .run(move |connection| {
                 db_schema::user_account::table
@@ -27,7 +24,7 @@ impl AuthRepository {
     }
 
     pub async fn get_one_user_with_password(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         email: String,
     ) -> Option<(model::UserPassword, model::UserAccount)> {
         connection
@@ -78,7 +75,7 @@ impl AuthRepository {
             .get_result::<model::UserPassword>(connection)
     }
 
-    pub async fn patch(connection: &connection::PgConnection, patch_dto: UserPatchDto) -> usize {
+    pub async fn patch(connection: &PgConnection, patch_dto: UserPatchDto) -> usize {
         connection
             .run(move |connection| {
                 diesel::update(db_schema::user_account::table)

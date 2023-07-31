@@ -1,33 +1,36 @@
 use diesel::Connection;
 use std::collections::HashMap;
 
-use super::repository::connection;
-use super::repository::entity::article_version::{ArticleVersion, ArticleVersionRepository};
-use super::repository::entity::version_content::{
-    ContentType, VersionContent, VersionContentRepository,
+use super::diff_handler::DiffHandler;
+use super::dtm_common::QueryOptions;
+use super::error::{ErrorWrapper, FmtError};
+
+use super::dtm::{
+    article_version::dto::{
+        ArticleVersionCreateDto, ArticleVersionCreateRelationsDto, ArticleVersionPatchDto,
+        ArticleVersionsJoinSearchDto, LanguageSearchDto,
+    },
+    version_content::dto::VersionContentDto,
 };
 
-use super::diff_handler::DiffHandler;
-use super::error::error_wrapper::ErrorWrapper;
-use super::error::formatted_error::FmtError;
-use super::option_config::query_options::QueryOptions;
+use super::aggregation::article_version::ArticleVersionAggregation;
+
+use super::repository::{
+    entity::{
+        article_version::{ArticleVersion, ArticleVersionRepository},
+        version_content::{ContentType, VersionContent, VersionContentRepository},
+    },
+    PgConnection,
+};
 
 use super::article_language::ArticleLanguageService;
 use super::version_content::VersionContentService;
 
-use super::schema::article_version::{
-    ArticleVersionCreateDto, ArticleVersionCreateRelationsDto, ArticleVersionPatchDto,
-    ArticleVersionsJoinSearchDto, LanguageSearchDto,
-};
-use super::schema::version_content::VersionContentDto;
-
-use super::aggregation::article_version::ArticleVersionAggregation;
-
-pub struct ArticleVersionService {}
+pub struct ArticleVersionService;
 
 impl ArticleVersionService {
     pub async fn get_aggregation(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         version: Option<i32>,
         language_search_dto: LanguageSearchDto,
         query_options: &QueryOptions,
@@ -59,7 +62,7 @@ impl ArticleVersionService {
     }
 
     pub async fn get_aggregations(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         actual_only: bool,
         language_search_dto: LanguageSearchDto,
         query_options: &QueryOptions,
@@ -92,7 +95,7 @@ impl ArticleVersionService {
     }
 
     pub async fn patch(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         version: i32,
         article_id: i32,
         language_code: String,
@@ -134,10 +137,10 @@ impl ArticleVersionService {
     }
 
     pub async fn insert(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         article_id: i32,
         language_code: String,
-        creation_body: ArticleVersionCreateRelationsDto,
+        creation_dto: ArticleVersionCreateRelationsDto,
     ) -> Result<ArticleVersionAggregation, ErrorWrapper> {
         let article_language = match ArticleLanguageService::get_one_with_language(
             connection,
@@ -156,7 +159,7 @@ impl ArticleVersionService {
 
         let (article_version, version_content) = Self::create_relations_transaction(
             connection,
-            creation_body,
+            creation_dto,
             article_language.id,
             article_versions_count,
         )
@@ -170,8 +173,8 @@ impl ArticleVersionService {
     }
 
     async fn create_relations_transaction(
-        connection: &connection::PgConnection,
-        creation_body: ArticleVersionCreateRelationsDto,
+        connection: &PgConnection,
+        creation_dto: ArticleVersionCreateRelationsDto,
         article_language_id: i32,
         article_versions_count: i32,
     ) -> (ArticleVersion, VersionContent) {
@@ -182,7 +185,7 @@ impl ArticleVersionService {
                         |transaction_connection| {
                             Ok(Self::create_relations(
                                 transaction_connection,
-                                creation_body,
+                                creation_dto,
                                 article_language_id,
                                 article_versions_count,
                             ))
@@ -195,7 +198,7 @@ impl ArticleVersionService {
 
     fn create_relations(
         connection: &mut diesel::PgConnection,
-        creation_body: ArticleVersionCreateRelationsDto,
+        creation_dto: ArticleVersionCreateRelationsDto,
         article_language_id: i32,
         article_versions_count: i32,
     ) -> (ArticleVersion, VersionContent) {
@@ -204,14 +207,14 @@ impl ArticleVersionService {
                 connection,
                 article_language_id,
                 article_versions_count,
-                &creation_body,
+                &creation_dto,
             );
         }
 
         let version_content = VersionContentRepository::insert_raw(
             connection,
             VersionContentDto {
-                content: creation_body.content.as_bytes().to_vec(),
+                content: creation_dto.content.as_bytes().to_vec(),
                 content_type: ContentType::Full,
             },
         )
@@ -223,7 +226,7 @@ impl ArticleVersionService {
                 article_language_id,
                 version: article_versions_count + 1,
                 content_id: version_content.id,
-                user_id: creation_body.user_id,
+                user_id: creation_dto.user_id,
             },
         )
         .expect(&FmtError::FailedToInsert("article_version").fmt());
@@ -235,7 +238,7 @@ impl ArticleVersionService {
         connection: &mut diesel::PgConnection,
         article_language_id: i32,
         article_versions_count: i32,
-        creation_body: &ArticleVersionCreateRelationsDto,
+        creation_dto: &ArticleVersionCreateRelationsDto,
     ) {
         let article_version = ArticleVersionRepository::get_by_version_raw(
             connection,
@@ -250,7 +253,7 @@ impl ArticleVersionService {
                 .expect(&FmtError::FailedToFetch("version_content").fmt())
                 .expect(&FmtError::NotFound("version_content").fmt());
 
-        let content_delta = DiffHandler::get_delta(&creation_body.content, version_content.content);
+        let content_delta = DiffHandler::get_delta(&creation_dto.content, version_content.content);
 
         VersionContentRepository::patch_raw(connection, article_version.content_id, content_delta)
             .expect(&FmtError::FailedToUpdate("version_content").fmt());
@@ -278,7 +281,7 @@ impl ArticleVersionService {
     }
 
     async fn get_versions_with_content_map(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         version: Option<i32>,
         language_search_dto: LanguageSearchDto,
     ) -> Result<

@@ -4,7 +4,7 @@ use super::aggregation::{
     article_version::ArticleVersionAggregation, version_content::VersionContentAggregation,
 };
 
-use super::schema::article_version::ArticleVersionCreateBody;
+use super::dtm::article_version::request_body::ArticleVersionCreateRelationsBody;
 
 pub struct ArticleVersionMockOptions {
     pub content: String,
@@ -13,7 +13,10 @@ pub struct ArticleVersionMockOptions {
 }
 
 impl ArticleVersionMockOptions {
-    pub fn from_creation_dto(creation_dto: &ArticleVersionCreateBody, version: i32) -> Self {
+    pub fn from_creation_dto(
+        creation_dto: &ArticleVersionCreateRelationsBody,
+        version: i32,
+    ) -> Self {
         Self {
             version,
 

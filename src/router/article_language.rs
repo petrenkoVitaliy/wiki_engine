@@ -4,25 +4,22 @@ use rocket_okapi::{
 };
 
 use super::authorization::Authorization;
-use super::connection;
-use super::option_config::query_options::QueryOptions;
+use super::dtm_common::{QueryOptions, UserRoleId};
+use super::repository::PgConnection;
+use super::trait_common::DtoConvert;
 
-use super::schema::{
-    article_language::{
-        ArticleLanguageCreateBody, ArticleLanguageCreateRelationsDto, ArticleLanguagePatchBody,
-        ArticleLanguagePatchDto,
-    },
-    user_role::UserRoleId,
+use super::aggregation::article_language::ArticleLanguageAggregation;
+use super::dtm::article_language::{
+    dto::ArticleLanguagePatchDto,
+    request_body::{ArticleLanguageCreateRelationsBody, ArticleLanguagePatchBody},
 };
 
 use super::service::article_language::ArticleLanguageService;
 
-use super::aggregation::article_language::ArticleLanguageAggregation;
-
 #[openapi]
 #[get("/<article_id>/language/<language_code>")]
 async fn get_article_language(
-    connection: connection::PgConnection,
+    connection: PgConnection,
     article_id: i32,
     language_code: String,
 ) -> Result<Json<ArticleLanguageAggregation>, status::Custom<String>> {
@@ -42,7 +39,7 @@ async fn get_article_language(
 #[openapi]
 #[get("/<article_id>/language")]
 async fn get_article_languages(
-    connection: connection::PgConnection,
+    connection: PgConnection,
     article_id: i32,
 ) -> Result<Json<Vec<ArticleLanguageAggregation>>, status::Custom<String>> {
     let article_languages = ArticleLanguageService::get_aggregations(
@@ -58,10 +55,9 @@ async fn get_article_languages(
 #[openapi]
 #[post("/<article_id>/language/<language_code>", data = "<creation_body>")]
 async fn create_article_language(
-    connection: connection::PgConnection,
+    connection: PgConnection,
     authorization: Authorization,
-
-    creation_body: Json<ArticleLanguageCreateBody>,
+    creation_body: Json<ArticleLanguageCreateRelationsBody>,
     article_id: i32,
     language_code: String,
 ) -> Result<Json<ArticleLanguageAggregation>, status::Custom<String>> {
@@ -69,13 +65,9 @@ async fn create_article_language(
 
     match ArticleLanguageService::insert(
         &connection,
-        ArticleLanguageCreateRelationsDto {
-            article_id,
-            language_code,
-            content: creation_body.content.to_string(),
-            name: creation_body.name.to_string(),
-            user_id: user_aggregation.id,
-        },
+        creation_body
+            .0
+            .into_dto((user_aggregation.id, article_id, language_code)),
     )
     .await
     {
@@ -87,7 +79,7 @@ async fn create_article_language(
 #[openapi]
 #[patch("/<article_id>/language/<language_code>", data = "<patch_body>")]
 async fn patch_article_language(
-    connection: connection::PgConnection,
+    connection: PgConnection,
     authorization: Authorization,
     patch_body: Json<ArticleLanguagePatchBody>,
     article_id: i32,
@@ -109,12 +101,7 @@ async fn patch_article_language(
         &connection,
         language_code,
         article_id,
-        ArticleLanguagePatchDto {
-            enabled: patch_body.enabled,
-            name: patch_body.name.clone(),
-            archived: None,
-            user_id: user_aggregation.id,
-        },
+        patch_body.0.into_dto(user_aggregation.id),
     )
     .await
     {
@@ -126,7 +113,7 @@ async fn patch_article_language(
 #[openapi]
 #[delete("/<article_id>/language/<language_code>")]
 async fn delete_article_language(
-    connection: connection::PgConnection,
+    connection: PgConnection,
     authorization: Authorization,
     article_id: i32,
     language_code: String,
@@ -154,7 +141,7 @@ async fn delete_article_language(
 #[openapi]
 #[post("/<article_id>/language/<language_code>/restore")]
 async fn restore_article_language(
-    connection: connection::PgConnection,
+    connection: PgConnection,
     authorization: Authorization,
     article_id: i32,
     language_code: String,

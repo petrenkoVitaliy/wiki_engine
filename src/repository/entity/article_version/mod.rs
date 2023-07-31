@@ -1,7 +1,7 @@
 use super::connection;
 use super::db_schema;
+use super::dtm;
 use super::error;
-use super::schema;
 use super::version_content;
 
 mod model;

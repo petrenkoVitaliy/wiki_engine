@@ -3,15 +3,14 @@ use rocket::serde::{Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 use std::collections::HashMap;
 
-use super::error::formatted_error::FmtError;
-use super::mapper::values_mapper::ValuesMapper;
+use super::error::FmtError;
+use super::mapper::ValuesMapper;
 
-use super::repository::entity::article_version::ArticleVersion;
-use super::repository::entity::version_content::VersionContent;
+use super::repository::entity::{article_version::ArticleVersion, version_content::VersionContent};
 
 use super::version_content::VersionContentAggregation;
 
-#[derive(Serialize, JsonSchema, Deserialize, Debug)]
+#[derive(Deserialize, Serialize, JsonSchema, Debug)]
 pub struct ArticleVersionAggregation {
     pub id: i32,
     pub version: i32,

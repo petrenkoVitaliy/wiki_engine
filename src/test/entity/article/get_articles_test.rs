@@ -6,8 +6,8 @@ use super::test_handler::{
     request_handler::article::ArticleRequestHandler,
 };
 
+use super::dtm::article::request_body::{ArticleCreateRelationsBody, ArticlePatchBody};
 use super::repository::entity::article::ArticleType;
-use super::schema::article::{ArticleCreateRelationsBody, ArticlePatchBody};
 
 #[tokio::test]
 async fn get_articles() {

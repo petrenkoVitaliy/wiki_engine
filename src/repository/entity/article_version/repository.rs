@@ -1,21 +1,21 @@
 use diesel::{prelude::*, sql_query};
 
-use super::connection;
+use super::connection::PgConnection;
+use super::error::FmtError;
+
 use super::db_schema;
 use super::model;
 
-use super::error::formatted_error::FmtError;
+use super::version_content::VersionContent;
 
-use super::schema::article_version::{
+use super::dtm::article_version::dto::{
     ArticleVersionCreateDto, ArticleVersionPatchDto, ArticleVersionsJoinSearchDto,
 };
-
-use super::version_content::VersionContent;
 
 pub struct ArticleVersionRepository;
 
 impl ArticleVersionRepository {
-    pub async fn get_count(connection: &connection::PgConnection, article_language_id: i32) -> i32 {
+    pub async fn get_count(connection: &PgConnection, article_language_id: i32) -> i32 {
         let count: i64 = connection
             .run(move |connection| {
                 return db_schema::article_version::table
@@ -30,7 +30,7 @@ impl ArticleVersionRepository {
     }
 
     pub async fn get_many_actuals_with_content(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         article_languages_ids: Vec<i32>,
     ) -> Vec<(model::ArticleVersion, VersionContent)> {
         connection
@@ -65,7 +65,7 @@ impl ArticleVersionRepository {
     }
 
     pub async fn get_many_with_content(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         query_dto: ArticleVersionsJoinSearchDto,
     ) -> Vec<(model::ArticleVersion, VersionContent)> {
         connection
@@ -134,7 +134,7 @@ impl ArticleVersionRepository {
     }
 
     pub async fn patch(
-        connection: &connection::PgConnection,
+        connection: &PgConnection,
         version: i32,
         article_language_id: i32,
         patch_dto: ArticleVersionPatchDto,
