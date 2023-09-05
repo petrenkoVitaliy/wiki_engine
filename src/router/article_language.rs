@@ -175,8 +175,7 @@ pub fn routes() -> Vec<rocket::Route> {
     };
 
     openapi_get_routes![
-        settings:
-        get_article_language,
+        settings: get_article_language,
         create_article_language,
         patch_article_language,
         delete_article_language,

@@ -1,4 +1,4 @@
-use rocket::{patch, post, response::status, serde::json::Json};
+use rocket::{get, patch, post, response::status, serde::json::Json};
 use rocket_okapi::{
     okapi::schemars::gen::SchemaSettings, openapi, openapi_get_routes, settings::OpenApiSettings,
 };
@@ -9,6 +9,7 @@ use super::repository::PgConnection;
 use super::trait_common::DtoConvert;
 
 use super::aggregation::user_account::UserAccountAggregation;
+use super::aggregation::user_account_auth::UserAccountAuthAggregation;
 use super::dtm::auth::request_body::{UserLoginBody, UserPatchBody, UserSignupBody};
 
 use super::service::auth::AuthService;
@@ -46,11 +47,22 @@ async fn signup_with_role(
 async fn login(
     connection: PgConnection,
     user_login_body: Json<UserLoginBody>,
-) -> Result<Json<TokenDto>, status::Custom<String>> {
+) -> Result<Json<UserAccountAuthAggregation>, status::Custom<String>> {
     match AuthService::login(&connection, user_login_body.0.into_dto(())).await {
-        Ok(token_response) => Ok(Json(token_response)),
+        Ok(aggregation) => Ok(Json(aggregation)),
         Err(e) => Err(e.custom()),
     }
+}
+
+#[openapi]
+#[get("/user")]
+async fn get_user(
+    connection: PgConnection,
+    authorization: Authorization,
+) -> Result<Json<UserAccountAggregation>, status::Custom<String>> {
+    let user_aggregation = authorization.verify(vec![], &connection).await?;
+
+    Ok(Json(user_aggregation))
 }
 
 #[openapi]
@@ -95,13 +107,7 @@ pub fn routes() -> Vec<rocket::Route> {
         schema_settings: SchemaSettings::openapi3(),
     };
 
-    openapi_get_routes![
-        settings:
-        signup,
-        login,
-        test_jwt,
-        patch_user,
-    ]
+    openapi_get_routes![settings: signup, login, test_jwt, patch_user, get_user]
 }
 
 #[allow(dead_code)] // tests
@@ -112,11 +118,11 @@ pub fn test_routes() -> Vec<rocket::Route> {
     };
 
     openapi_get_routes![
-        settings:
-        signup,
+        settings: signup,
         login,
         test_jwt,
         patch_user,
         signup_with_role,
+        get_user,
     ]
 }

@@ -11,5 +11,5 @@ fn not_found(req: &Request) -> String {
 }
 
 pub fn catchers() -> Vec<rocket::Catcher> {
-    catchers![not_found, server_error]
+    catchers![not_found, server_error,]
 }

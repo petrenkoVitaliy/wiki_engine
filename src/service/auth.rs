@@ -11,6 +11,7 @@ use super::dtm::auth::dto::{
 };
 
 use super::aggregation::user_account::UserAccountAggregation;
+use super::aggregation::user_account_auth::UserAccountAuthAggregation;
 
 use super::repository::{
     entity::auth::{AuthRepository, UserAccount, UserPassword},
@@ -35,7 +36,7 @@ impl AuthService {
     pub async fn login(
         connection: &PgConnection,
         user_signup_dto: UserLoginDto,
-    ) -> Result<TokenDto, ErrorWrapper> {
+    ) -> Result<UserAccountAuthAggregation, ErrorWrapper> {
         let (user_password, user_account) =
             match AuthRepository::get_one_user_with_password(connection, user_signup_dto.email)
                 .await
@@ -56,10 +57,15 @@ impl AuthService {
             Err(e) => return Err(e),
         };
 
-        match JwtHandler::encode_jwt(user_account.id) {
-            Ok(jwt_string) => Ok(TokenDto { token: jwt_string }),
+        let jwt_string = match JwtHandler::encode_jwt(user_account.id) {
+            Ok(jwt_string) => jwt_string,
             Err(e) => return Err(e),
-        }
+        };
+
+        Ok(UserAccountAuthAggregation::from_model(
+            user_account,
+            TokenDto { token: jwt_string },
+        ))
     }
 
     pub async fn create_user(
