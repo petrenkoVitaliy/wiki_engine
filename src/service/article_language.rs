@@ -98,6 +98,7 @@ impl ArticleLanguageService {
                 language_code: None,
                 article_id: None,
                 article_language: None,
+                article_language_key: None,
             },
             query_options,
         )
@@ -138,6 +139,25 @@ impl ArticleLanguageService {
         };
 
         Ok((article_language, language))
+    }
+
+    pub async fn get_one_by_key(
+        connection: &PgConnection,
+        article_language_key: String,
+        query_options: &QueryOptions,
+    ) -> Result<ArticleLanguage, ErrorWrapper> {
+        let article_language = match ArticleLanguageRepository::get_one_by_key(
+            connection,
+            article_language_key,
+            &query_options,
+        )
+        .await
+        {
+            None => return FmtError::NotFound("article_language").error(),
+            Some(language) => language,
+        };
+
+        Ok(article_language)
     }
 
     pub async fn insert(
@@ -242,6 +262,7 @@ impl ArticleLanguageService {
                 language_code: None,
                 article_id: None,
                 article_language: None,
+                article_language_key: None,
             },
             query_options,
         )
@@ -290,7 +311,7 @@ impl ArticleLanguageService {
         let article_language = ArticleLanguageRepository::insert_raw(
             connection,
             ArticleLanguageCreateDto {
-                name: creation_dto.name,
+                name: creation_dto.name.clone(),
                 language_id: language_id,
                 article_id: creation_dto.article_id,
                 user_id: creation_dto.user_id,
@@ -314,6 +335,7 @@ impl ArticleLanguageService {
                 article_language_id: article_language.id,
                 content_id: version_content.id,
                 user_id: creation_dto.user_id,
+                name: creation_dto.name,
             },
         )
         .expect(&FmtError::FailedToInsert("article_version").fmt());

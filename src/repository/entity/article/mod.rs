@@ -1,3 +1,4 @@
+use super::article_language;
 use super::connection;
 use super::db_schema;
 use super::dtm;

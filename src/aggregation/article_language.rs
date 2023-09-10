@@ -15,6 +15,7 @@ use super::language::LanguageAggregation;
 pub struct ArticleLanguageAggregation {
     pub id: i32,
     pub name: String,
+    pub name_key: String,
 
     pub enabled: bool,
     pub archived: bool,
@@ -88,6 +89,7 @@ impl ArticleLanguageAggregation {
         Self {
             id: article_language.id,
             name: article_language.name,
+            name_key: article_language.name_key,
             enabled: article_language.enabled,
             archived: article_language.archived,
 

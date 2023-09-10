@@ -22,6 +22,9 @@ impl ErrorWrapper {
             FmtError::PermissionDenied(_) => Status::Forbidden,
 
             FmtError::DatabaseError(_) => Status::InternalServerError,
+
+            FmtError::FailedToSendRequest(_) => Status::InternalServerError,
+
             _ => Status::ImATeapot,
         };
 

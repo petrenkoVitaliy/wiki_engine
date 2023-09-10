@@ -10,6 +10,7 @@ use super::db_schema::article_language;
 pub struct ArticleLanguagePatch {
     pub id: Option<i32>,
     pub name: Option<String>,
+    pub name_key: Option<String>,
 
     pub enabled: Option<bool>,
     pub archived: Option<bool>,
@@ -29,6 +30,7 @@ pub struct ArticleLanguagePatch {
 pub struct ArticleLanguageInsertable {
     pub id: Option<i32>,
     pub name: String,
+    pub name_key: String,
 
     pub enabled: bool,
     pub archived: bool,
@@ -48,6 +50,7 @@ pub struct ArticleLanguageInsertable {
 pub struct ArticleLanguage {
     pub id: i32,
     pub name: String,
+    pub name_key: String,
 
     pub enabled: bool,
     pub archived: bool,

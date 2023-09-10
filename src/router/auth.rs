@@ -4,31 +4,52 @@ use rocket_okapi::{
 };
 
 use super::authorization::Authorization;
-use super::dtm_common::{TokenDto, UserRoleId};
+use super::dtm_common::{ResponseString, TokenDto, UserRoleId};
 use super::repository::PgConnection;
 use super::trait_common::DtoConvert;
 
 use super::aggregation::user_account::UserAccountAggregation;
-use super::aggregation::user_account_auth::UserAccountAuthAggregation;
-use super::dtm::auth::request_body::{UserLoginBody, UserPatchBody, UserSignupBody};
+use super::aggregation::user_account_auth::{
+    UserAccountAuthAggregation, UserAccountPermissionsAggregation,
+};
+
+use super::dtm::auth::request_body::{
+    UserConfirmBody, UserLoginBody, UserPatchBody, UserSignupBody,
+};
 
 use super::service::auth::AuthService;
 
 #[openapi]
-#[post("/signup", data = "<user_signup_body>")]
+#[post("/signup?<redirect_to>", data = "<user_signup_body>")]
 async fn signup(
     connection: PgConnection,
     user_signup_body: Json<UserSignupBody>,
-) -> Result<Json<UserAccountAggregation>, status::Custom<String>> {
-    match AuthService::create_user(&connection, user_signup_body.0.into_dto(())).await {
-        Ok(user_account_aggregation) => Ok(Json(user_account_aggregation)),
+    redirect_to: Option<String>,
+) -> Result<Json<ResponseString>, status::Custom<String>> {
+    match AuthService::create_user(&connection, user_signup_body.0.into_dto(()), redirect_to).await
+    {
+        Ok(_) => Ok(Json(ResponseString {
+            status: String::from("success"),
+        })),
+        Err(e) => Err(e.custom()),
+    }
+}
+
+#[openapi]
+#[post("/confirm", data = "<user_confirm_body>")]
+async fn confirm(
+    connection: PgConnection,
+    user_confirm_body: Json<UserConfirmBody>,
+) -> Result<Json<UserAccountAuthAggregation>, status::Custom<String>> {
+    match AuthService::confirm_user(&connection, user_confirm_body.0.into_dto(())).await {
+        Ok(aggregation) => Ok(Json(aggregation)),
         Err(e) => Err(e.custom()),
     }
 }
 
 #[openapi]
 #[post("/signup/role/<role_id>", data = "<user_signup_body>")]
-#[allow(dead_code)] // tests
+#[allow(dead_code)] // for tests
 async fn signup_with_role(
     connection: PgConnection,
     user_signup_body: Json<UserSignupBody>,
@@ -55,14 +76,18 @@ async fn login(
 }
 
 #[openapi]
-#[get("/user")]
+#[get("/user?<article_id>")]
 async fn get_user(
     connection: PgConnection,
     authorization: Authorization,
-) -> Result<Json<UserAccountAggregation>, status::Custom<String>> {
+    article_id: Option<i32>,
+) -> Result<Json<UserAccountPermissionsAggregation>, status::Custom<String>> {
     let user_aggregation = authorization.verify(vec![], &connection).await?;
 
-    Ok(Json(user_aggregation))
+    let user_permission_aggregation =
+        AuthService::get_user_with_permissions(&connection, user_aggregation, article_id).await;
+
+    Ok(Json(user_permission_aggregation))
 }
 
 #[openapi]
@@ -107,10 +132,17 @@ pub fn routes() -> Vec<rocket::Route> {
         schema_settings: SchemaSettings::openapi3(),
     };
 
-    openapi_get_routes![settings: signup, login, test_jwt, patch_user, get_user]
+    openapi_get_routes![
+        settings: signup,
+        login,
+        test_jwt,
+        patch_user,
+        get_user,
+        confirm
+    ]
 }
 
-#[allow(dead_code)] // tests
+#[allow(dead_code)] // for tests
 pub fn test_routes() -> Vec<rocket::Route> {
     let settings = OpenApiSettings {
         json_path: "/auth.json".to_owned(),
@@ -124,5 +156,6 @@ pub fn test_routes() -> Vec<rocket::Route> {
         patch_user,
         signup_with_role,
         get_user,
+        confirm,
     ]
 }

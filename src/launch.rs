@@ -60,7 +60,7 @@ impl Fairing for CORS {
         response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
         response.set_header(Header::new(
             "Access-Control-Allow-Methods",
-            "POST, GET, PATCH, OPTIONS",
+            "POST, GET, PATCH, OPTIONS, patch",
         ));
         response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
         response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
@@ -81,6 +81,7 @@ pub fn launch() -> rocket::Rocket<rocket::Build> {
         .mount("/articles", router::article_version::routes())
         .mount("/languages", router::language::routes())
         .mount("/auth", router::auth::routes())
+        .mount("/image", router::image::routes())
         .mount("/swagger", make_swagger_ui(&get_docs()))
         .mount("/", routes![all_options,])
         .register("/", router::catchers::catchers())

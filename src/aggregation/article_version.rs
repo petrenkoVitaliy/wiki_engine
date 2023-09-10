@@ -14,6 +14,7 @@ use super::version_content::VersionContentAggregation;
 pub struct ArticleVersionAggregation {
     pub id: i32,
     pub version: i32,
+    pub name: String,
     pub enabled: bool,
 
     pub content: VersionContentAggregation,
@@ -42,6 +43,7 @@ impl ArticleVersionAggregation {
                     id: article_version.id,
                     version: article_version.version,
                     enabled: article_version.enabled,
+                    name: article_version.name,
 
                     updated_at: article_version.updated_at,
                     created_at: article_version.created_at,
@@ -64,6 +66,7 @@ impl ArticleVersionAggregation {
                     id: article_version.id,
                     version: article_version.version,
                     enabled: article_version.enabled,
+                    name: article_version.name,
 
                     updated_at: article_version.updated_at,
                     created_at: article_version.created_at,

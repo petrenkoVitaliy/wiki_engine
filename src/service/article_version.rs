@@ -1,11 +1,13 @@
 use diesel::Connection;
 use std::collections::HashMap;
 
+use super::authorization::PermissionsHandler;
 use super::diff_handler::DiffHandler;
 use super::dtm_common::QueryOptions;
 use super::error::{ErrorWrapper, FmtError};
 
 use super::dtm::{
+    article_language::dto::ArticleLanguagePatchDto,
     article_version::dto::{
         ArticleVersionCreateDto, ArticleVersionCreateRelationsDto, ArticleVersionPatchDto,
         ArticleVersionsJoinSearchDto, LanguageSearchDto,
@@ -13,10 +15,14 @@ use super::dtm::{
     version_content::dto::VersionContentDto,
 };
 
-use super::aggregation::article_version::ArticleVersionAggregation;
+use super::aggregation::{
+    article_version::ArticleVersionAggregation, user_account::UserAccountAggregation,
+};
 
 use super::repository::{
     entity::{
+        article::ArticleRepository,
+        article_language::{ArticleLanguage, ArticleLanguageRepository},
         article_version::{ArticleVersion, ArticleVersionRepository},
         version_content::{ContentType, VersionContent, VersionContentRepository},
     },
@@ -130,6 +136,7 @@ impl ArticleVersionService {
                 language_code: None,
                 article_languages_ids: None,
                 article_id: None,
+                article_language_key: None,
             },
             &QueryOptions { is_actual: false },
         )
@@ -141,7 +148,24 @@ impl ArticleVersionService {
         article_id: i32,
         language_code: String,
         creation_dto: ArticleVersionCreateRelationsDto,
+        user_aggregation: &UserAccountAggregation,
     ) -> Result<ArticleVersionAggregation, ErrorWrapper> {
+        let article = match ArticleRepository::get_one(
+            connection,
+            article_id,
+            &QueryOptions { is_actual: false },
+        )
+        .await
+        {
+            Some(article) => article,
+            None => return FmtError::NotFound("article").error(),
+        };
+
+        match PermissionsHandler::can_create_article_version(&article, user_aggregation) {
+            false => return FmtError::PermissionDenied("not enough rights").error(),
+            _ => (),
+        };
+
         let article_language = match ArticleLanguageService::get_one_with_language(
             connection,
             article_id,
@@ -160,7 +184,7 @@ impl ArticleVersionService {
         let (article_version, version_content) = Self::create_relations_transaction(
             connection,
             creation_dto,
-            article_language.id,
+            article_language,
             article_versions_count,
         )
         .await;
@@ -175,7 +199,7 @@ impl ArticleVersionService {
     async fn create_relations_transaction(
         connection: &PgConnection,
         creation_dto: ArticleVersionCreateRelationsDto,
-        article_language_id: i32,
+        article_language: ArticleLanguage,
         article_versions_count: i32,
     ) -> (ArticleVersion, VersionContent) {
         connection
@@ -186,7 +210,7 @@ impl ArticleVersionService {
                             Ok(Self::create_relations(
                                 transaction_connection,
                                 creation_dto,
-                                article_language_id,
+                                article_language,
                                 article_versions_count,
                             ))
                         },
@@ -199,17 +223,38 @@ impl ArticleVersionService {
     fn create_relations(
         connection: &mut diesel::PgConnection,
         creation_dto: ArticleVersionCreateRelationsDto,
-        article_language_id: i32,
+        article_language: ArticleLanguage,
         article_versions_count: i32,
     ) -> (ArticleVersion, VersionContent) {
         if article_versions_count > 0 {
             Self::update_previous_version_content(
                 connection,
-                article_language_id,
+                article_language.id,
                 article_versions_count,
                 &creation_dto,
             );
         }
+
+        let actual_language_name = match creation_dto.name {
+            Some(name) => {
+                if name != article_language.name {
+                    ArticleLanguageRepository::patch_raw(
+                        connection,
+                        article_language.id,
+                        ArticleLanguagePatchDto {
+                            name: Some(name.clone()),
+                            user_id: creation_dto.user_id,
+                            enabled: None,
+                            archived: None,
+                        },
+                    )
+                    .expect(&FmtError::FailedToUpdate("article_language").fmt());
+                }
+
+                name
+            }
+            _ => article_language.name,
+        };
 
         let version_content = VersionContentRepository::insert_raw(
             connection,
@@ -223,10 +268,11 @@ impl ArticleVersionService {
         let article_version = ArticleVersionRepository::insert_raw(
             connection,
             ArticleVersionCreateDto {
-                article_language_id,
+                article_language_id: article_language.id,
                 version: article_versions_count + 1,
                 content_id: version_content.id,
                 user_id: creation_dto.user_id,
+                name: actual_language_name,
             },
         )
         .expect(&FmtError::FailedToInsert("article_version").fmt());
@@ -295,27 +341,41 @@ impl ArticleVersionService {
             Some(article_languages_ids) => article_languages_ids,
             None => match language_search_dto.article_language {
                 Some(article_language) => vec![article_language.id],
-                None => {
-                    let (language_code, article_id) = match (
-                        language_search_dto.language_code,
-                        language_search_dto.article_id,
-                    ) {
-                        (Some(language_code), Some(article_id)) => (language_code, article_id),
-                        _ => panic!("{}", &FmtError::FailedToProcess("language_code").fmt()),
-                    };
-
-                    match ArticleLanguageService::get_one_with_language(
-                        connection,
-                        article_id,
-                        language_code,
-                        &QueryOptions { is_actual: true },
-                    )
-                    .await
-                    {
-                        Err(e) => return Err(e),
-                        Ok((article_language, _)) => vec![article_language.id],
+                None => match language_search_dto.article_language_key {
+                    Some(article_language_key) => {
+                        match ArticleLanguageService::get_one_by_key(
+                            connection,
+                            article_language_key,
+                            &QueryOptions { is_actual: true },
+                        )
+                        .await
+                        {
+                            Err(e) => return Err(e),
+                            Ok(article_language) => vec![article_language.id],
+                        }
                     }
-                }
+                    None => {
+                        let (language_code, article_id) = match (
+                            language_search_dto.language_code,
+                            language_search_dto.article_id,
+                        ) {
+                            (Some(language_code), Some(article_id)) => (language_code, article_id),
+                            _ => panic!("{}", &FmtError::FailedToProcess("language_code").fmt()),
+                        };
+
+                        match ArticleLanguageService::get_one_with_language(
+                            connection,
+                            article_id,
+                            language_code,
+                            &QueryOptions { is_actual: true },
+                        )
+                        .await
+                        {
+                            Err(e) => return Err(e),
+                            Ok((article_language, _)) => vec![article_language.id],
+                        }
+                    }
+                },
             },
         };
 

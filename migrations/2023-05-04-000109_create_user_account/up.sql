@@ -1,9 +1,10 @@
 CREATE TABLE user_account(
     id SERIAL PRIMARY KEY,
     
-    email VARCHAR(255) NOT NULL UNIQUE,
-    name VARCHAR(255) NOT NULL UNIQUE,
-    active BOOLEAN DEFAULT true NOT NULL,
+    email VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(30) NOT NULL UNIQUE,
+    active BOOLEAN DEFAULT false NOT NULL,
+    blocked BOOLEAN DEFAULT false NOT NULL,
 
     role_id INT NOT NULL,
     FOREIGN KEY (role_id) REFERENCES user_role(id),
@@ -14,6 +15,10 @@ CREATE TABLE user_account(
     updated_by INT,
     FOREIGN KEY (updated_by) REFERENCES user_account(id)
 );
+
+CREATE INDEX idx_user_account_email ON user_account(email);
+
+ALTER SEQUENCE user_account_id_seq RESTART WITH 1000;
 
 CREATE  FUNCTION update_user_account_updated_at()
 RETURNS TRIGGER AS $$

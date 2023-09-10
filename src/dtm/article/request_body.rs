@@ -8,7 +8,8 @@ use super::repository::entity::article::ArticleType;
 
 #[derive(Serialize, Deserialize, JsonSchema)]
 pub struct ArticlePatchBody {
-    pub enabled: bool,
+    pub enabled: Option<bool>,
+    pub article_type: Option<ArticleType>,
 }
 
 impl DtoConvert<ArticlePatchDto> for ArticlePatchBody {
@@ -19,7 +20,8 @@ impl DtoConvert<ArticlePatchDto> for ArticlePatchBody {
             id,
             user_id,
             archived: None,
-            enabled: Some(self.enabled),
+            enabled: self.enabled,
+            article_type: self.article_type,
         }
     }
 }

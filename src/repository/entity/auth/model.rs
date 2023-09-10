@@ -3,7 +3,7 @@ use diesel::{AsChangeset, Insertable, Queryable, Selectable};
 use rocket::serde::{Deserialize, Serialize};
 use rocket_sync_db_pools::diesel;
 
-use super::db_schema::{user_account, user_password};
+use super::db_schema::{user_account, user_otp, user_password};
 
 #[derive(Queryable, Debug, Serialize, Deserialize)]
 #[diesel(table_name = user_role)]
@@ -20,6 +20,7 @@ pub struct UserAccount {
     pub email: String,
     pub name: String,
     pub active: bool,
+    pub blocked: bool,
 
     pub role_id: i32,
 
@@ -37,6 +38,7 @@ pub struct UserAccountInsertable {
     pub email: String,
     pub name: String,
     pub active: bool,
+    pub blocked: bool,
 
     pub role_id: i32,
 
@@ -53,15 +55,15 @@ pub struct UserAccountPatch {
 
     pub email: Option<String>,
     pub name: Option<String>,
-
-    pub active: bool,
+    pub active: Option<bool>,
+    pub blocked: Option<bool>,
 
     pub role_id: Option<i32>,
 
     pub updated_at: Option<Option<NaiveDateTime>>,
     pub created_at: Option<NaiveDateTime>,
 
-    pub updated_by: i32,
+    pub updated_by: Option<i32>,
 }
 
 #[derive(Queryable, Debug, Serialize, Deserialize, Selectable)]
@@ -85,5 +87,27 @@ pub struct UserPasswordInsertable {
     pub user_id: i32,
 
     pub updated_at: Option<NaiveDateTime>,
+    pub created_at: Option<NaiveDateTime>,
+}
+
+#[derive(Queryable, Debug, Serialize, Deserialize, Selectable)]
+#[diesel(table_name = user_otp)]
+pub struct UserOtp {
+    pub id: i32,
+
+    pub otp: String,
+    pub user_id: i32,
+
+    pub created_at: NaiveDateTime,
+}
+
+#[derive(Queryable, Debug, Insertable, Serialize, Deserialize, AsChangeset)]
+#[diesel(table_name = user_otp)]
+pub struct UserOtpInsertable {
+    pub id: Option<i32>,
+
+    pub otp: String,
+    pub user_id: i32,
+
     pub created_at: Option<NaiveDateTime>,
 }

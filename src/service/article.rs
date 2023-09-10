@@ -10,7 +10,8 @@ use super::dtm::{
     version_content::dto::VersionContentDto,
 };
 
-use super::aggregation::article::ArticleAggregation;
+use super::aggregation::{article::ArticleAggregation, user_account::UserAccountAggregation};
+use super::authorization::PermissionsHandler;
 
 use super::repository::{
     entity::{
@@ -34,6 +35,31 @@ impl ArticleService {
         query_options: &QueryOptions,
     ) -> Result<ArticleAggregation, ErrorWrapper> {
         let article = match ArticleRepository::get_one(connection, id, query_options).await {
+            None => return FmtError::NotFound("article").error(),
+            Some(article) => article,
+        };
+
+        let article_language_aggregations =
+            ArticleLanguageService::get_aggregations(&connection, article.id, query_options).await;
+
+        Ok(ArticleAggregation::from_model(
+            article,
+            article_language_aggregations,
+        ))
+    }
+
+    pub async fn get_aggregation_by_key(
+        connection: &PgConnection,
+        article_language_key: String,
+        query_options: &QueryOptions,
+    ) -> Result<ArticleAggregation, ErrorWrapper> {
+        let (_, article) = match ArticleRepository::get_one_by_key(
+            connection,
+            article_language_key,
+            query_options,
+        )
+        .await
+        {
             None => return FmtError::NotFound("article").error(),
             Some(article) => article,
         };
@@ -90,8 +116,25 @@ impl ArticleService {
     pub async fn patch(
         connection: &PgConnection,
         patch_dto: ArticlePatchDto,
+        user_aggregation: &UserAccountAggregation,
     ) -> Result<ArticleAggregation, ErrorWrapper> {
         let article_id = patch_dto.id;
+
+        let article = match ArticleRepository::get_one(
+            connection,
+            article_id,
+            &QueryOptions { is_actual: false },
+        )
+        .await
+        {
+            Some(article) => article,
+            None => return FmtError::NotFound("article").error(),
+        };
+
+        match PermissionsHandler::can_patch_article(&article, user_aggregation) {
+            false => return FmtError::PermissionDenied("not enough rights").error(),
+            _ => (),
+        };
 
         let updated_count = ArticleRepository::patch(connection, patch_dto).await;
 
@@ -145,7 +188,7 @@ impl ArticleService {
         let article_language = ArticleLanguageRepository::insert_raw(
             connection,
             ArticleLanguageCreateDto {
-                name: creation_dto.name,
+                name: creation_dto.name.clone(),
                 article_id: article.id,
                 language_id: language_id,
                 user_id: creation_dto.user_id,
@@ -169,6 +212,7 @@ impl ArticleService {
                 article_language_id: article_language.id,
                 content_id: version_content.id,
                 user_id: creation_dto.user_id,
+                name: creation_dto.name,
             },
         )
         .expect(&FmtError::FailedToInsert("article_version").fmt());

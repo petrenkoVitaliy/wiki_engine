@@ -3,6 +3,7 @@ use super::repository::entity::article_language::ArticleLanguage;
 pub struct ArticleVersionCreateRelationsDto {
     pub content: String,
     pub user_id: i32,
+    pub name: Option<String>,
 }
 
 pub struct ArticleVersionCreateDto {
@@ -10,6 +11,7 @@ pub struct ArticleVersionCreateDto {
     pub content_id: i32,
     pub article_language_id: i32,
     pub user_id: i32,
+    pub name: String,
 }
 
 pub struct ArticleVersionPatchDto {
@@ -29,4 +31,6 @@ pub struct LanguageSearchDto {
 
     pub article_id: Option<i32>,
     pub language_code: Option<String>,
+
+    pub article_language_key: Option<String>,
 }

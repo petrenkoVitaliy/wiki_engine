@@ -6,5 +6,5 @@ use super::error;
 mod model;
 mod repository;
 
-pub use self::model::{UserAccount, UserPassword, UserRole};
+pub use self::model::{UserAccount, UserOtp, UserPassword, UserRole};
 pub use self::repository::AuthRepository;

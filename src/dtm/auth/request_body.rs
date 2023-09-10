@@ -3,11 +3,11 @@ use rocket_okapi::okapi::schemars::JsonSchema;
 
 use super::trait_common::DtoConvert;
 
-use super::dto::{UserLoginDto, UserPatchDto, UserSignupDto};
+use super::dto::{UserConfirmDto, UserLoginDto, UserPatchDto, UserSignupDto};
 
 #[derive(Deserialize, JsonSchema)]
 pub struct UserPatchBody {
-    pub active: bool,
+    pub blocked: bool,
 }
 
 impl DtoConvert<UserPatchDto> for UserPatchBody {
@@ -16,8 +16,9 @@ impl DtoConvert<UserPatchDto> for UserPatchBody {
     fn into_dto(self, (user_id, updated_by): Self::TParams) -> UserPatchDto {
         UserPatchDto {
             user_id,
-            updated_by,
-            active: self.active,
+            updated_by: Some(updated_by),
+            blocked: Some(self.blocked),
+            active: None,
         }
     }
 }
@@ -54,6 +55,23 @@ impl DtoConvert<UserLoginDto> for UserLoginBody {
         UserLoginDto {
             email: self.email,
             password: self.password,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, JsonSchema)]
+pub struct UserConfirmBody {
+    pub email: String,
+    pub otp: String,
+}
+
+impl DtoConvert<UserConfirmDto> for UserConfirmBody {
+    type TParams = ();
+
+    fn into_dto(self, _params: Self::TParams) -> UserConfirmDto {
+        UserConfirmDto {
+            email: self.email,
+            otp: self.otp,
         }
     }
 }

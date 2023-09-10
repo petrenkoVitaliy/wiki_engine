@@ -8,6 +8,7 @@ use super::dto::{ArticleVersionCreateRelationsDto, ArticleVersionPatchDto};
 #[derive(Serialize, Deserialize, JsonSchema)]
 pub struct ArticleVersionCreateRelationsBody {
     pub content: String,
+    pub name: Option<String>,
 }
 
 impl DtoConvert<ArticleVersionCreateRelationsDto> for ArticleVersionCreateRelationsBody {
@@ -17,6 +18,7 @@ impl DtoConvert<ArticleVersionCreateRelationsDto> for ArticleVersionCreateRelati
         ArticleVersionCreateRelationsDto {
             user_id,
             content: self.content,
+            name: self.name,
         }
     }
 }

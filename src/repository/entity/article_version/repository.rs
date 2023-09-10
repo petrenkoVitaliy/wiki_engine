@@ -119,6 +119,7 @@ impl ArticleVersionRepository {
             .values(model::ArticleVersionInsertable {
                 id: None,
 
+                name: creation_dto.name,
                 content_id: creation_dto.content_id,
                 version: creation_dto.version,
                 article_language_id: creation_dto.article_language_id,
@@ -152,6 +153,7 @@ impl ArticleVersionRepository {
                         id: None,
                         content_id: None,
                         version: None,
+                        name: None,
                         article_language_id: None,
                         updated_at: None,
                         created_at: None,

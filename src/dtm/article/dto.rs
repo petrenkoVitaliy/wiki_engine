@@ -2,9 +2,10 @@ use super::repository::entity::article::ArticleType;
 
 pub struct ArticlePatchDto {
     pub id: i32,
+    pub user_id: i32,
     pub enabled: Option<bool>,
     pub archived: Option<bool>,
-    pub user_id: i32,
+    pub article_type: Option<ArticleType>,
 }
 
 pub struct ArticleCreateDto {

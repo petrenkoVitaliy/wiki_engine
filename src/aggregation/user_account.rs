@@ -5,12 +5,39 @@ use rocket_okapi::okapi::schemars::JsonSchema;
 use super::repository::entity::auth::UserAccount;
 
 #[derive(Serialize, JsonSchema, Debug)]
+pub struct UserAccountPartialAggregation {
+    pub email: String,
+    pub name: String,
+
+    pub role_id: i32,
+}
+
+impl UserAccountPartialAggregation {
+    pub fn from_model(user_account: UserAccount) -> Self {
+        Self {
+            email: user_account.email,
+            name: user_account.name,
+            role_id: user_account.role_id,
+        }
+    }
+
+    pub fn from_aggregation(user_account_aggregation: UserAccountAggregation) -> Self {
+        Self {
+            email: user_account_aggregation.email,
+            name: user_account_aggregation.name,
+            role_id: user_account_aggregation.role_id,
+        }
+    }
+}
+
+#[derive(Serialize, JsonSchema, Debug)]
 pub struct UserAccountAggregation {
     pub id: i32,
 
     pub email: String,
     pub name: String,
     pub active: bool,
+    pub blocked: bool,
 
     pub role_id: i32,
 
@@ -26,6 +53,7 @@ impl UserAccountAggregation {
             id: user_account.id,
             email: user_account.email,
             active: user_account.active,
+            blocked: user_account.blocked,
             name: user_account.name,
             role_id: user_account.role_id,
 

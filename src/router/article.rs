@@ -28,6 +28,24 @@ async fn get_articles(
 }
 
 #[openapi]
+#[get("/key/<article_language_key>", rank = 1)]
+async fn get_aggregation_by_key(
+    connection: PgConnection,
+    article_language_key: String,
+) -> Result<Json<ArticleAggregation>, status::Custom<String>> {
+    match ArticleService::get_aggregation_by_key(
+        &connection,
+        article_language_key,
+        &QueryOptions { is_actual: true },
+    )
+    .await
+    {
+        Ok(article_aggregation) => Ok(Json(article_aggregation)),
+        Err(e) => Err(e.custom()),
+    }
+}
+
+#[openapi]
 #[get("/<id>")]
 async fn get_article(
     connection: PgConnection,
@@ -63,13 +81,22 @@ async fn patch_article(
     id: i32,
     patch_body: Json<ArticlePatchBody>,
 ) -> Result<Json<ArticleAggregation>, status::Custom<String>> {
+    let get_allowed_roles = || {
+        if patch_body.enabled.is_some() {
+            return vec![UserRoleId::Admin, UserRoleId::Moderator];
+        }
+
+        vec![]
+    };
+
     let user_aggregation = authorization
-        .verify(vec![UserRoleId::Moderator, UserRoleId::Admin], &connection)
+        .verify(get_allowed_roles(), &connection)
         .await?;
 
     match ArticleService::patch(
         &connection,
         patch_body.0.into_dto((id, user_aggregation.id)),
+        &user_aggregation,
     )
     .await
     {
@@ -91,10 +118,12 @@ async fn delete_article(
         &connection,
         ArticlePatchDto {
             id,
-            enabled: None,
             archived: Some(true),
             user_id: user_aggregation.id,
+            enabled: None,
+            article_type: None,
         },
+        &user_aggregation,
     )
     .await
     {
@@ -118,10 +147,12 @@ async fn restore_article(
         &connection,
         ArticlePatchDto {
             id,
-            enabled: None,
             archived: Some(false),
             user_id: user_aggregation.id,
+            enabled: None,
+            article_type: None,
         },
+        &user_aggregation,
     )
     .await
     {
@@ -137,8 +168,8 @@ pub fn routes() -> Vec<rocket::Route> {
     };
 
     openapi_get_routes![
-        settings:
-        get_articles,
+        settings: get_articles,
+        get_aggregation_by_key,
         get_article,
         create_article,
         patch_article,

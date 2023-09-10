@@ -31,7 +31,7 @@ impl Authorization {
 
         let user = Self::get_user(connection, claims.user_id).await?;
 
-        if !user.active {
+        if !user.active || user.blocked {
             return Err(FmtError::PermissionDenied("not enough rights")
                 .error_wrapper()
                 .custom());

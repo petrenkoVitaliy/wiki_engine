@@ -1,7 +1,8 @@
 CREATE TABLE article_language (
     id SERIAL PRIMARY KEY,
     
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(30) NOT NULL UNIQUE,
+    name_key VARCHAR(30) NOT NULL UNIQUE,
 
     enabled BOOLEAN DEFAULT true NOT NULL,
     archived BOOLEAN DEFAULT false NOT NULL,
@@ -22,6 +23,11 @@ CREATE TABLE article_language (
 
     CONSTRAINT language_per_article UNIQUE (article_id, language_id)
 );
+
+CREATE INDEX idx_article_language_name ON article_language(name);
+CREATE INDEX idx_article_language_name_key ON article_language(name_key);
+
+ALTER SEQUENCE article_language_id_seq RESTART WITH 1000;
 
 CREATE  FUNCTION update_article_language_updated_at()
 RETURNS TRIGGER AS $$

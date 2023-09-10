@@ -10,16 +10,16 @@ TODOs:
     - [X] add updatedBy to user_account
     - [X] align tests
     - [X] align imports & dtos
+    - [X] FE init
 
 ## medium: 
 
 
-    - [IP] FE init
+    - [ ] mailgun auth + email validation + pass recover
 
     - [ ] add tests coverage (auth + permissions + updates after services' refactor)
 
     - [ ] add article version deletion (hard!)
-    - [ ] mailgun auth + email validation + pass recover
     - [ ] add categories table + layer!
 
     - [ ] performance test!

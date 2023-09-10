@@ -33,6 +33,7 @@ pub async fn get_article_version(
 
             article_language: None,
             article_languages_ids: None,
+            article_language_key: None,
         },
         &QueryOptions { is_actual: true },
     )
@@ -59,6 +60,7 @@ pub async fn get_actual_article_version(
 
             article_language: None,
             article_languages_ids: None,
+            article_language_key: None,
         },
         &QueryOptions { is_actual: true },
     )
@@ -83,6 +85,33 @@ async fn get_article_versions(
             language_code: Some(language_code),
             article_id: Some(article_id),
 
+            article_language: None,
+            article_languages_ids: None,
+            article_language_key: None,
+        },
+        &QueryOptions { is_actual: true },
+    )
+    .await
+    {
+        Err(e) => Err(e.custom()),
+        Ok(article_versions_aggregations) => Ok(Json(article_versions_aggregations)),
+    }
+}
+
+#[openapi]
+#[get("/key/<article_language_key>/version", rank = 1)]
+async fn get_article_versions_by_key(
+    connection: PgConnection,
+    article_language_key: String,
+) -> Result<Json<Vec<ArticleVersionAggregation>>, status::Custom<String>> {
+    match ArticleVersionService::get_aggregations(
+        &connection,
+        false,
+        LanguageSearchDto {
+            article_language_key: Some(article_language_key),
+
+            language_code: None,
+            article_id: None,
             article_language: None,
             article_languages_ids: None,
         },
@@ -114,6 +143,7 @@ async fn create_article_version(
         article_id,
         language_code,
         creation_body.0.into_dto(user_aggregation.id),
+        &user_aggregation,
     )
     .await
     {
@@ -160,11 +190,11 @@ pub fn routes() -> Vec<rocket::Route> {
     };
 
     openapi_get_routes![
-        settings:
-        get_article_versions,
+        settings: get_article_versions,
         get_article_version,
         create_article_version,
         patch_article_version,
-        get_actual_article_version
+        get_actual_article_version,
+        get_article_versions_by_key
     ]
 }

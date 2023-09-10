@@ -7,6 +7,8 @@ use super::connection::PgConnection;
 use super::db_schema;
 use super::model;
 
+use super::article_language::ArticleLanguage;
+
 use super::dtm::article::dto::{ArticleCreateDto, ArticlePatchDto};
 
 pub struct ArticleRepository;
@@ -35,6 +37,33 @@ impl ArticleRepository {
             })
             .await
             .expect(&FmtError::FailedToFetch("article").fmt())
+    }
+
+    pub async fn get_one_by_key(
+        connection: &PgConnection,
+        article_language_key: String,
+        query_options: &QueryOptions,
+    ) -> Option<(ArticleLanguage, model::Article)> {
+        let is_actual = query_options.is_actual;
+
+        connection
+            .run(move |connection| {
+                let query = db_schema::article_language::table
+                    .filter(db_schema::article_language::name_key.eq(article_language_key))
+                    .inner_join(db_schema::article::table);
+
+                if is_actual {
+                    return query
+                        .filter(db_schema::article::enabled.eq(true))
+                        .filter(db_schema::article::archived.eq(false))
+                        .first(connection)
+                        .optional();
+                }
+
+                return query.first(connection).optional();
+            })
+            .await
+            .expect(&FmtError::FailedToFetch("article_language__article").fmt())
     }
 
     pub async fn get_many(
@@ -71,9 +100,9 @@ impl ArticleRepository {
                         enabled: patch_dto.enabled,
                         archived: patch_dto.archived,
                         updated_by: patch_dto.user_id,
+                        article_type: patch_dto.article_type,
 
                         id: None,
-                        article_type: None,
                         updated_at: None,
                         created_at: None,
                         created_by: None,

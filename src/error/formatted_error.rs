@@ -14,6 +14,8 @@ pub enum FmtError<'input> {
     PermissionDenied(&'input str),
 
     DatabaseError(&'input str),
+
+    FailedToSendRequest(&'input str),
 }
 
 impl<'input> FmtError<'input> {
@@ -32,6 +34,8 @@ impl<'input> FmtError<'input> {
             FmtError::PermissionDenied(s) => format!("Permission denied: {}", s),
 
             FmtError::DatabaseError(s) => format!("Database error: {}", s),
+
+            FmtError::FailedToSendRequest(s) => format!("Request error: {}", s),
         }
     }
 

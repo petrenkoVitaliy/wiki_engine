@@ -5,4 +5,5 @@ pub mod article;
 pub mod article_language;
 pub mod article_version;
 pub mod auth;
+pub mod image;
 pub mod version_content;

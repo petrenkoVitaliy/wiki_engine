@@ -3,6 +3,7 @@ mod authorization;
 mod diff_handler;
 mod dtm;
 mod dtm_common;
+mod emailer;
 mod error;
 mod hasher;
 mod jwt_handler;

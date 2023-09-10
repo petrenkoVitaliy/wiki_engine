@@ -11,4 +11,5 @@ pub mod article_language;
 pub mod article_version;
 pub mod auth;
 pub mod catchers;
+pub mod image;
 pub mod language;

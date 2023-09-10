@@ -16,6 +16,8 @@ CREATE TABLE article (
     FOREIGN KEY (created_by) REFERENCES user_account(id)
 );
 
+ALTER SEQUENCE article_id_seq RESTART WITH 1000;
+
 CREATE  FUNCTION update_article_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN

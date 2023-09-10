@@ -13,6 +13,10 @@ use super::dtm::article_language::dto::{ArticleLanguageCreateDto, ArticleLanguag
 pub struct ArticleLanguageRepository;
 
 impl ArticleLanguageRepository {
+    fn get_name_key(name: &String) -> String {
+        String::from(name).trim().to_lowercase().replace(" ", "_")
+    }
+
     pub async fn get_one(
         connection: &PgConnection,
         article_id: i32,
@@ -26,6 +30,37 @@ impl ArticleLanguageRepository {
                 let filter_query = db_schema::article_language::article_id
                     .eq(article_id)
                     .and(db_schema::article_language::language_id.eq(language_id));
+
+                if is_actual {
+                    return db_schema::article_language::table
+                        .filter(
+                            filter_query
+                                .and(db_schema::article_language::enabled.eq(true))
+                                .and(db_schema::article_language::archived.eq(false)),
+                        )
+                        .first(connection)
+                        .optional();
+                }
+
+                db_schema::article_language::table
+                    .filter(filter_query)
+                    .first(connection)
+                    .optional()
+            })
+            .await
+            .expect(&FmtError::FailedToFetch("article_language").fmt())
+    }
+
+    pub async fn get_one_by_key(
+        connection: &PgConnection,
+        article_language_key: String,
+        query_options: &QueryOptions,
+    ) -> Option<model::ArticleLanguage> {
+        let is_actual = query_options.is_actual;
+
+        connection
+            .run(move |connection| {
+                let filter_query = db_schema::article_language::name_key.eq(article_language_key);
 
                 if is_actual {
                     return db_schema::article_language::table
@@ -88,7 +123,9 @@ impl ArticleLanguageRepository {
             .values(model::ArticleLanguageInsertable {
                 id: None,
 
-                name: String::from(creation_dto.name),
+                name_key: Self::get_name_key(&creation_dto.name),
+                name: creation_dto.name,
+
                 article_id: creation_dto.article_id,
                 language_id: creation_dto.language_id,
 
@@ -110,6 +147,11 @@ impl ArticleLanguageRepository {
         article_id: i32,
         patch_dto: ArticleLanguagePatchDto,
     ) -> usize {
+        let name_key = match &patch_dto.name {
+            Some(name) => Some(Self::get_name_key(name)),
+            None => None,
+        };
+
         connection
             .run(move |connection| {
                 diesel::update(db_schema::article_language::table)
@@ -120,6 +162,8 @@ impl ArticleLanguageRepository {
                     )
                     .set(model::ArticleLanguagePatch {
                         name: patch_dto.name,
+                        name_key,
+
                         enabled: patch_dto.enabled,
                         archived: patch_dto.archived,
                         updated_by: patch_dto.user_id,
@@ -135,5 +179,35 @@ impl ArticleLanguageRepository {
             })
             .await
             .expect(&FmtError::FailedToUpdate("article_language").fmt())
+    }
+
+    pub fn patch_raw(
+        connection: &mut diesel::PgConnection,
+        article_language_id: i32,
+        patch_dto: ArticleLanguagePatchDto,
+    ) -> Result<model::ArticleLanguage, diesel::result::Error> {
+        let name_key = match &patch_dto.name {
+            Some(name) => Some(Self::get_name_key(name)),
+            None => None,
+        };
+
+        diesel::update(db_schema::article_language::table)
+            .filter(db_schema::article_language::id.eq(article_language_id))
+            .set(model::ArticleLanguagePatch {
+                name_key,
+                name: patch_dto.name,
+
+                enabled: patch_dto.enabled,
+                archived: patch_dto.archived,
+                updated_by: patch_dto.user_id,
+
+                id: None,
+                article_id: None,
+                language_id: None,
+                updated_at: None,
+                created_at: None,
+                created_by: None,
+            })
+            .get_result(connection)
     }
 }
