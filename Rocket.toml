@@ -1,16 +1,10 @@
-[release.databases.diesel]
-url="postgres://wiki_user:test@localhost:5432/postgres?options=-c search_path%3Dmain"
-
-[development.databases.diesel]
-url="postgres://wiki_user:test@localhost:5432/postgres?options=-c search_path%3Dmain"
-
 [test.databases.diesel]
 url="postgres://wiki_user:test@localhost:5432/postgres?options=-c search_path%3Dtest"
-
-[default.limits]
-json = "10 MiB"
-string = "10 MiB"
 
 [test]
 log_level = "off"
 # pool_size = 10
+
+[default.limits]
+json = "10 MiB"
+string = "10 MiB"
