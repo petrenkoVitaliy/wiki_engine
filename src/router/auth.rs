@@ -76,16 +76,16 @@ async fn login(
 }
 
 #[openapi]
-#[get("/user?<article_id>")]
+#[get("/user?<article_code>")]
 async fn get_user(
     connection: PgConnection,
     authorization: Authorization,
-    article_id: Option<i32>,
+    article_code: Option<String>,
 ) -> Result<Json<UserAccountPermissionsAggregation>, status::Custom<String>> {
     let user_aggregation = authorization.verify(vec![], &connection).await?;
 
     let user_permission_aggregation =
-        AuthService::get_user_with_permissions(&connection, user_aggregation, article_id).await;
+        AuthService::get_user_with_permissions(&connection, user_aggregation, article_code).await;
 
     Ok(Json(user_permission_aggregation))
 }

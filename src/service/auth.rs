@@ -32,20 +32,22 @@ impl AuthService {
     pub async fn get_user_with_permissions(
         connection: &PgConnection,
         user_account: UserAccountAggregation,
-        article_id: Option<i32>,
+        article_language_key: Option<String>,
     ) -> UserAccountPermissionsAggregation {
-        let permissions = match article_id {
+        let permissions = match article_language_key {
             None => vec![],
-            Some(article_id) => {
-                match ArticleRepository::get_one(
+            Some(article_language_key) => {
+                match ArticleRepository::get_one_by_key(
                     connection,
-                    article_id,
+                    article_language_key,
                     &QueryOptions { is_actual: true },
                 )
                 .await
                 {
                     None => vec![],
-                    Some(article) => PermissionsHandler::get_permissions(&article, &user_account),
+                    Some((_, article)) => {
+                        PermissionsHandler::get_permissions(&article, &user_account)
+                    }
                 }
             }
         };
