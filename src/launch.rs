@@ -1,8 +1,10 @@
+use base64::{engine::general_purpose, Engine as _};
 use dotenv::dotenv;
 use rocket_okapi::{
     settings::UrlObject,
     swagger_ui::{make_swagger_ui, SwaggerUIConfig},
 };
+use std::{env, fs};
 
 use rocket::{
     fairing::{Fairing, Info, Kind},
@@ -11,7 +13,10 @@ use rocket::{
 use rocket::{http::Header, routes};
 use rocket::{Request, Response};
 
+use super::error::FmtError;
 use super::{repository, router};
+
+const SA_ENV: &str = "SA";
 
 fn get_docs() -> SwaggerUIConfig {
     SwaggerUIConfig {
@@ -70,8 +75,21 @@ impl Fairing for CORS {
 #[options("/<_..>")]
 fn all_options() {}
 
+fn create_sa_file() {
+    let sa = env::var(SA_ENV).expect(&FmtError::EmptyValue(SA_ENV).fmt());
+    let decoded = general_purpose::STANDARD_NO_PAD
+        .decode(sa)
+        .expect(&FmtError::FailedToProcess(SA_ENV).fmt());
+
+    let str = String::from_utf8(decoded).unwrap();
+
+    fs::write("service-account.json", str).expect("Unable to write file");
+}
+
 pub fn launch() -> rocket::Rocket<rocket::Build> {
     dotenv().ok();
+
+    create_sa_file();
 
     rocket::build()
         .attach(repository::PgConnection::fairing())
