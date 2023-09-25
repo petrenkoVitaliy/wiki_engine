@@ -6,5 +6,5 @@ log_level = "off"
 # pool_size = 10
 
 [default.limits]
-json = "10 MiB"
-string = "10 MiB"
+json = "15 MiB"
+string = "15 MiB"
