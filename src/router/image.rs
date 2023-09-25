@@ -3,6 +3,8 @@ use rocket_okapi::{
     okapi::schemars::gen::SchemaSettings, openapi, openapi_get_routes, settings::OpenApiSettings,
 };
 
+use super::authorization::Authorization;
+use super::repository::PgConnection;
 use super::trait_common::DtoConvert;
 
 use super::aggregation::image::ImageAggregation;
@@ -14,7 +16,11 @@ use super::service::image::ImageService;
 #[post("/", data = "<images_body>")]
 async fn create_image(
     images_body: Json<Vec<ImageCreateBody>>,
+    connection: PgConnection,
+    authorization: Authorization,
 ) -> Result<Json<Vec<ImageAggregation>>, status::Custom<String>> {
+    authorization.verify(vec![], &connection).await?;
+
     let dtos = images_body
         .0
         .into_iter()
