@@ -5,6 +5,9 @@ url="postgres://wiki_user:test@localhost:5432/postgres?options=-c search_path%3D
 log_level = "off"
 # pool_size = 10
 
+[default]
+log_level = "normal"
+
 [default.limits]
 json = "15 MiB"
 string = "15 MiB"
