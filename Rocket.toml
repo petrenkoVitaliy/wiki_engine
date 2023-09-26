@@ -8,3 +8,7 @@ log_level = "off"
 [default.limits]
 json = "15 MiB"
 string = "15 MiB"
+
+[production.limits]
+json = "15 MiB"
+string = "15 MiB"
