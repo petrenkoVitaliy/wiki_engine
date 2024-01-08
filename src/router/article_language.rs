@@ -8,7 +8,9 @@ use super::dtm_common::{QueryOptions, UserRoleId};
 use super::repository::PgConnection;
 use super::trait_common::DtoConvert;
 
-use super::aggregation::article_language::ArticleLanguageAggregation;
+use super::aggregation::article_language::{
+    ArticleLanguageAggregation, ArticleLanguagePartialAggregation,
+};
 use super::dtm::article_language::{
     dto::ArticleLanguagePatchDto,
     request_body::{ArticleLanguageCreateRelationsBody, ArticleLanguagePatchBody},
@@ -50,6 +52,22 @@ async fn get_article_languages(
     .await;
 
     Ok(Json(article_languages))
+}
+
+#[openapi]
+#[get("/search?<query>")]
+async fn get_article_languages_by_query(
+    connection: PgConnection,
+    query: String,
+) -> Result<Json<Vec<ArticleLanguagePartialAggregation>>, status::Custom<String>> {
+    let article_languages_partials = ArticleLanguageService::get_partial_aggregations_by_query(
+        &connection,
+        query,
+        &QueryOptions { is_actual: true },
+    )
+    .await;
+
+    return Ok(Json(article_languages_partials));
 }
 
 #[openapi]
@@ -180,6 +198,7 @@ pub fn routes() -> Vec<rocket::Route> {
         patch_article_language,
         delete_article_language,
         restore_article_language,
-        get_article_languages
+        get_article_languages,
+        get_article_languages_by_query,
     ]
 }

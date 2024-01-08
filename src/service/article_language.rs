@@ -13,8 +13,9 @@ use super::dtm::{
 };
 
 use super::aggregation::{
-    article_language::ArticleLanguageAggregation, article_version::ArticleVersionAggregation,
-    language::LanguageAggregation,
+    article_language::ArticleLanguageAggregation,
+    article_language::ArticleLanguagePartialAggregation,
+    article_version::ArticleVersionAggregation, language::LanguageAggregation,
 };
 
 use super::repository::{
@@ -72,6 +73,17 @@ impl ArticleLanguageService {
             Some(article_languages) => article_languages,
             None => panic!("{}", &FmtError::FailedToFetch("article_languages").fmt()),
         }
+    }
+
+    pub async fn get_partial_aggregations_by_query(
+        connection: &PgConnection,
+        query: String,
+        query_options: &QueryOptions,
+    ) -> Vec<ArticleLanguagePartialAggregation> {
+        let article_languages_relations =
+            ArticleLanguageRepository::get_many_by_query(connection, query, query_options).await;
+
+        ArticleLanguagePartialAggregation::from_related_models(article_languages_relations)
     }
 
     pub async fn get_aggregations_map(

@@ -8,6 +8,9 @@ use super::model;
 
 use super::dtm_common::QueryOptions;
 
+use super::article::Article;
+use super::language::Language;
+
 use super::dtm::article_language::dto::{ArticleLanguageCreateDto, ArticleLanguagePatchDto};
 
 pub struct ArticleLanguageRepository;
@@ -110,6 +113,40 @@ impl ArticleLanguageRepository {
                 return query
                     .order(db_schema::article_language::created_at.desc())
                     .load(connection);
+            })
+            .await
+            .expect(&FmtError::FailedToFetch("article_languages").fmt())
+    }
+
+    pub async fn get_many_by_query(
+        connection: &PgConnection,
+        article_language_query: String,
+        query_options: &QueryOptions,
+    ) -> Vec<(model::ArticleLanguage, Language, Article)> {
+        let is_actual = query_options.is_actual;
+
+        connection
+            .run(move |connection| {
+                let mut query = db_schema::article_language::table
+                    .filter(
+                        db_schema::article_language::name_key
+                            .ilike(format!("%{}%", Self::get_name_key(&article_language_query))),
+                    )
+                    .inner_join(db_schema::language::table)
+                    .inner_join(db_schema::article::table)
+                    .into_boxed();
+
+                if is_actual {
+                    query = query
+                        .filter(db_schema::article_language::enabled.eq(true))
+                        .filter(db_schema::article_language::archived.eq(false))
+                        .filter(db_schema::article::enabled.eq(true))
+                        .filter(db_schema::article::archived.eq(false));
+                }
+
+                query
+                    .order(db_schema::article_language::name_key.asc())
+                    .load::<(model::ArticleLanguage, Language, Article)>(connection)
             })
             .await
             .expect(&FmtError::FailedToFetch("article_languages").fmt())

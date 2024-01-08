@@ -6,10 +6,43 @@ use std::collections::{hash_map::Entry, HashMap};
 use super::error::FmtError;
 use super::mapper::ValuesMapper;
 
-use super::repository::entity::article_language::ArticleLanguage;
+use super::repository::{entity, entity::article_language::ArticleLanguage};
 
 use super::article_version::ArticleVersionAggregation;
 use super::language::LanguageAggregation;
+
+#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+pub struct ArticleLanguagePartialAggregation {
+    pub name: String,
+    pub name_key: String,
+    pub language_code: String,
+}
+
+impl ArticleLanguagePartialAggregation {
+    pub fn from_model(
+        article_language: ArticleLanguage,
+        language: entity::language::Language,
+    ) -> Self {
+        Self {
+            name: article_language.name,
+            name_key: article_language.name_key,
+            language_code: language.code,
+        }
+    }
+
+    pub fn from_related_models(
+        article_languages_relations: Vec<(
+            ArticleLanguage,
+            entity::language::Language,
+            entity::article::Article,
+        )>,
+    ) -> Vec<Self> {
+        article_languages_relations
+            .into_iter()
+            .map(|(article_language, language, _)| Self::from_model(article_language, language))
+            .collect()
+    }
+}
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 pub struct ArticleLanguageAggregation {
