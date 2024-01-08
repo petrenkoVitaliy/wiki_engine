@@ -5,6 +5,7 @@ use super::error::FmtError;
 
 use super::repository::entity::{
     article_version::ArticleVersion,
+    auth::UserAccount,
     version_content::{ContentType, VersionContent},
 };
 
@@ -12,13 +13,13 @@ pub struct VersionContentService;
 
 impl VersionContentService {
     pub fn get_contents_map_by_ids(
-        article_versions_with_contents: &Vec<(ArticleVersion, VersionContent)>,
+        article_versions_with_contents: &Vec<(ArticleVersion, VersionContent, UserAccount)>,
     ) -> HashMap<i32, String> {
         let mut contents_map: HashMap<i32, String> = HashMap::new();
 
         let versions_contents_by_language_map = article_versions_with_contents.into_iter().fold(
             HashMap::new(),
-            |mut acc, (article_version, version_content)| {
+            |mut acc, (article_version, version_content, _)| {
                 match acc.entry(article_version.article_language_id) {
                     Entry::Vacant(acc) => {
                         acc.insert(vec![(article_version, version_content)]);

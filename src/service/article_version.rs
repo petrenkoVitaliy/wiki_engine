@@ -24,6 +24,7 @@ use super::repository::{
         article::ArticleRepository,
         article_language::{ArticleLanguage, ArticleLanguageRepository},
         article_version::{ArticleVersion, ArticleVersionRepository},
+        auth::UserAccount,
         version_content::{ContentType, VersionContent, VersionContentRepository},
     },
     PgConnection,
@@ -41,7 +42,7 @@ impl ArticleVersionService {
         language_search_dto: LanguageSearchDto,
         query_options: &QueryOptions,
     ) -> Result<ArticleVersionAggregation, ErrorWrapper> {
-        let (article_versions_contents, content_map) =
+        let (article_versions_relations, content_map) =
             match Self::get_versions_with_content_map(connection, version, language_search_dto)
                 .await
             {
@@ -49,18 +50,18 @@ impl ArticleVersionService {
                 Ok(versions_with_content_map) => versions_with_content_map,
             };
 
-        let requested_article_version_with_content =
+        let requested_article_version_relations =
             match Self::get_requested_article_version_with_content(
-                article_versions_contents,
+                article_versions_relations,
                 version,
                 query_options,
             ) {
-                Some(article_version_with_content) => article_version_with_content,
+                Some(article_versions_relations) => article_versions_relations,
                 None => return FmtError::NotFound("article_version").error(),
             };
 
         let mut article_versions_aggregations = ArticleVersionAggregation::from_content_map(
-            vec![requested_article_version_with_content],
+            vec![requested_article_version_relations],
             content_map,
         );
 
@@ -74,7 +75,7 @@ impl ArticleVersionService {
         query_options: &QueryOptions,
     ) -> Result<Vec<ArticleVersionAggregation>, ErrorWrapper> {
         let version_ge_to_search = if actual_only { None } else { Some(1) };
-        let (article_versions_contents, content_map) = match Self::get_versions_with_content_map(
+        let (article_versions_relations, content_map) = match Self::get_versions_with_content_map(
             connection,
             version_ge_to_search,
             language_search_dto,
@@ -86,7 +87,7 @@ impl ArticleVersionService {
         };
 
         let article_versions_aggregations =
-            ArticleVersionAggregation::from_content_map(article_versions_contents, content_map);
+            ArticleVersionAggregation::from_content_map(article_versions_relations, content_map);
 
         Ok(article_versions_aggregations
             .into_iter()
@@ -306,13 +307,13 @@ impl ArticleVersionService {
     }
 
     fn get_requested_article_version_with_content(
-        article_versions_contents: Vec<(ArticleVersion, VersionContent)>,
+        article_versions_relations: Vec<(ArticleVersion, VersionContent, UserAccount)>,
         version: Option<i32>,
         query_options: &QueryOptions,
-    ) -> Option<(ArticleVersion, VersionContent)> {
-        article_versions_contents
+    ) -> Option<(ArticleVersion, VersionContent, UserAccount)> {
+        article_versions_relations
             .into_iter()
-            .find(|(article_version, _)| {
+            .find(|(article_version, _, _)| {
                 if let Some(version) = version {
                     if query_options.is_actual {
                         return article_version.version == version && article_version.enabled;
@@ -332,7 +333,7 @@ impl ArticleVersionService {
         language_search_dto: LanguageSearchDto,
     ) -> Result<
         (
-            Vec<(ArticleVersion, VersionContent)>,
+            Vec<(ArticleVersion, VersionContent, UserAccount)>,
             HashMap<i32, std::string::String>,
         ),
         ErrorWrapper,
@@ -379,7 +380,7 @@ impl ArticleVersionService {
             },
         };
 
-        let article_versions_contents = match version {
+        let article_versions_relations = match version {
             Some(version) => {
                 ArticleVersionRepository::get_many_with_content(
                     connection,
@@ -400,8 +401,8 @@ impl ArticleVersionService {
         };
 
         let content_map =
-            VersionContentService::get_contents_map_by_ids(&article_versions_contents);
+            VersionContentService::get_contents_map_by_ids(&article_versions_relations);
 
-        Ok((article_versions_contents, content_map))
+        Ok((article_versions_relations, content_map))
     }
 }

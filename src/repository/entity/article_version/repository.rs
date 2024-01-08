@@ -6,6 +6,7 @@ use super::error::FmtError;
 use super::db_schema;
 use super::model;
 
+use super::auth::UserAccount;
 use super::version_content::VersionContent;
 
 use super::dtm::article_version::dto::{
@@ -32,7 +33,7 @@ impl ArticleVersionRepository {
     pub async fn get_many_actuals_with_content(
         connection: &PgConnection,
         article_languages_ids: Vec<i32>,
-    ) -> Vec<(model::ArticleVersion, VersionContent)> {
+    ) -> Vec<(model::ArticleVersion, VersionContent, UserAccount)> {
         connection
             .run(move |connection| {
                 return sql_query(format!(r#"
@@ -43,10 +44,11 @@ impl ArticleVersionRepository {
                         and enabled = true
                         GROUP BY article_language_id
                     )
-                    SELECT article_version.*, version_content.*
+                    SELECT article_version.*, version_content.*, user_account.*
                     FROM article_version
                     INNER JOIN max_versions mv ON article_version.article_language_id = mv.article_language_id
                     INNER JOIN version_content ON article_version.content_id = version_content.id
+                    INNER JOIN user_account ON article_version.created_by = user_account.id
                     WHERE (
                         article_version.version = mv.max_version
                         OR (
@@ -58,7 +60,7 @@ impl ArticleVersionRepository {
                     ;"#,
                 ))
                 .bind::<diesel::sql_types::Array<diesel::sql_types::Integer>, _>(&article_languages_ids)
-                .load::<(model::ArticleVersion, VersionContent)>(connection);
+                .load::<(model::ArticleVersion, VersionContent, UserAccount)>(connection);
             })
             .await
             .expect(&FmtError::FailedToFetch("article_versions").fmt())
@@ -67,11 +69,12 @@ impl ArticleVersionRepository {
     pub async fn get_many_with_content(
         connection: &PgConnection,
         query_dto: ArticleVersionsJoinSearchDto,
-    ) -> Vec<(model::ArticleVersion, VersionContent)> {
+    ) -> Vec<(model::ArticleVersion, VersionContent, UserAccount)> {
         connection
             .run(move |connection| {
                 let mut query = db_schema::article_version::table
                     .inner_join(db_schema::version_content::table)
+                    .inner_join(db_schema::user_account::table)
                     .into_boxed();
 
                 if query_dto.article_languages_ids.len() == 1 {
@@ -89,7 +92,7 @@ impl ArticleVersionRepository {
                 return query
                     .filter(db_schema::article_version::version.ge(query_dto.version_ge))
                     .order(db_schema::article_version::version.desc())
-                    .load::<(model::ArticleVersion, VersionContent)>(connection);
+                    .load::<(model::ArticleVersion, VersionContent, UserAccount)>(connection);
             })
             .await
             .expect(&FmtError::FailedToFetch("article_versions").fmt())

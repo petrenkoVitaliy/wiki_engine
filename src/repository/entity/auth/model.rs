@@ -1,5 +1,5 @@
 use chrono::NaiveDateTime;
-use diesel::{AsChangeset, Insertable, Queryable, Selectable};
+use diesel::{AsChangeset, Insertable, Queryable, QueryableByName, Selectable};
 use rocket::serde::{Deserialize, Serialize};
 use rocket_sync_db_pools::diesel;
 
@@ -12,7 +12,7 @@ pub struct UserRole {
     pub role: String,
 }
 
-#[derive(Queryable, Debug, Serialize, Deserialize)]
+#[derive(Queryable, Debug, Serialize, Deserialize, QueryableByName)]
 #[diesel(table_name = user_account)]
 pub struct UserAccount {
     pub id: i32,

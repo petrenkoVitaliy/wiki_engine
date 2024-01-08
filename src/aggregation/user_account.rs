@@ -1,10 +1,10 @@
 use chrono::NaiveDateTime;
-use rocket::serde::Serialize;
+use rocket::serde::{Deserialize, Serialize};
 use rocket_okapi::okapi::schemars::JsonSchema;
 
 use super::repository::entity::auth::UserAccount;
 
-#[derive(Serialize, JsonSchema, Debug)]
+#[derive(Deserialize, Serialize, JsonSchema, Debug)]
 pub struct UserAccountPartialAggregation {
     pub email: String,
     pub name: String,

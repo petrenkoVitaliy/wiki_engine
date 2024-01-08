@@ -119,6 +119,7 @@ diesel::joinable!(article_language -> language (language_id));
 
 diesel::joinable!(article_version -> article_language (article_language_id));
 diesel::joinable!(article_version -> version_content (content_id));
+diesel::joinable!(article_version -> user_account (created_by));
 
 diesel::joinable!(user_otp -> user_account (user_id));
 
