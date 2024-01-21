@@ -58,6 +58,68 @@ impl Emailer {
         format!("{client_urn}/api/confirm?key={otp}&email={email}{from_query}")
     }
 
+    fn get_reset_body(url: String, email: &String) -> serde::json::Value {
+        return serde::json::json!({
+            "to": [
+                {
+                    "email": email,
+                    "name": "User"
+                }
+            ],
+            "templateId": 2,
+            "params": {
+                "url": url
+            },
+            "headers": {
+                "charset": "iso-8859-1"
+            }
+        });
+    }
+
+    fn get_reset_url(otp: &String, email: &String, redirect_to: &Option<String>) -> String {
+        let client_urn =
+            env::var(CLIENT_URL_ENV).expect(&FmtError::EmptyValue(CLIENT_URL_ENV).fmt());
+
+        let from_query = match redirect_to {
+            Some(from) => format!("&from={from}"),
+            None => String::from(""),
+        };
+
+        format!("{client_urn}/reset/confirm?key={otp}&email={email}{from_query}")
+    }
+
+    pub async fn send_reset_email(
+        otp: &String,
+        email: &String,
+        redirect_to: &Option<String>,
+    ) -> Result<(), ErrorWrapper> {
+        let client = reqwest::Client::builder()
+            .build()
+            .expect(&FmtError::FailedToProcess("emailer client").fmt());
+
+        let url = Self::get_reset_url(otp, email, redirect_to);
+
+        let json = Self::get_reset_body(url, email);
+
+        match client
+            .request(reqwest::Method::POST, BREVO_URL)
+            .headers(Self::get_headers())
+            .json(&json)
+            .send()
+            .await
+        {
+            Ok(_) => (),
+
+            Err(err) => {
+                eprintln!("{}", err);
+
+                return Err(FmtError::FailedToSendRequest("emailer").error_wrapper());
+            }
+        }
+
+        Ok(())
+    }
+
     pub async fn send_confirmation_email(
         otp: &String,
         email: &String,

@@ -3,7 +3,10 @@ use rocket_okapi::okapi::schemars::JsonSchema;
 
 use super::trait_common::DtoConvert;
 
-use super::dto::{UserConfirmDto, UserLoginDto, UserPatchDto, UserSignupDto};
+use super::dto::{
+    UserConfirmDto, UserConfirmPasswordResetDto, UserLoginDto, UserPatchDto, UserResetDto,
+    UserSignupDto,
+};
 
 #[derive(Deserialize, JsonSchema)]
 pub struct UserPatchBody {
@@ -42,6 +45,19 @@ impl DtoConvert<UserSignupDto> for UserSignupBody {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
+pub struct UserResetBody {
+    pub email: String,
+}
+
+impl DtoConvert<UserResetDto> for UserResetBody {
+    type TParams = ();
+
+    fn into_dto(self, _params: Self::TParams) -> UserResetDto {
+        UserResetDto { email: self.email }
+    }
+}
+
 #[derive(Deserialize, JsonSchema, Debug)]
 pub struct UserLoginBody {
     pub email: String,
@@ -72,6 +88,25 @@ impl DtoConvert<UserConfirmDto> for UserConfirmBody {
         UserConfirmDto {
             email: self.email,
             otp: self.otp,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, JsonSchema)]
+pub struct UserConfirmPasswordResetBody {
+    pub email: String,
+    pub otp: String,
+    pub password: String,
+}
+
+impl DtoConvert<UserConfirmPasswordResetDto> for UserConfirmPasswordResetBody {
+    type TParams = ();
+
+    fn into_dto(self, _params: Self::TParams) -> UserConfirmPasswordResetDto {
+        UserConfirmPasswordResetDto {
+            email: self.email,
+            otp: self.otp,
+            password: self.password,
         }
     }
 }

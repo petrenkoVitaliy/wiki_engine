@@ -6,6 +6,10 @@ pub mod sql_types {
     #[derive(diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "article_type"))]
     pub struct ArticleType;
+
+    #[derive(diesel::sql_types::SqlType, diesel::query_builder::QueryId)]
+    #[diesel(postgres_type(name = "otp_type"))]
+    pub struct OTPType;
 }
 
 diesel::table! {
@@ -66,10 +70,14 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::OTPType;
+
     user_otp (id) {
         id -> Int4,
         otp -> Varchar,
         user_id -> Int4,
+        otp_type -> OTPType,
         created_at -> Timestamp,
     }
 }

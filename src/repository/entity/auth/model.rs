@@ -1,9 +1,10 @@
 use chrono::NaiveDateTime;
 use diesel::{AsChangeset, Insertable, Queryable, QueryableByName, Selectable};
+use diesel_derive_enum;
 use rocket::serde::{Deserialize, Serialize};
 use rocket_sync_db_pools::diesel;
 
-use super::db_schema::{user_account, user_otp, user_password};
+use super::db_schema::{sql_types, user_account, user_otp, user_password};
 
 #[derive(Queryable, Debug, Serialize, Deserialize)]
 #[diesel(table_name = user_role)]
@@ -90,6 +91,25 @@ pub struct UserPasswordInsertable {
     pub created_at: Option<NaiveDateTime>,
 }
 
+#[derive(Queryable, Debug, Insertable, Serialize, Deserialize, AsChangeset)]
+#[diesel(table_name = user_password)]
+pub struct UserPasswordPatch {
+    pub id: Option<i32>,
+
+    pub password: Option<String>,
+    pub user_id: Option<i32>,
+
+    pub updated_at: Option<NaiveDateTime>,
+    pub created_at: Option<NaiveDateTime>,
+}
+
+#[derive(Serialize, Deserialize, Debug, diesel_derive_enum::DbEnum)]
+#[ExistingTypePath = "sql_types::OTPType"]
+pub enum OTPType {
+    Register,
+    Reset,
+}
+
 #[derive(Queryable, Debug, Serialize, Deserialize, Selectable)]
 #[diesel(table_name = user_otp)]
 pub struct UserOtp {
@@ -97,6 +117,7 @@ pub struct UserOtp {
 
     pub otp: String,
     pub user_id: i32,
+    pub otp_type: OTPType,
 
     pub created_at: NaiveDateTime,
 }
@@ -108,6 +129,7 @@ pub struct UserOtpInsertable {
 
     pub otp: String,
     pub user_id: i32,
+    pub otp_type: OTPType,
 
     pub created_at: Option<NaiveDateTime>,
 }

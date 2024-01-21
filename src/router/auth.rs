@@ -14,7 +14,8 @@ use super::aggregation::user_account_auth::{
 };
 
 use super::dtm::auth::request_body::{
-    UserConfirmBody, UserLoginBody, UserPatchBody, UserSignupBody,
+    UserConfirmBody, UserConfirmPasswordResetBody, UserLoginBody, UserPatchBody, UserResetBody,
+    UserSignupBody,
 };
 
 use super::service::auth::AuthService;
@@ -36,12 +37,43 @@ async fn signup(
 }
 
 #[openapi]
+#[post("/reset?<redirect_to>", data = "<user_reset_body>")]
+async fn reset(
+    connection: PgConnection,
+    user_reset_body: Json<UserResetBody>,
+    redirect_to: Option<String>,
+) -> Result<Json<ResponseString>, status::Custom<String>> {
+    match AuthService::reset_user_password(&connection, user_reset_body.0.into_dto(()), redirect_to)
+        .await
+    {
+        Ok(_) => Ok(Json(ResponseString {
+            status: String::from("success"),
+        })),
+        Err(e) => Err(e.custom()),
+    }
+}
+
+#[openapi]
 #[post("/confirm", data = "<user_confirm_body>")]
 async fn confirm(
     connection: PgConnection,
     user_confirm_body: Json<UserConfirmBody>,
 ) -> Result<Json<UserAccountAuthAggregation>, status::Custom<String>> {
     match AuthService::confirm_user(&connection, user_confirm_body.0.into_dto(())).await {
+        Ok(aggregation) => Ok(Json(aggregation)),
+        Err(e) => Err(e.custom()),
+    }
+}
+
+#[openapi]
+#[post("/confirm-reset", data = "<user_confirm_reset_body>")]
+async fn confirm_reset(
+    connection: PgConnection,
+    user_confirm_reset_body: Json<UserConfirmPasswordResetBody>,
+) -> Result<Json<UserAccountAuthAggregation>, status::Custom<String>> {
+    match AuthService::confirm_password_reset(&connection, user_confirm_reset_body.0.into_dto(()))
+        .await
+    {
         Ok(aggregation) => Ok(Json(aggregation)),
         Err(e) => Err(e.custom()),
     }
@@ -135,10 +167,12 @@ pub fn routes() -> Vec<rocket::Route> {
     openapi_get_routes![
         settings: signup,
         login,
+        reset,
         test_jwt,
         patch_user,
         get_user,
-        confirm
+        confirm,
+        confirm_reset,
     ]
 }
 
@@ -152,10 +186,12 @@ pub fn test_routes() -> Vec<rocket::Route> {
     openapi_get_routes![
         settings: signup,
         login,
+        reset,
         test_jwt,
         patch_user,
         signup_with_role,
         get_user,
         confirm,
+        confirm_reset,
     ]
 }

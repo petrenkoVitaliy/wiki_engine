@@ -1,3 +1,5 @@
+use super::repository::entity::auth::OTPType;
+
 pub struct UserAccountCreateDto {
     pub email: String,
     pub name: String,
@@ -12,6 +14,7 @@ pub struct UserPasswordCreateDto {
 pub struct UserOtpCreateDto {
     pub user_id: i32,
     pub otp: String,
+    pub otp_type: OTPType,
 }
 
 pub struct UserPatchDto {
@@ -29,15 +32,33 @@ pub struct UserCreateRelationsDto {
     pub otp: Option<String>,
 }
 
+#[derive(Debug)]
+pub struct UserResetOTPsDto {
+    pub user_id: i32,
+    pub existing_otp_ids: Vec<i32>,
+    pub otp: String,
+}
+
 pub struct UserSignupDto {
     pub email: String,
     pub name: String,
     pub password: String,
 }
 
+#[derive(Debug)]
+pub struct UserResetDto {
+    pub email: String,
+}
+
 pub struct UserConfirmDto {
     pub email: String,
     pub otp: String,
+}
+
+pub struct UserConfirmPasswordResetDto {
+    pub email: String,
+    pub otp: String,
+    pub password: String,
 }
 
 pub struct UserLoginDto {
