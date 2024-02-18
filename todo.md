@@ -1,4 +1,5 @@
 TODOs:
+1;
 
 ## high:
 
@@ -12,8 +13,7 @@ TODOs:
     - [X] align imports & dtos
     - [X] FE init
 
-## medium: 
-
+## medium:
 
     - [ ] mailgun auth + email validation + pass recover
 
@@ -25,7 +25,8 @@ TODOs:
     - [ ] performance test!
 
 ## low:
+
     - [ ] add article versions compare get lang/:code/version/:id/compare/:id -> versions: {actual: ..., compared?: ...}
-    
+
     - [ ] add permissions?
     - [ ] pagination (article, article_version, draft)?
