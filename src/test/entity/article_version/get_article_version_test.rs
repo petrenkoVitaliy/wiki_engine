@@ -25,7 +25,7 @@ async fn get_article_version() {
 
     let language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("test get article version"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("first version content"),
         language: language.clone(),
         article_type: ArticleType::Public,
@@ -37,6 +37,7 @@ async fn get_article_version() {
 
     let creation_body = ArticleVersionCreateRelationsBody {
         content: String::from("second version content"),
+        name: None,
     };
 
     ArticleVersionRequestHandler::create_article_version(
@@ -60,6 +61,7 @@ async fn get_article_version() {
             &ArticleVersionMockOptions::from_creation_dto(
                 &ArticleVersionCreateRelationsBody {
                     content: article_creation_body.content,
+                    name: None,
                 },
                 1,
             ),
@@ -83,7 +85,7 @@ async fn get_article_version_wrong_params() {
 
     let language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("test get article version wrong params"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("first version content"),
         language: language.clone(),
         article_type: ArticleType::Public,
@@ -117,7 +119,7 @@ async fn get_article_version_disabled() {
 
     let language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("test get article versions disabled"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("first version content"),
         language: language.clone(),
         article_type: ArticleType::Public,

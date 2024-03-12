@@ -25,7 +25,7 @@ async fn get_article_versions() {
 
     let language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("test get article versions"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("first version content"),
         language: language.clone(),
         article_type: ArticleType::Public,
@@ -37,6 +37,7 @@ async fn get_article_versions() {
 
     let creation_body = ArticleVersionCreateRelationsBody {
         content: String::from("second version content"),
+        name: None,
     };
 
     ArticleVersionRequestHandler::create_article_version(
@@ -60,6 +61,7 @@ async fn get_article_versions() {
             &ArticleVersionMockOptions::from_creation_dto(
                 &ArticleVersionCreateRelationsBody {
                     content: article_creation_body.content,
+                    name: None,
                 },
                 1,
             ),
@@ -83,7 +85,7 @@ async fn get_article_versions_wrong_params() {
 
     let language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("test get article versions wrong params"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("first version content"),
         language: language.clone(),
         article_type: ArticleType::Public,
@@ -110,7 +112,7 @@ async fn get_article_versions_disabled() {
 
     let language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("test get article versions disabled"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("first version content"),
         language: language.clone(),
         article_type: ArticleType::Public,
@@ -121,6 +123,7 @@ async fn get_article_versions_disabled() {
 
     let creation_body = ArticleVersionCreateRelationsBody {
         content: String::from("second version content"),
+        name: None,
     };
 
     ArticleVersionRequestHandler::create_article_version(
@@ -186,6 +189,7 @@ async fn get_article_versions_disabled() {
             &ArticleVersionMockOptions::from_creation_dto(
                 &ArticleVersionCreateRelationsBody {
                     content: article_creation_body.content,
+                    name: None,
                 },
                 1,
             ),

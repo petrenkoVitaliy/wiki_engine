@@ -29,7 +29,7 @@ async fn get_article_language() {
 
     let first_language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("test get article language"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("test content"),
         language: first_language.clone(),
         article_type: ArticleType::Public,
@@ -59,7 +59,7 @@ async fn get_article_language() {
 
     let second_language = String::from("en");
     let creation_body = ArticleLanguageCreateRelationsBody {
-        name: String::from("test get article language"),
+        name: format!("{}_article_lang", setup.test_id),
         content: String::from("test content"),
     };
 
@@ -92,7 +92,7 @@ async fn get_article_language_wrong_params() {
 
     let language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("test get article language wrong params"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("test content"),
         language: language.clone(),
         article_type: ArticleType::Public,
@@ -130,7 +130,7 @@ async fn get_article_language_deleted() {
 
     let language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("test get article language deleted"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("test content"),
         language: language.clone(),
         article_type: ArticleType::Public,
@@ -181,7 +181,7 @@ async fn get_article_language_disabled() {
 
     let language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("test get article language disabled"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("test content"),
         language: language.clone(),
         article_type: ArticleType::Public,

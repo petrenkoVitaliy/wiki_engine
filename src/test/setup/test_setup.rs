@@ -2,6 +2,7 @@ use dotenv::dotenv;
 use parking_lot::MutexGuard;
 use rocket::{local::asynchronous::Client, Build, Rocket};
 use std::sync::Once;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use super::repository;
 use super::router::{article, article_language, article_version, auth, catchers};
@@ -23,6 +24,7 @@ pub struct TestSetup {
     pub lock: Option<MutexGuard<'static, ()>>,
     pub client: &'static Client,
     pub user_handler: &'static TestUsersHandler,
+    pub test_id: u128,
 }
 
 impl TestSetup {
@@ -32,6 +34,11 @@ impl TestSetup {
             _ => None,
         };
 
+        let test_id = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("get timestamp id")
+            .as_millis();
+
         let client = Self::get_client().await;
         let user_handler = Self::get_test_user_handler(&client).await;
 
@@ -39,6 +46,7 @@ impl TestSetup {
             client,
             lock,
             user_handler,
+            test_id,
         }
     }
 

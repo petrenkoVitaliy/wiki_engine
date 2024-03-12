@@ -13,7 +13,7 @@ use super::repository::entity::{
 use super::user_account::UserAccountPartialAggregation;
 use super::version_content::VersionContentAggregation;
 
-#[derive(Deserialize, Serialize, JsonSchema, Debug)]
+#[derive(Deserialize, Serialize, JsonSchema)]
 pub struct ArticleVersionAggregation {
     pub id: i32,
     pub version: i32,

@@ -27,7 +27,7 @@ async fn create_article_version() {
     let article = ArticleRequestHandler::create_article(
         &setup,
         &ArticleCreateRelationsBody {
-            name: String::from("test create article version"),
+            name: format!("{}_article", setup.test_id),
             content: String::from("first version content"),
             language: language.clone(),
             article_type: ArticleType::Public,
@@ -36,13 +36,14 @@ async fn create_article_version() {
     )
     .await;
 
-    let first_creation_body = ArticleVersionCreateRelationsBody {
+    let first_av_creation_body = ArticleVersionCreateRelationsBody {
         content: String::from("second version content"),
+        name: None,
     };
 
     let first_response_body = ArticleVersionRequestHandler::create_article_version(
         &setup,
-        &first_creation_body,
+        &first_av_creation_body,
         article.id,
         &language,
         admin_token.clone(),
@@ -52,18 +53,19 @@ async fn create_article_version() {
     ArticleVersionAssertHandler::assert_article_version_aggregation(
         &first_response_body,
         &ArticleVersionMockHandler::get_article_version_aggregation(
-            &ArticleVersionMockOptions::from_creation_dto(&first_creation_body, 2),
+            &ArticleVersionMockOptions::from_creation_dto(&first_av_creation_body, 2),
         ),
         ArticleVersionAssertOptions { is_updated: false },
     );
 
-    let second_creation_body = ArticleVersionCreateRelationsBody {
+    let second_av_creation_body = ArticleVersionCreateRelationsBody {
         content: String::from("test create article version content"),
+        name: None,
     };
 
     let second_response_body = ArticleVersionRequestHandler::create_article_version(
         &setup,
-        &second_creation_body,
+        &second_av_creation_body,
         article.id,
         &language,
         admin_token,
@@ -73,7 +75,7 @@ async fn create_article_version() {
     ArticleVersionAssertHandler::assert_article_version_aggregation(
         &second_response_body,
         &ArticleVersionMockHandler::get_article_version_aggregation(
-            &ArticleVersionMockOptions::from_creation_dto(&second_creation_body, 3),
+            &ArticleVersionMockOptions::from_creation_dto(&second_av_creation_body, 3),
         ),
         ArticleVersionAssertOptions { is_updated: false },
     );
@@ -88,7 +90,7 @@ async fn create_article_version_wrong_params() {
     let article = ArticleRequestHandler::create_article(
         &setup,
         &ArticleCreateRelationsBody {
-            name: String::from("test create article version wrong params"),
+            name: format!("{}_article", setup.test_id),
             content: String::from("first version content"),
             language: language.clone(),
             article_type: ArticleType::Public,
@@ -99,6 +101,7 @@ async fn create_article_version_wrong_params() {
 
     let first_creation_body = ArticleVersionCreateRelationsBody {
         content: String::from("second version content"),
+        name: None,
     };
 
     let wrong_language = String::from("en");

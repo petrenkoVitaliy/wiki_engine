@@ -27,7 +27,7 @@ async fn patch_article_language() {
 
     let language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("test patch article language"),
+        name: format!("{}_article_lang", setup.test_id),
         content: String::from("test content"),
         language: language.clone(),
         article_type: ArticleType::Public,
@@ -74,7 +74,7 @@ async fn patch_article_language_wrong_params() {
 
     let language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("test patch article language wrong params"),
+        name: format!("{}_article_lang", setup.test_id),
         content: String::from("test content"),
         language: language.clone(),
         article_type: ArticleType::Public,

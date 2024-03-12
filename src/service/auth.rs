@@ -269,6 +269,18 @@ impl AuthService {
         )
         .await?;
 
+        AuthRepository::patch(
+            connection,
+            UserPatchDto {
+                user_id: user_account.id,
+                active: Some(true),
+
+                updated_by: None,
+                blocked: None,
+            },
+        )
+        .await;
+
         match JwtHandler::encode_jwt(user_account.id) {
             Ok(jwt_string) => Ok(TokenDto { token: jwt_string }),
             Err(e) => return Err(e),

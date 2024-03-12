@@ -195,9 +195,9 @@ impl AuthRepository {
                     .set(model::UserAccountPatch {
                         id: None,
                         blocked: patch_dto.blocked,
+                        active: patch_dto.active,
                         updated_by: patch_dto.updated_by,
 
-                        active: None,
                         email: None,
                         name: None,
                         role_id: None,

@@ -18,7 +18,7 @@ async fn create_article() {
     let admin_token = setup.user_handler.get_token(TestUser::Admin1).unwrap();
 
     let creation_body = ArticleCreateRelationsBody {
-        name: String::from("test create article"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("test create article content"),
         language: String::from("ua"),
         article_type: ArticleType::Public,
@@ -42,7 +42,7 @@ async fn create_article_with_wrong_language() {
     let admin_token = setup.user_handler.get_token(TestUser::Admin1).unwrap();
 
     let creation_body = ArticleCreateRelationsBody {
-        name: String::from("test create wrong article"),
+        name: format!("{}_wrong_article", setup.test_id),
         content: String::from("test content"),
         language: String::from("incorrect"),
         article_type: ArticleType::Public,
@@ -74,7 +74,7 @@ async fn create_large_article() {
     ";
 
     let creation_body = ArticleCreateRelationsBody {
-        name: String::from("test name 1"),
+        name: format!("{}_article", setup.test_id),
         content: String::from(content),
         language: String::from("ua"),
         article_type: ArticleType::Public,

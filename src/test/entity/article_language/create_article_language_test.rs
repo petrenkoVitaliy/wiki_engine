@@ -28,7 +28,7 @@ async fn create_article_language() {
     let article = ArticleRequestHandler::create_article(
         &setup,
         &ArticleCreateRelationsBody {
-            name: String::from("test create article language"),
+            name: format!("{}_ua", setup.test_id),
             content: String::from("test content"),
             language: String::from("ua"),
             article_type: ArticleType::Public,
@@ -39,7 +39,7 @@ async fn create_article_language() {
 
     let language = String::from("en");
     let creation_body = ArticleLanguageCreateRelationsBody {
-        name: String::from("test create article language"),
+        name: format!("{}_en", setup.test_id),
         content: String::from("test create article content"),
     };
 
@@ -69,7 +69,7 @@ async fn create_article_language_with_nonexisting_language() {
     let article = ArticleRequestHandler::create_article(
         &setup,
         &ArticleCreateRelationsBody {
-            name: String::from("test create article language with nonexisting language"),
+            name: format!("{}_ua", setup.test_id),
             content: String::from("test content"),
             language: String::from("ua"),
             article_type: ArticleType::Public,
@@ -80,7 +80,7 @@ async fn create_article_language_with_nonexisting_language() {
 
     let language = String::from("nonexisting");
     let creation_body = ArticleLanguageCreateRelationsBody {
-        name: String::from("test create article language with nonexisting language"),
+        name: format!("{}_nonexisting", setup.test_id),
         content: String::from("test create article content"),
     };
 
@@ -107,7 +107,7 @@ async fn create_article_language_with_already_existing_language() {
     let article = ArticleRequestHandler::create_article(
         &setup,
         &ArticleCreateRelationsBody {
-            name: String::from("test create article language with already existing language"),
+            name: format!("{}_ua", setup.test_id),
             content: String::from("test content"),
             language: String::from("ua"),
             article_type: ArticleType::Public,
@@ -118,7 +118,7 @@ async fn create_article_language_with_already_existing_language() {
 
     let existing_language = String::from("ua");
     let creation_body = ArticleLanguageCreateRelationsBody {
-        name: String::from("test create article language with already existing language"),
+        name: format!("{}_ua2", setup.test_id),
         content: String::from("test create article content"),
     };
 

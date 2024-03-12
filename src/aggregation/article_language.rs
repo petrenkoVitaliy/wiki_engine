@@ -44,7 +44,7 @@ impl ArticleLanguagePartialAggregation {
     }
 }
 
-#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[derive(Serialize, Deserialize, JsonSchema)]
 pub struct ArticleLanguageAggregation {
     pub id: i32,
     pub name: String,

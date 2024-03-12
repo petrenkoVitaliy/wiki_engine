@@ -1,4 +1,12 @@
-source "$(dirname "$0")/.utils.sh"
+#!/bin/bash
+. ./scripts/.utils.sh
+
+
+# USAGE:
+# sh scripts/test.sh
+# Options:
+# -f   format DB 
+# -c   with coverage
 
 coverage=false;
 
@@ -19,8 +27,19 @@ done
 
 if $coverage; then
     print_log "running tests (coverage):"
+
+    cargo llvm-cov --open
+
+    # ALTERNATIVELY:
     
-    CARGO_INCREMENTAL=0 RUSTFLAGS='-Cinstrument-coverage' LLVM_PROFILE_FILE='coverage/cargo-test-%p-%m.profraw' ROCKET_PROFILE=test cargo test
+    # CARGO_INCREMENTAL=0 RUSTFLAGS='-Cinstrument-coverage' LLVM_PROFILE_FILE='coverage/cargo-test-%p-%m.profraw' ROCKET_PROFILE=test cargo test
+    
+    # if not exist => cargo install grcov
+    # grcov . --binary-path ./target/debug/deps/ -s . -t html --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o coverage/html        
+
+    # print_log "opening:"
+    # open ./coverage/html/index.html
+
 else
   print_log "running tests:"
 

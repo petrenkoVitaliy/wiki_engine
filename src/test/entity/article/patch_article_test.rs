@@ -18,7 +18,7 @@ async fn patch_article() {
     let admin_token = setup.user_handler.get_token(TestUser::Admin1).unwrap();
 
     let creation_body = ArticleCreateRelationsBody {
-        name: String::from("test patch article"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("test content"),
         language: String::from("ua"),
         article_type: ArticleType::Public,
@@ -30,7 +30,10 @@ async fn patch_article() {
     let patched_article = ArticleRequestHandler::patch_article(
         &setup,
         created_article.id,
-        &ArticlePatchBody { enabled: false },
+        &ArticlePatchBody {
+            enabled: Some(false),
+            article_type: None,
+        },
         admin_token.clone(),
     )
     .await;
@@ -52,7 +55,10 @@ async fn patch_article() {
     let patched_article = ArticleRequestHandler::patch_article(
         &setup,
         created_article.id,
-        &ArticlePatchBody { enabled: true },
+        &ArticlePatchBody {
+            enabled: Some(true),
+            article_type: None,
+        },
         admin_token,
     )
     .await;
@@ -77,9 +83,16 @@ async fn patch_nonexisting_article() {
     let setup = TestSetup::new(SetupOptions { is_lock: true }).await;
     let admin_token = setup.user_handler.get_token(TestUser::Admin1).unwrap();
 
-    let response =
-        ArticleRequest::patch_article(&setup, 0, &ArticlePatchBody { enabled: false }, admin_token)
-            .await;
+    let response = ArticleRequest::patch_article(
+        &setup,
+        0,
+        &ArticlePatchBody {
+            enabled: Some(false),
+            article_type: None,
+        },
+        admin_token,
+    )
+    .await;
 
     assert_eq!(response.status(), Status::NotFound);
     let error_message = response.into_string().await.unwrap();

@@ -79,9 +79,10 @@ async fn confirm_reset(
     }
 }
 
+// tests usage only
 #[openapi]
 #[post("/signup/role/<role_id>", data = "<user_signup_body>")]
-#[allow(dead_code)] // for tests
+#[allow(dead_code)]
 async fn signup_with_role(
     connection: PgConnection,
     user_signup_body: Json<UserSignupBody>,
@@ -176,7 +177,8 @@ pub fn routes() -> Vec<rocket::Route> {
     ]
 }
 
-#[allow(dead_code)] // for tests
+// tests usage only
+#[allow(dead_code)]
 pub fn test_routes() -> Vec<rocket::Route> {
     let settings = OpenApiSettings {
         json_path: "/auth.json".to_owned(),

@@ -1,9 +1,6 @@
 TODOs:
-1;
 
 ## high:
-
-    ...
 
     - [X] add article type (private, public, protected, restricted)
     - [X] add createdBy to article, article_language, article_version
@@ -15,18 +12,17 @@ TODOs:
 
 ## medium:
 
-    - [ ] mailgun auth + email validation + pass recover
+    - [X] mailgun auth + pass recover
 
-    - [ ] add tests coverage (auth + permissions + updates after services' refactor)
-
+    - [] email validation
     - [ ] add article version deletion (hard!)
     - [ ] add categories table + layer!
 
+    - [ ] add tests coverage (auth + permissions)
     - [ ] performance test!
 
 ## low:
 
-    - [ ] add article versions compare get lang/:code/version/:id/compare/:id -> versions: {actual: ..., compared?: ...}
-
-    - [ ] add permissions?
-    - [ ] pagination (article, article_version, draft)?
+    - [?] add article versions compare get lang/:code/version/:id/compare/:id -> versions: {actual: ..., compared?: ...}
+    - [?] add permissions
+    - [?] pagination (article, article_version, draft)

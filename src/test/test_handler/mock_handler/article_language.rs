@@ -34,12 +34,17 @@ impl ArticleLanguageMockOptions {
 
 pub struct ArticleLanguageMockHandler;
 impl ArticleLanguageMockHandler {
+    fn get_name_key(name: &String) -> String {
+        String::from(name).trim().to_lowercase().replace(" ", "_")
+    }
+
     pub fn get_article_language_aggregation(
         mock_options: &ArticleLanguageMockOptions,
     ) -> ArticleLanguageAggregation {
         ArticleLanguageAggregation {
             id: 0,
             name: mock_options.name.clone(),
+            name_key: Self::get_name_key(&mock_options.name),
             enabled: mock_options.enabled,
             archived: mock_options.archived,
             updated_at: None,
@@ -53,6 +58,7 @@ impl ArticleLanguageMockHandler {
                     enabled: true,
                     version: 1,
                     content: mock_options.content.clone(),
+                    name: Some(mock_options.name.clone()),
                 },
             ),
         }

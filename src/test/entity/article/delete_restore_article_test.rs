@@ -18,7 +18,7 @@ async fn delete_article() {
     let admin_token = setup.user_handler.get_token(TestUser::Admin1).unwrap();
 
     let creation_body = ArticleCreateRelationsBody {
-        name: String::from("test delete article"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("test content"),
         language: String::from("ua"),
         article_type: ArticleType::Public,
@@ -64,7 +64,7 @@ async fn restore_article() {
     let admin_token = setup.user_handler.get_token(TestUser::Admin1).unwrap();
 
     let creation_body = ArticleCreateRelationsBody {
-        name: String::from("test restore article"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("test content"),
         language: String::from("ua"),
         article_type: ArticleType::Public,
@@ -115,7 +115,7 @@ async fn restore_nonexisting_article() {
     let admin_token = setup.user_handler.get_token(TestUser::Admin1).unwrap();
 
     let creation_body = ArticleCreateRelationsBody {
-        name: String::from("test restore article"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("test content"),
         language: String::from("ua"),
         article_type: ArticleType::Public,

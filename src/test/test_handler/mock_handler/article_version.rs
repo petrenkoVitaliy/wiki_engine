@@ -8,6 +8,7 @@ use super::dtm::article_version::request_body::ArticleVersionCreateRelationsBody
 
 pub struct ArticleVersionMockOptions {
     pub content: String,
+    pub name: Option<String>,
     pub version: i32,
     pub enabled: bool,
 }
@@ -22,6 +23,7 @@ impl ArticleVersionMockOptions {
 
             enabled: true,
             content: creation_dto.content.clone(),
+            name: creation_dto.name.clone(),
         }
     }
 }
@@ -34,6 +36,7 @@ impl ArticleVersionMockHandler {
         ArticleVersionAggregation {
             id: 0,
             article_language_id: 0,
+            name: String::from(""),
             version: mock_options.version,
             enabled: mock_options.enabled,
             updated_at: None,
@@ -42,6 +45,7 @@ impl ArticleVersionMockHandler {
                 id: 0,
                 content: mock_options.content.clone(),
             },
+            created_by: None,
         }
     }
 }

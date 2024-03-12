@@ -7,7 +7,7 @@ use super::error::FmtError;
 
 use super::repository::entity::version_content::{ContentType, VersionContent};
 
-#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[derive(Serialize, Deserialize, JsonSchema)]
 pub struct VersionContentAggregation {
     pub id: i32,
     pub content: String,

@@ -12,6 +12,6 @@ log_level = "normal"
 json = "15 MiB"
 string = "15 MiB"
 
-[production.limits]
+[release.limits]
 json = "15 MiB"
 string = "15 MiB"

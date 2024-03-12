@@ -25,7 +25,7 @@ async fn patch_article_version() {
 
     let language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("test get article versions"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("first version content"),
         language: language.clone(),
         article_type: ArticleType::Public,
@@ -51,6 +51,7 @@ async fn patch_article_version() {
             content: article_creation_body.content.clone(),
             version: 1,
             enabled: false,
+            name: None,
         }),
         ArticleVersionAssertOptions { is_updated: true },
     );
@@ -71,6 +72,7 @@ async fn patch_article_version() {
             content: article_creation_body.content.clone(),
             version: 1,
             enabled: true,
+            name: None,
         }),
         ArticleVersionAssertOptions { is_updated: true },
     );
@@ -83,7 +85,7 @@ async fn patch_article_version_wrong_params() {
 
     let language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("test patch article version wrong params"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("first version content"),
         language: language.clone(),
         article_type: ArticleType::Public,

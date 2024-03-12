@@ -23,7 +23,7 @@ async fn delete_article_language() {
 
     let language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("delete article language"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("test content"),
         language: language.clone(),
         article_type: ArticleType::Public,
@@ -64,7 +64,7 @@ async fn delete_nonexisting_article_language() {
 
     let language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("delete article language"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("test content"),
         language: language.clone(),
         article_type: ArticleType::Public,
@@ -95,7 +95,7 @@ async fn restore_article_language() {
 
     let language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("restore article language"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("test content"),
         language: language.clone(),
         article_type: ArticleType::Public,
@@ -144,7 +144,7 @@ async fn restore_nonexisting_article_language() {
 
     let language = String::from("ua");
     let article_creation_body = ArticleCreateRelationsBody {
-        name: String::from("restore article language"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("test content"),
         language: language.clone(),
         article_type: ArticleType::Public,

@@ -1,18 +1,30 @@
 {
-    "cSpell.words": [
-        "actuals",
-        "BREVO",
-        "dtos",
-        "Insertable",
-        "openapi"
-    ],
-    "coverage-gutters.coverageFileNames": [
-        "coverage/tests.lcov",
-        "lcov.info",
-        "cov.xml",
-        "coverage.xml",
-        "jacoco.xml",
-        "coverage.cobertura.xml"
-      ],
-    
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.formatOnSave": true
+  },
+  "cSpell.words": [
+    "actuals",
+    "BREVO",
+    "bsdiff",
+    "chrono",
+    "dotenv",
+    "dtos",
+    "flate",
+    "hasher",
+    "Insertable",
+    "jsonwebtoken",
+    "openapi",
+    "reqwest",
+    "schemars",
+    "serde"
+  ],
+  "coverage-gutters.coverageFileNames": [
+    "coverage/tests.lcov",
+    "lcov.info",
+    "cov.xml",
+    "coverage.xml",
+    "jacoco.xml",
+    "coverage.cobertura.xml"
+  ]
 }

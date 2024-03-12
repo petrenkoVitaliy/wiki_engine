@@ -8,7 +8,7 @@ use super::repository::entity::auth::UserAccount;
 
 use super::user_account::{UserAccountAggregation, UserAccountPartialAggregation};
 
-#[derive(Serialize, JsonSchema, Debug)]
+#[derive(Serialize, JsonSchema)]
 pub struct UserAccountAuthAggregation {
     pub user: UserAccountPartialAggregation,
     pub token: TokenDto,
@@ -23,7 +23,7 @@ impl UserAccountAuthAggregation {
     }
 }
 
-#[derive(Serialize, JsonSchema, Debug)]
+#[derive(Serialize, JsonSchema)]
 pub struct UserAccountPermissionsAggregation {
     pub user: UserAccountPartialAggregation,
     pub permissions: Vec<ArticlePermission>,

@@ -1,7 +1,7 @@
-use rocket::serde::{Deserialize, Serialize};
+use rocket::serde::Serialize;
 use rocket_okapi::okapi::schemars::JsonSchema;
 
-#[derive(Deserialize, Serialize, JsonSchema, Debug)]
+#[derive(Serialize, JsonSchema)]
 pub struct ImageAggregation {
     pub id: i32,
     pub uri: String,

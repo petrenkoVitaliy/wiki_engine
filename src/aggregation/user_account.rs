@@ -4,7 +4,7 @@ use rocket_okapi::okapi::schemars::JsonSchema;
 
 use super::repository::entity::auth::UserAccount;
 
-#[derive(Deserialize, Serialize, JsonSchema, Debug)]
+#[derive(Deserialize, Serialize, JsonSchema)]
 pub struct UserAccountPartialAggregation {
     pub email: String,
     pub name: String,
@@ -30,7 +30,7 @@ impl UserAccountPartialAggregation {
     }
 }
 
-#[derive(Serialize, JsonSchema, Debug)]
+#[derive(Serialize, JsonSchema)]
 pub struct UserAccountAggregation {
     pub id: i32,
 

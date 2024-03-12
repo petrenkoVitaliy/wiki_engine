@@ -19,7 +19,7 @@ async fn get_article() {
     let admin_token = setup.user_handler.get_token(TestUser::Admin1).unwrap();
 
     let creation_body = ArticleCreateRelationsBody {
-        name: String::from("test get article"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("test content"),
         language: String::from("ua"),
         article_type: ArticleType::Public,
@@ -57,7 +57,7 @@ async fn get_disabled_article() {
     let admin_token = setup.user_handler.get_token(TestUser::Admin1).unwrap();
 
     let creation_body = ArticleCreateRelationsBody {
-        name: String::from("test get disabled article"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("test content"),
         language: String::from("ua"),
         article_type: ArticleType::Public,
@@ -69,7 +69,10 @@ async fn get_disabled_article() {
     ArticleRequestHandler::patch_article(
         &setup,
         created_article.id,
-        &ArticlePatchBody { enabled: false },
+        &ArticlePatchBody {
+            enabled: Some(false),
+            article_type: None,
+        },
         admin_token.clone(),
     )
     .await;
@@ -84,7 +87,10 @@ async fn get_disabled_article() {
     ArticleRequestHandler::patch_article(
         &setup,
         created_article.id,
-        &ArticlePatchBody { enabled: true },
+        &ArticlePatchBody {
+            enabled: Some(true),
+            article_type: None,
+        },
         admin_token,
     )
     .await;
@@ -106,7 +112,7 @@ async fn get_deleted_article() {
     let admin_token = setup.user_handler.get_token(TestUser::Admin1).unwrap();
 
     let creation_body = ArticleCreateRelationsBody {
-        name: String::from("test deleted article"),
+        name: format!("{}_article", setup.test_id),
         content: String::from("test content"),
         language: String::from("ua"),
         article_type: ArticleType::Public,
